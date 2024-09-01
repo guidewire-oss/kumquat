@@ -191,7 +191,10 @@ func TestRenderGoWithTwoInputsBatchModeProcessingOn(t *testing.T) {
 	assert.Equal(t, 1, output.ResourceCount())
 	out, err := output.ResultString(0)
 	assert.NoError(t, err)
-	assert.Equal(t, "\nkumquat.guidewire.com/v1beta1,\ntest1,\ndefault\nkumquat.guidewire.com/v1beta1,\ntest2,\ndefault", out)
+	assert.Equal(
+		t,
+		"\nkumquat.guidewire.com/v1beta1,\ntest1,\ndefault\nkumquat.guidewire.com/v1beta1,\ntest2,\ndefault",
+		out)
 
 }
 

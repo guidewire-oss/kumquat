@@ -91,7 +91,8 @@ func appendOutput(o *renderer.Output, v cuelang.Value) error {
 		if err != nil {
 			return fmt.Errorf("error decoding 'out': %w", err)
 		}
-		//convert output to string
+
+		// convert output to string
 		outputByteArray, err := yaml.Marshal(output)
 		if err != nil {
 			return fmt.Errorf("error decoding 'out': %w", err)

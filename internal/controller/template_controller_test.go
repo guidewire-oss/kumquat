@@ -19,8 +19,8 @@ package controller
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 
 	corev1 "k8s.io/api/core/v1"                   // Import the core API group
@@ -66,7 +66,7 @@ var _ = Describe("Template Controller", func() {
 			err = k8sClient.Get(ctx, typeNamespacedName, template)
 			if err != nil && errors.IsNotFound(err) {
 				templatePath := filepath.Join("internal/controller/resources/template_resource.yaml")
-				templateData, err := ioutil.ReadFile(templatePath)
+				templateData, err := os.ReadFile(templatePath)
 				Expect(err).NotTo(HaveOccurred())
 				var data map[string]interface{}
 				err = yaml.Unmarshal(templateData, &data)
@@ -83,10 +83,9 @@ var _ = Describe("Template Controller", func() {
 				fileName := spec["template"].(map[string]interface{})["fileName"].(string)
 				templateDataa := spec["template"].(map[string]interface{})["data"].(string)
 
-				//convert object to kumquatv1beta1.Template
+				// convert object to kumquatv1beta1.Template
 				template := &kumquatv1beta1.Template{}
 
-				template = &kumquatv1beta1.Template{}
 				template.SetName(resourceName)
 				template.SetNamespace(namespaceName)
 				template.APIVersion = "kumquat.guidewire.com/v1beta1"
@@ -104,7 +103,7 @@ var _ = Describe("Template Controller", func() {
 				Expect(k8sClient.Create(ctx, template)).To(Succeed())
 
 				obj1 := &unstructured.Unstructured{}
-				//set name, namespace and kind and apiVersion
+				// set name, namespace and kind and apiVersion
 				obj1.SetName(resourceName)
 				obj1.SetNamespace(namespaceName)
 				obj1.SetKind("Template")
@@ -139,7 +138,7 @@ var _ = Describe("Template Controller", func() {
 			err := k8sClient.Get(ctx, typeNamespacedName, obj)
 			Expect(err).NotTo(HaveOccurred())
 
-			fmt.Fprintf(GinkgoWriter, "Created object: %+v\n", obj)
+			// fmt.Fprintf(GinkgoWriter, "Created object: %+v\n", obj)
 
 			By("Reconciling the created resource")
 			controllerReconciler := &TemplateReconciler{

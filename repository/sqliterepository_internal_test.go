@@ -10,7 +10,7 @@ import (
 func TestCreateTable(t *testing.T) {
 	r, err := NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
 	err = r.createTable("Example.guidewire.com")
 	assert.NoError(t, err)

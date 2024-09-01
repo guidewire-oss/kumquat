@@ -78,7 +78,10 @@ func (k *DynamicK8sClient) getGVRByGroupAndKind(group, kind string) (schema.Grou
 }
 
 // Create creates a resource based on group and kind
-func (k *DynamicK8sClient) Create(ctx context.Context, obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
+func (k *DynamicK8sClient) Create(
+	ctx context.Context,
+	obj *unstructured.Unstructured,
+) (*unstructured.Unstructured, error) {
 	gvk := obj.GroupVersionKind()
 	gvr := schema.GroupVersionResource{
 		Group:    gvk.Group,
@@ -89,7 +92,10 @@ func (k *DynamicK8sClient) Create(ctx context.Context, obj *unstructured.Unstruc
 	return k.client.Resource(gvr).Namespace(obj.GetNamespace()).Create(ctx, obj, v1.CreateOptions{})
 }
 
-func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
+func (k *DynamicK8sClient) CreateOrUpdate(
+	ctx context.Context,
+	obj *unstructured.Unstructured,
+) (*unstructured.Unstructured, error) {
 	gvk := obj.GroupVersionKind()
 	gvr := schema.GroupVersionResource{
 		Group:    gvk.Group,
@@ -105,7 +111,10 @@ func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured
 	return k.client.Resource(gvr).Namespace(obj.GetNamespace()).Update(ctx, obj, v1.UpdateOptions{})
 }
 
-func (k *DynamicK8sClient) List(ctx context.Context, group, kind, namespace string) (*unstructured.UnstructuredList, error) {
+func (k *DynamicK8sClient) List(
+	ctx context.Context,
+	group, kind, namespace string,
+) (*unstructured.UnstructuredList, error) {
 	gvr, err := k.getGVRByGroupAndKind(group, kind)
 	if err != nil {
 		return nil, err
@@ -114,7 +123,10 @@ func (k *DynamicK8sClient) List(ctx context.Context, group, kind, namespace stri
 }
 
 // Get retrieves a resource based on group, kind, and name
-func (k *DynamicK8sClient) Get(ctx context.Context, group, kind, namespace, name string) (*unstructured.Unstructured, error) {
+func (k *DynamicK8sClient) Get(
+	ctx context.Context,
+	group, kind, namespace, name string,
+) (*unstructured.Unstructured, error) {
 	gvr, err := k.getGVRByGroupAndKind(group, kind)
 	fmt.Println(gvr.Group, gvr.Resource, gvr.Version, "this is gvr")
 	if err != nil {
@@ -125,7 +137,11 @@ func (k *DynamicK8sClient) Get(ctx context.Context, group, kind, namespace, name
 }
 
 // Update updates a resource based on group and kind
-func (k *DynamicK8sClient) Update(ctx context.Context, group, kind, namespace string, obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
+func (k *DynamicK8sClient) Update(
+	ctx context.Context,
+	group, kind, namespace string,
+	obj *unstructured.Unstructured,
+) (*unstructured.Unstructured, error) {
 	gvr, err := k.getGVRByGroupAndKind(group, kind)
 	if err != nil {
 		return nil, err

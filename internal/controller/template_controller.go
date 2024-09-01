@@ -102,7 +102,11 @@ type TemplateReconciler struct {
 	DynamicReconciler reconcile.Reconciler
 }
 
-func (r *TemplateReconciler) handleDeletion(ctx context.Context, log logr.Logger, template *kumquatv1beta1.Template) (ctrl.Result, error) {
+func (r *TemplateReconciler) handleDeletion(
+	ctx context.Context,
+	log logr.Logger,
+	template *kumquatv1beta1.Template,
+) (ctrl.Result, error) {
 	log.Info("template deleted", "name", template.Name)
 	r.WatchManager.RemoveWatch(template.Name)
 
@@ -126,7 +130,11 @@ func (r *TemplateReconciler) handleDeletion(ctx context.Context, log logr.Logger
 
 	return ctrl.Result{}, nil
 }
-func deleteAssociatedResources(template *kumquatv1beta1.Template, re *repository.SQLiteRepository, log logr.Logger) error {
+func deleteAssociatedResources(
+	template *kumquatv1beta1.Template,
+	re *repository.SQLiteRepository,
+	log logr.Logger,
+) error {
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 	if err != nil {
 		log.Error(err, "failed to convert template to unstructured map")
@@ -171,7 +179,7 @@ func deleteResourceFromCluster(out string, log logr.Logger) error {
 		return err
 	}
 	unstructuredObj := &unstructured.Unstructured{}
-	err = unstructuredObj.UnmarshalJSON([]byte(jsonData))
+	err = unstructuredObj.UnmarshalJSON(jsonData)
 	if err != nil {
 		log.Error(err, "unable to unmarshal JSON")
 		return err
@@ -183,7 +191,11 @@ func deleteResourceFromCluster(out string, log logr.Logger) error {
 		return err
 	}
 	context := context.TODO()
-	err = dynamicK8sClient.Delete(context, unstructuredObj.GetObjectKind().GroupVersionKind().Group, unstructuredObj.GetKind(), unstructuredObj.GetNamespace(), unstructuredObj.GetName())
+	err = dynamicK8sClient.Delete(context,
+		unstructuredObj.GetObjectKind().GroupVersionKind().Group,
+		unstructuredObj.GetKind(),
+		unstructuredObj.GetNamespace(),
+		unstructuredObj.GetName())
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			log.Info("resource already deleted", "resource", unstructuredObj.GetName())
@@ -268,9 +280,13 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{}, nil
 }
 
-func extractGVKsFromQuery(query string, re *repository.SQLiteRepository, log logr.Logger) ([]schema.GroupVersionKind, error) {
-	var gvkList []schema.GroupVersionKind
+func extractGVKsFromQuery(
+	query string,
+	re *repository.SQLiteRepository,
+	log logr.Logger,
+) ([]schema.GroupVersionKind, error) {
 	tableNames := re.ExtractTableNamesFromQuery(query)
+	gvkList := make([]schema.GroupVersionKind, 0, len(tableNames))
 
 	for _, tableName := range tableNames {
 		gvk, err := BuildTableGVK(tableName)
@@ -290,7 +306,10 @@ func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	err = c.Watch(source.Kind(mgr.GetCache(), &kumquatv1beta1.Template{}, &handler.TypedEnqueueRequestForObject[*kumquatv1beta1.Template]{}))
+	err = c.Watch(source.Kind(
+		mgr.GetCache(),
+		&kumquatv1beta1.Template{},
+		&handler.TypedEnqueueRequestForObject[*kumquatv1beta1.Template]{}))
 	if err != nil {
 		return err
 	}
@@ -378,14 +397,18 @@ func applyTemplateResources(template *kumquatv1beta1.Template, re *repository.SQ
 	return processTemplateResources(template, re, log)
 }
 
-func processTemplateResources(template *kumquatv1beta1.Template, re *repository.SQLiteRepository, log logr.Logger) error {
+func processTemplateResources(
+	template *kumquatv1beta1.Template,
+	re *repository.SQLiteRepository,
+	log logr.Logger,
+) error {
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 
 	if err != nil {
 		log.Error(err, "failed to convert template to unstructured map")
 		return err
 	}
-	//fmt.Println(objMap, "this is object map")
+	// fmt.Println(objMap, "this is object map")
 
 	resource, err := repository.MakeResource(objMap)
 	if err != nil {
@@ -419,7 +442,7 @@ func processTemplateResources(template *kumquatv1beta1.Template, re *repository.
 			return err
 		}
 		unstructuredObj := &unstructured.Unstructured{}
-		err = unstructuredObj.UnmarshalJSON([]byte(jsonData))
+		err = unstructuredObj.UnmarshalJSON(jsonData)
 		if err != nil {
 			log.Error(err, "unable to unmarshal JSON")
 			return err

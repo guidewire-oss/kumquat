@@ -143,10 +143,11 @@ func TestNewTemplateBadTemplate(t *testing.T) {
 	assert.ErrorContains(t, err, "missing or not a map")
 }
 
+// nolint:dupl
 func TestNewTemplateBadFileName(t *testing.T) {
 	src := getTestTemplate()
 
-	t.Run("WrongType", func(t *testing.T) {
+	t.Run("WrongTypeForFileName", func(t *testing.T) {
 		src["spec"].(map[string]any)["template"].(map[string]any)["fileName"] = 123
 
 		r, err := repository.MakeResource(src)
@@ -160,7 +161,7 @@ func TestNewTemplateBadFileName(t *testing.T) {
 		assert.ErrorContains(t, err, "missing or not a string")
 	})
 
-	t.Run("BadValue", func(t *testing.T) {
+	t.Run("BadValueForFileName", func(t *testing.T) {
 		src["spec"].(map[string]any)["template"].(map[string]any)["fileName"] = "{{"
 
 		r, err := repository.MakeResource(src)
@@ -175,10 +176,11 @@ func TestNewTemplateBadFileName(t *testing.T) {
 	})
 }
 
+// nolint:dupl
 func TestNewTemplateBadLanguage(t *testing.T) {
 	src := getTestTemplate()
 
-	t.Run("WrongType", func(t *testing.T) {
+	t.Run("WrongTypeForLanguage", func(t *testing.T) {
 		src["spec"].(map[string]any)["template"].(map[string]any)["language"] = 123
 
 		r, err := repository.MakeResource(src)
@@ -192,7 +194,7 @@ func TestNewTemplateBadLanguage(t *testing.T) {
 		assert.ErrorContains(t, err, "missing or not a string")
 	})
 
-	t.Run("BadValue", func(t *testing.T) {
+	t.Run("BadValueForLanguage", func(t *testing.T) {
 		src["spec"].(map[string]any)["template"].(map[string]any)["language"] = "english"
 
 		r, err := repository.MakeResource(src)
@@ -207,10 +209,11 @@ func TestNewTemplateBadLanguage(t *testing.T) {
 	})
 }
 
+// nolint:dupl
 func TestNewTemplateBadData(t *testing.T) {
 	src := getTestTemplate()
 
-	t.Run("WrongType", func(t *testing.T) {
+	t.Run("WrongTypeForTemplate", func(t *testing.T) {
 		src["spec"].(map[string]any)["template"].(map[string]any)["data"] = 123
 
 		r, err := repository.MakeResource(src)
@@ -224,7 +227,7 @@ func TestNewTemplateBadData(t *testing.T) {
 		assert.ErrorContains(t, err, "missing or not a string")
 	})
 
-	t.Run("BadValue", func(t *testing.T) {
+	t.Run("BadValueForTemplate", func(t *testing.T) {
 		src["spec"].(map[string]any)["template"].(map[string]any)["data"] = "{{"
 
 		r, err := repository.MakeResource(src)

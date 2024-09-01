@@ -17,7 +17,7 @@ func main() {
 		slog.Error("Unable to create repository", "err", err)
 		panic(err)
 	}
-	defer repo.Close()
+	defer repo.Close() //nolint:errcheck
 
 	inDir := flag.String("in", "sampledata", "directory path to read Kubernetes resources")
 	flag.Parse()
@@ -28,7 +28,9 @@ func main() {
 		panic(err)
 	}
 
-	tplrs, err := repo.Query( /*sql*/ `SELECT template.data AS tpl FROM "` + template.TemplateResourceType + `" AS template`)
+	tplrs, err := repo.Query(
+		/* sql */ `SELECT template.data AS tpl FROM "` + template.TemplateResourceType + `" AS template`,
+	)
 	if err != nil {
 		slog.Error("Unable to find template", "err", err)
 		panic(err)
@@ -63,7 +65,7 @@ func main() {
 }
 
 func generateOutput(o *template.TemplateOutput) {
-	//for loop over data
+	// for loop over data
 	for i := 0; i < o.Output.ResourceCount(); i++ {
 		out, err := o.Output.ResultString(i)
 
@@ -73,7 +75,7 @@ func generateOutput(o *template.TemplateOutput) {
 
 		fileName := o.FileNames[i]
 
-		//use WriteFile function in store package to write the output to a file
+		// use WriteFile function in store package to write the output to a file
 		err = store.WriteToFile(fileName, "", out)
 
 		if err != nil {

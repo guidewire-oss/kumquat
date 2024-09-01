@@ -2,5 +2,10 @@
     "go.testFlags": [
         "-skip",
         "^(TestE2E|TestControllers)$"
+    ],
+    "go.lintTool": "golangci-lint",
+    "editor.wordWrapColumn": 120,
+    "editor.rulers": [
+        120
     ]
 }
