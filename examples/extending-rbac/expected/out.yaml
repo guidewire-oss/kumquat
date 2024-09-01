@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: crossplane-aws-readers-role
+rules:
+    - apiGroups:
+        - dynamodb.aws.upbound.io
+        - opensearch.aws.upbound.io
+        - appautoscaling.aws.upbound.io
+      resources:
+        - '*'
+      verbs:
+        - get
+        - list
+        - watch

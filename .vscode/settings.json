@@ -1,0 +1,6 @@
+{
+    "go.testFlags": [
+        "-skip",
+        "^(TestE2E|TestControllers)$"
+    ]
+}

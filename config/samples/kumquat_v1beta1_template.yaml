@@ -1,0 +1,9 @@
+apiVersion: kumquat.guidewire.com/v1beta1
+kind: Template
+metadata:
+  labels:
+    app.kubernetes.io/name: kumquat
+    app.kubernetes.io/managed-by: kustomize
+  name: template-sample
+spec:
+  # TODO(user): Add fields here

@@ -1,0 +1,5 @@
+project:
+  name: Kumquat
+  tz: America/Toronto
+  adrFolder: ./documents/adr
+  packages: []

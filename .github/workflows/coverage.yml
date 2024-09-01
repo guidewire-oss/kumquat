@@ -1,0 +1,64 @@
+name: "Go Coverage"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/devcontainers/go:1-1.22-bullseye
+    permissions:
+      # Allow write access to update notes
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # default fetch-depth is insufficent to find previous coverage notes
+        fetch-depth: 10
+
+    - run: git config --system --add safe.directory /__w/kumquat/kumquat
+      working-directory: /__w/kumquat/kumquat
+
+    - uses: gwatts/go-coverage-action@v2
+      id: coverage
+      with:
+        # Optional coverage threshold
+        # use fail-coverage to determine what should happen below this threshold
+        coverage-threshold: 70
+
+        # collect coverage for all packages beyond the one under test
+        cover-pkg: ./...
+
+        # Ignore code-generated files when calculating coverage totals
+        ignore-pattern: |
+          \.pb\.go$
+          \_string\.go$
+
+    - name: Update coverage badge
+      uses: schneegans/dynamic-badges-action@v1.7.0
+      if: github.ref_name == 'main'
+      with:
+        auth: ${{ secrets.GIST_BADGE_SECRET }}
+        gistID: cb14f8ad568d175cf0ba9f7ac6d0a6ca
+        filename: kumquat-coverage.json
+        label: Go Coverage
+        message: ${{ steps.coverage.outputs.coverage-pct-1dp }}%
+        color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-cov
+        path: ${{ steps.coverage.outputs.gocov-agg-pathname }}
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-report
+        path: ${{ steps.coverage.outputs.report-pathname }}
+  
+  
