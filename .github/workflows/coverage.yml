@@ -40,6 +40,9 @@ jobs:
           \.pb\.go$
           \_string\.go$
 
+        # Ignore E2E and integration tests for now
+        test-args: '["-skip", "^(TestE2E|TestControllers)$"]'
+
     - name: Update coverage badge
       uses: schneegans/dynamic-badges-action@v1.7.0
       if: github.ref_name == 'main'
