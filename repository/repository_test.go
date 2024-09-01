@@ -227,9 +227,12 @@ func TestLoadYAMLResourcesFromDirectoryTree(t *testing.T) {
 	repo := &MockRepo{}
 
 	mockfs := fstest.MapFS{
-		"example1.yaml":   {Data: []byte("apiVersion: guidewire.com/v1beta1\nkind: Example\nmetadata:\n  name: 1.44.0\n  namespace: examples")},
-		"example2.yaml":   {Data: []byte("apiVersion: guidewire.com/v1beta1\nkind: Example\nmetadata:\n  name: 1.45.0\n  namespace: examples")},
-		"configmap1.yaml": {Data: []byte("apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: test\n  namespace: default")},
+		"example1.yaml": {Data: []byte(
+			"apiVersion: guidewire.com/v1beta1\nkind: Example\nmetadata:\n  name: 1.44.0\n  namespace: examples")},
+		"example2.yaml": {Data: []byte(
+			"apiVersion: guidewire.com/v1beta1\nkind: Example\nmetadata:\n  name: 1.45.0\n  namespace: examples")},
+		"configmap1.yaml": {Data: []byte(
+			"apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: test\n  namespace: default")},
 	}
 
 	err := repository.LoadYAMLFromDirectoryTree(mockfs, ".", repo)

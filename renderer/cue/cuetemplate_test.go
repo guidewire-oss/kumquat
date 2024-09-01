@@ -51,6 +51,19 @@ func TestRenderCUEImportStrings(t *testing.T) {
 	assert.Equal(t, "foo: a-b\n", result)
 }
 
+func getTestResource(t *testing.T, name string) repository.Resource {
+	r, err := repository.MakeResource(map[string]interface{}{
+		"apiVersion": "kumquat.guidewire.com/v1beta1",
+		"kind":       "Test",
+		"metadata": map[string]interface{}{
+			"name":      name,
+			"namespace": "default",
+		},
+	})
+	require.NoError(t, err)
+	return r
+}
+
 func TestRenderCUEWithBatchModeProcessingOffWithSingleResourceOutput(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
 	out: 
@@ -59,24 +72,8 @@ func TestRenderCUEWithBatchModeProcessingOffWithSingleResourceOutput(t *testing.
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	a1, err := repository.MakeResource(map[string]interface{}{
-		"apiVersion": "kumquat.guidewire.com/v1beta1",
-		"kind":       "Test",
-		"metadata": map[string]interface{}{
-			"name":      "test1",
-			"namespace": "default",
-		},
-	})
-	require.NoError(t, err)
-	a2, err := repository.MakeResource(map[string]interface{}{
-		"apiVersion": "kumquat.guidewire.com/v1beta1",
-		"kind":       "Test",
-		"metadata": map[string]interface{}{
-			"name":      "test2",
-			"namespace": "default",
-		},
-	})
-	require.NoError(t, err)
+	a1 := getTestResource(t, "test1")
+	a2 := getTestResource(t, "test2")
 
 	results := []map[string]repository.Resource{
 		{"a": a1},
@@ -110,24 +107,8 @@ func TestRenderCUEWithBatchModeProcessingOffWithMultipleResourcesOutput(t *testi
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	a1, err := repository.MakeResource(map[string]interface{}{
-		"apiVersion": "kumquat.guidewire.com/v1beta1",
-		"kind":       "Test",
-		"metadata": map[string]interface{}{
-			"name":      "test1",
-			"namespace": "default",
-		},
-	})
-	require.NoError(t, err)
-	a2, err := repository.MakeResource(map[string]interface{}{
-		"apiVersion": "kumquat.guidewire.com/v1beta1",
-		"kind":       "Test",
-		"metadata": map[string]interface{}{
-			"name":      "test2",
-			"namespace": "default",
-		},
-	})
-	require.NoError(t, err)
+	a1 := getTestResource(t, "test1")
+	a2 := getTestResource(t, "test2")
 
 	results := []map[string]repository.Resource{
 		{"a": a1},
@@ -157,24 +138,8 @@ func TestRenderCUEWithBatchModeProcessingOnWithMultipleResourcesOutput(t *testin
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	a1, err := repository.MakeResource(map[string]interface{}{
-		"apiVersion": "kumquat.guidewire.com/v1beta1",
-		"kind":       "Test",
-		"metadata": map[string]interface{}{
-			"name":      "test1",
-			"namespace": "default",
-		},
-	})
-	require.NoError(t, err)
-	a2, err := repository.MakeResource(map[string]interface{}{
-		"apiVersion": "kumquat.guidewire.com/v1beta1",
-		"kind":       "Test",
-		"metadata": map[string]interface{}{
-			"name":      "test2",
-			"namespace": "default",
-		},
-	})
-	require.NoError(t, err)
+	a1 := getTestResource(t, "test1")
+	a2 := getTestResource(t, "test2")
 
 	results := []map[string]repository.Resource{
 		{"a": a1},
@@ -202,24 +167,8 @@ func TestRenderCUEWithBatchModeProcessingOnWithSingleResourceOutput(t *testing.T
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	a1, err := repository.MakeResource(map[string]interface{}{
-		"apiVersion": "kumquat.guidewire.com/v1beta1",
-		"kind":       "Test",
-		"metadata": map[string]interface{}{
-			"name":      "test1",
-			"namespace": "default",
-		},
-	})
-	require.NoError(t, err)
-	a2, err := repository.MakeResource(map[string]interface{}{
-		"apiVersion": "kumquat.guidewire.com/v1beta1",
-		"kind":       "Test",
-		"metadata": map[string]interface{}{
-			"name":      "test2",
-			"namespace": "default",
-		},
-	})
-	require.NoError(t, err)
+	a1 := getTestResource(t, "test1")
+	a2 := getTestResource(t, "test2")
 
 	results := []map[string]repository.Resource{
 		{"a": a1},

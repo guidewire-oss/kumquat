@@ -136,7 +136,7 @@ func (wm *WatchManager) RemoveWatch(templateName string) {
 			if wm.refCounts[gvk] <= 0 {
 				wm.stopWatching(gvk)
 				delete(wm.refCounts, gvk)
-				deleteTableFromDataBase(gvk)
+				deleteTableFromDataBase(gvk) // nolint:errcheck
 			}
 		}
 		delete(wm.templates, templateName)
@@ -168,7 +168,7 @@ func (wm *WatchManager) removeWatchForGVK(templateName string, gvk schema.GroupV
 	if wm.refCounts[gvk] <= 0 {
 		wm.stopWatching(gvk)
 		delete(wm.refCounts, gvk)
-		deleteTableFromDataBase(gvk)
+		deleteTableFromDataBase(gvk) // nolint:errcheck
 	}
 	delete(wm.templates[templateName], gvk)
 	log.Log.Info("Decremented watch reference count", "gvk", gvk, "count", wm.refCounts[gvk])
@@ -236,7 +236,7 @@ func DeleteRecord(table, namespace, name string) error {
 		log.Log.Error(err, "unable to create repository")
 		return err
 	}
-	_, err = re.Db.Exec( /*sql*/ `DELETE FROM "`+table+`" WHERE namespace = ? AND name = ?`, namespace, name)
+	_, err = re.Db.Exec( /* sql */ `DELETE FROM "`+table+`" WHERE namespace = ? AND name = ?`, namespace, name)
 	if err != nil {
 		log.Log.Error(err, "unable to delete record")
 		return err
@@ -280,9 +280,17 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 
 	if resource == nil {
 		log.Info("Resource deleted", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
-		//delete record from database
-		DeleteRecord(r.GVK.Kind+"."+r.GVK.Group, req.Namespace, req.Name)
-		r.reconcileTemplates(ctx)
+		// delete record from database
+		err = DeleteRecord(r.GVK.Kind+"."+r.GVK.Group, req.Namespace, req.Name)
+		if err != nil {
+			return reconcile.Result{}, fmt.Errorf("error deleting record: %w", err)
+		}
+
+		err = r.reconcileTemplates(ctx)
+		if err != nil {
+			return reconcile.Result{}, fmt.Errorf("error reconciling templates: %w", err)
+		}
+
 		return reconcile.Result{}, nil
 
 	}
@@ -314,7 +322,10 @@ func (r *DynamicReconciler) processResource(ctx context.Context, resource *unstr
 		log.Error(err, "unable to check if resource exists")
 		return err
 	} else if exists {
-		log.Info("Resource already exists in database", "GVK", r.GVK, "name", resource.GetName(), "namespace", resource.GetNamespace())
+		log.Info("Resource already exists in database",
+			"GVK", r.GVK,
+			"name", resource.GetName(),
+			"namespace", resource.GetNamespace())
 		return nil
 	}
 
@@ -378,7 +389,10 @@ func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName st
 }
 
 // fetchResource fetches the resource from the cluster.
-func (r *DynamicReconciler) fetchResource(ctx context.Context, req reconcile.Request) (*unstructured.Unstructured, error) {
+func (r *DynamicReconciler) fetchResource(
+	ctx context.Context,
+	req reconcile.Request,
+) (*unstructured.Unstructured, error) {
 	resource := &unstructured.Unstructured{}
 	resource.SetGroupVersionKind(r.GVK)
 	err := r.Get(ctx, req.NamespacedName, resource)
@@ -392,7 +406,11 @@ func (r *DynamicReconciler) fetchResource(ctx context.Context, req reconcile.Req
 }
 
 // evaluateTemplate evaluates the template with the given data.
-func (r *DynamicReconciler) evaluateTemplate(ctx context.Context, template *unstructured.Unstructured, re *repository.SQLiteRepository) error {
+func (r *DynamicReconciler) evaluateTemplate(
+	ctx context.Context,
+	template *unstructured.Unstructured,
+	re *repository.SQLiteRepository,
+) error {
 	templateObj := &kumquatv1beta1.Template{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(template.Object, templateObj)
 	if err != nil {
@@ -407,18 +425,34 @@ func (r *DynamicReconciler) evaluateTemplate(ctx context.Context, template *unst
 // unstructuredEventHandler handles events for unstructured resources.
 type unstructuredEventHandler struct{}
 
-func (h *unstructuredEventHandler) Create(ctx context.Context, evt event.TypedCreateEvent[*unstructured.Unstructured], q workqueue.RateLimitingInterface) {
+func (h *unstructuredEventHandler) Create(
+	ctx context.Context,
+	evt event.TypedCreateEvent[*unstructured.Unstructured],
+	q workqueue.RateLimitingInterface,
+) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }
 
-func (h *unstructuredEventHandler) Update(ctx context.Context, evt event.TypedUpdateEvent[*unstructured.Unstructured], q workqueue.RateLimitingInterface) {
+func (h *unstructuredEventHandler) Update(
+	ctx context.Context,
+	evt event.TypedUpdateEvent[*unstructured.Unstructured],
+	q workqueue.RateLimitingInterface,
+) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.ObjectNew)})
 }
 
-func (h *unstructuredEventHandler) Delete(ctx context.Context, evt event.TypedDeleteEvent[*unstructured.Unstructured], q workqueue.RateLimitingInterface) {
+func (h *unstructuredEventHandler) Delete(
+	ctx context.Context,
+	evt event.TypedDeleteEvent[*unstructured.Unstructured],
+	q workqueue.RateLimitingInterface,
+) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }
 
-func (h *unstructuredEventHandler) Generic(ctx context.Context, evt event.TypedGenericEvent[*unstructured.Unstructured], q workqueue.RateLimitingInterface) {
+func (h *unstructuredEventHandler) Generic(
+	ctx context.Context,
+	evt event.TypedGenericEvent[*unstructured.Unstructured],
+	q workqueue.RateLimitingInterface,
+) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }

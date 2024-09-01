@@ -46,7 +46,8 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 			return ResultSet{}, fmt.Errorf("error running query: %w", err)
 		}
 	}
-	defer rows.Close()
+
+	defer rows.Close() //nolint:errcheck
 
 	/*
 	 * Process Columns
@@ -84,18 +85,21 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 
 			err = json.Unmarshal([]byte(columnValues[i].(string)), &parsed)
 			if err != nil {
-				return ResultSet{}, fmt.Errorf("error while unmarshaling column '%s' to JSON: %w", strings.Trim(columnName, "'"), err)
+				return ResultSet{}, fmt.Errorf("error while unmarshaling column '%s' to JSON: %w",
+					strings.Trim(columnName, "'"), err)
 			}
 
 			switch v := parsed.(type) {
 			case map[string]any:
 				res, err := MakeResource(v)
 				if err != nil {
-					return ResultSet{}, fmt.Errorf("error retrieving resource from column '%s': %w", strings.Trim(columnName, "'"), err)
+					return ResultSet{}, fmt.Errorf("error retrieving resource from column '%s': %w",
+						strings.Trim(columnName, "'"), err)
 				}
 				result[columnName] = res
 			default:
-				return ResultSet{}, fmt.Errorf("expected JSON object in column '%s' but got %T", strings.Trim(columnName, "'"), v)
+				return ResultSet{}, fmt.Errorf("expected JSON object in column '%s' but got %T",
+					strings.Trim(columnName, "'"), v)
 			}
 		}
 
@@ -124,7 +128,7 @@ func (r *SQLiteRepository) createTable(table string) error {
 		return fmt.Errorf("table already exists: %s", table)
 	}
 
-	_, err := r.Db.Exec( /*sql*/ `CREATE TABLE "` + table +
+	_, err := r.Db.Exec( /* sql */ `CREATE TABLE "` + table +
 		`" (namespace TEXT NOT NULL, name TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY (namespace, name)) STRICT`)
 
 	if err != nil {
@@ -155,7 +159,7 @@ func (r *SQLiteRepository) Upsert(resource Resource) error {
 		}
 	}
 
-	_, err = r.Db.Exec( /*sql*/ `INSERT INTO "`+table+`" (namespace, name, data) VALUES (?,?,?)
+	_, err = r.Db.Exec( /* sql */ `INSERT INTO "`+table+`" (namespace, name, data) VALUES (?,?,?)
 		ON CONFLICT(namespace, name) DO UPDATE SET data=excluded.data`,
 		resource.Namespace(), resource.Name(), contentJSON)
 
@@ -175,7 +179,8 @@ func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error
 	}
 
 	table := resource.Kind() + "." + resource.Group()
-	fmt.Println("Checking if resource with same data already exists", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
+	fmt.Println("Checking if resource with same data already exists",
+		"table", table, "namespace", resource.Namespace(), "name", resource.Name())
 	contentJSON := string(byteJSON)
 
 	if !r.StoredKinds[table] {
@@ -187,7 +192,7 @@ func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error
 	}
 
 	var count int
-	err = r.Db.QueryRow( /*sql*/ `SELECT COUNT(*) FROM "`+table+`" WHERE data = ?`, contentJSON).Scan(&count)
+	err = r.Db.QueryRow( /* sql */ `SELECT COUNT(*) FROM "`+table+`" WHERE data = ?`, contentJSON).Scan(&count)
 
 	if err != nil {
 		return false, fmt.Errorf("unable to check if resource exists: %w", err)
@@ -220,7 +225,7 @@ func (r *SQLiteRepository) DropTable(table string) error {
 	if !r.StoredKinds[table] {
 		return fmt.Errorf("table does not exist: %s", table)
 	}
-	_, err := r.Db.Exec( /*sql*/ `DROP TABLE "` + table + `"`)
+	_, err := r.Db.Exec( /* sql */ `DROP TABLE "` + table + `"`)
 
 	if err != nil {
 		return fmt.Errorf("unable to drop table: %w", err)

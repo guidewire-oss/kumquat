@@ -137,11 +137,11 @@ var _ = Describe("controller", Ordered, func() {
 				verifyExampleDeletion(exampleFolder)
 			}
 		})
-		//TODO: Add more tests here
+		// TODO: Add more tests here
 		// It("Should ensure the resources are updated if there is an update to dependent resources")
 		// It("Should ensure that the resource are updated if there is an update to the template")
-		// It("should ensure that the resources are created if the number of resources required to be created is more than one")
-		// It("should ensure that the resources are updated if the number of resources required to be created is more than one")
+		// It("should ensure that the resources are created if the number of resources to be created is more than one")
+		// It("should ensure that the resources are updated if the number of resources to be created is more than one")
 
 	})
 })

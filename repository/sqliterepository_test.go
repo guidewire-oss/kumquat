@@ -11,7 +11,7 @@ import (
 func TestEmptyQuery(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
 	rs, err := r.Query(`VACUUM`) // Rebuild indexes, doesn't return anything
 	require.NoError(t, err)
@@ -22,12 +22,15 @@ func TestEmptyQuery(t *testing.T) {
 func TestJSONLiteral(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
-	_, err = r.Query( /*sql*/ `SELECT '{}' AS test`)
+	_, err = r.Query( /* sql */ `SELECT '{}' AS test`)
 	assert.ErrorContains(t, err, "missing apiVersion")
 
-	rs, err := r.Query( /*sql*/ `SELECT '{"apiVersion":"guidewire.com/v1beta1","kind":"Test","metadata":{"namespace":"testns","name":"test"}}' AS test`)
+	rs, err := r.Query(`SELECT ` +
+		`'{"apiVersion":"guidewire.com/v1beta1","kind":"Test","metadata":{"namespace":"testns","name":"test"}}'` +
+		` AS test`,
+	)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, rs.Names, []string{"test"})
 	require.Len(t, rs.Results, 1)
@@ -40,22 +43,22 @@ func TestJSONLiteral(t *testing.T) {
 func TestNonJSONLiteral(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
-	_, err = r.Query( /*sql*/ `SELECT "1" AS test`)
+	_, err = r.Query( /* sql */ `SELECT "1" AS test`)
 	assert.ErrorContains(t, err, "expected JSON object in column 'test'")
 
-	_, err = r.Query( /*sql*/ `SELECT '["hello"]' AS test`)
+	_, err = r.Query( /* sql */ `SELECT '["hello"]' AS test`)
 	assert.ErrorContains(t, err, "expected JSON object in column 'test'")
 
-	_, err = r.Query( /*sql*/ `SELECT '[1]' AS test`)
+	_, err = r.Query( /* sql */ `SELECT '[1]' AS test`)
 	assert.ErrorContains(t, err, "expected JSON object in column 'test'")
 }
 
 func TestInsert(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
 	res, err := repository.MakeResource(map[string]any{
 		"apiVersion": "guidewire.com/v1beta1",
@@ -69,7 +72,8 @@ func TestInsert(t *testing.T) {
 	err = r.Upsert(res)
 	require.NoError(t, err)
 
-	rs, err := r.Query( /*sql*/ `SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = 'alpha'`)
+	rs, err := r.Query(
+		/* sql */ `SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = 'alpha'`)
 	assert.NoError(t, err)
 	assert.ElementsMatch(t, rs.Names, []string{"e"})
 	require.Len(t, rs.Results, 1)
@@ -85,7 +89,7 @@ func TestInsert(t *testing.T) {
 func TestInsertResourceHavingUnmarshallableData(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
 	res, err := repository.MakeResource(map[string]any{
 		"apiVersion": "guidewire.com/v1beta1",
@@ -107,7 +111,7 @@ func TestInsertResourceHavingUnmarshallableData(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
 	res, err := repository.MakeResource(map[string]any{
 		"apiVersion": "guidewire.com/v1beta1",
@@ -128,7 +132,8 @@ func TestUpdate(t *testing.T) {
 	err = r.Upsert(res)
 	require.NoError(t, err)
 
-	rs, err := r.Query( /*sql*/ `SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = 'alpha'`)
+	rs, err := r.Query(
+		/* sql */ `SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = 'alpha'`)
 	assert.NoError(t, err)
 	assert.ElementsMatch(t, rs.Names, []string{"e"})
 	require.Len(t, rs.Results, 1)
@@ -143,9 +148,10 @@ func TestUpdate(t *testing.T) {
 func TestQueryOfMissingTable(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
-	rs, err := r.Query( /*sql*/ `SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = 'test'`)
+	rs, err := r.Query(
+		/* sql */ `SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = 'test'`)
 	assert.NoError(t, err)
 	assert.Empty(t, rs.Results)
 	assert.ElementsMatch(t, rs.Names, []string{"e"})
@@ -154,9 +160,9 @@ func TestQueryOfMissingTable(t *testing.T) {
 func TestExtractingTableNames(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
-	tableNames := r.ExtractTableNamesFromQuery( /*sql*/ `
+	tableNames := r.ExtractTableNamesFromQuery( /* sql */ `
 	SELECT *
 	FROM employees
 	WHERE employee_id < 50
@@ -168,8 +174,8 @@ func TestExtractingTableNames(t *testing.T) {
 func TestExtractingTableNamesWithDoubleQuotes(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
-	tableNames := r.ExtractTableNamesFromQuery( /*sql*/ `
+	defer r.Close() //nolint:errcheck
+	tableNames := r.ExtractTableNamesFromQuery( /* sql */ `
 	SELECT persistentvolumeclaim.data AS pvc, persistentvolume.data AS pv, pod.data AS p
 	FROM "PersistentVolumeClaim.core" AS persistentvolumeclaim
 	JOIN "PersistentVolume.core" AS persistentvolume
@@ -182,9 +188,9 @@ func TestExtractingTableNamesWithDoubleQuotes(t *testing.T) {
 func TestExtractingTableNamesFromQueriesWIthSubQuery(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
-	tableNames := r.ExtractTableNamesFromQuery( /*sql*/ `
+	tableNames := r.ExtractTableNamesFromQuery( /* sql */ `
 	SELECT *
 	FROM (
 		SELECT *
@@ -199,9 +205,9 @@ func TestExtractingTableNamesFromQueriesWIthSubQuery(t *testing.T) {
 func TestExtractingTableNamesFromNestedSubqueries(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
-	tableNames := r.ExtractTableNamesFromQuery( /*sql*/ `
+	tableNames := r.ExtractTableNamesFromQuery( /* sql */ `
     SELECT a.*
     FROM (
         SELECT b.*
@@ -218,9 +224,9 @@ func TestExtractingTableNamesFromNestedSubqueries(t *testing.T) {
 func TestExtractingTableNamesFromMultipleJoins(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
-	tableNames := r.ExtractTableNamesFromQuery( /*sql*/ `
+	tableNames := r.ExtractTableNamesFromQuery( /* sql */ `
     SELECT a.*, b.*, c.*
     FROM "TableA" AS a
     JOIN "TableB" AS b ON a.id = b.a_id
@@ -232,9 +238,9 @@ func TestExtractingTableNamesFromMultipleJoins(t *testing.T) {
 func TestExtractingTableNamesFromComplexQuery(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
-	tableNames := r.ExtractTableNamesFromQuery( /*sql*/ `
+	tableNames := r.ExtractTableNamesFromQuery( /* sql */ `
     SELECT e.*, d.*
     FROM employees AS e
     JOIN (
@@ -254,9 +260,9 @@ func TestExtractingTableNamesFromComplexQuery(t *testing.T) {
 func TestExtractingTableNamesFromQueryWithMultipleSubqueries(t *testing.T) {
 	r, err := repository.NewSQLiteRepository()
 	require.NoError(t, err)
-	defer r.Close()
+	defer r.Close() //nolint:errcheck
 
-	tableNames := r.ExtractTableNamesFromQuery( /*sql*/ `
+	tableNames := r.ExtractTableNamesFromQuery( /* sql */ `
     SELECT e.*, d.*, l.*
     FROM employees AS e
     JOIN departments AS d ON e.department_id = d.department_id
@@ -278,9 +284,9 @@ func TestExtractingTableNamesFromQueryWithMultipleSubqueries(t *testing.T) {
 // func TestExtractingTableNamesFromQueryWithCTE(t *testing.T) {
 // 	r, err := repository.NewSQLiteRepository()
 // 	require.NoError(t, err)
-// 	defer r.Close()
+// 	defer r.Close() //nolint:errcheck
 
-// 	tableNames, err := r.ExtractTableNamesFromQuery( /*sql*/ `
+// 	tableNames, err := r.ExtractTableNamesFromQuery( /* sql */ `
 //     WITH EmployeeCTE AS (
 //         SELECT employee_id, first_name, last_name, department_id
 //         FROM employees
