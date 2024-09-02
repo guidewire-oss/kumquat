@@ -89,7 +89,10 @@ spec:
               cpu: 1000m
               memory: 4000Mi
             requests:
-              cpu: 1000m
+              # Request only 100m so that E2E tests can run on GitHub Actions runner with 2 cores
+              # When this repository is made public, the runner will have 4 cores so requesting 1 core
+              # will be fine.
+              cpu: 100m
               memory: 4000Mi
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
