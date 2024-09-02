@@ -1,0 +1,24 @@
+FROM docker:27.2.0-dind-alpine3.20
+
+RUN apk update
+RUN apk upgrade
+
+# Install go
+RUN apk add go=~1.22
+
+# Install kind
+RUN go install sigs.k8s.io/kind@v0.24.0
+
+# Install mage
+RUN git clone https://github.com/magefile/mage \
+    && cd mage \
+    && go run bootstrap.go
+
+# Install packages needed for E2E tests
+RUN apk add make bash kubectl=~1.30
+
+# Add the current dependencies to the go module cache
+COPY go.mod go.sum /root/
+RUN cd /root && go mod download -x && rm /root/go.mod /root/go.sum
+
+ENV PATH="$PATH:/root/go/bin"
