@@ -7,7 +7,7 @@ toolchain go1.22.6
 require (
 	cuelang.org/go v0.10.0
 	github.com/go-logr/logr v1.4.2
-	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
 	github.com/stretchr/testify v1.9.0
