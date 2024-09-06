@@ -182,7 +182,6 @@ var _ = Describe("controller", Ordered, func() {
 				_, err = utils.Run(cmd)
 				Expect(err).NotTo(HaveOccurred())
 			}
-			fmt.Println("line 182")
 			verifyExampleOutput(pathToExample, "out_after_removing_dynamodb.yaml")
 			var opensearchCRDs []string
 			for _, file := range files {
@@ -195,28 +194,24 @@ var _ = Describe("controller", Ordered, func() {
 				_, err = utils.Run(cmd)
 				Expect(err).NotTo(HaveOccurred())
 			}
-			fmt.Println("line 195")
 			verifyExampleOutput(pathToExample, "out_after_removing_dynamodb opensearch.yaml")
-			//apply open search crds
+			// apply open search crds
 			for _, crd := range opensearchCRDs {
 				cmd := exec.Command("kubectl", "apply", "-f", path.Join(pathToCrds, crd))
 				_, err = utils.Run(cmd)
 				Expect(err).NotTo(HaveOccurred())
 			}
-			fmt.Println("line 203")
 			verifyExampleOutput(pathToExample, "out_after_removing_dynamodb.yaml")
-			//apply dynamodb crds
+			// apply dynamodb crds
 			for _, crd := range dynamodbCRDs {
 				cmd := exec.Command("kubectl", "apply", "-f", path.Join(pathToCrds, crd))
 				_, err = utils.Run(cmd)
 				Expect(err).NotTo(HaveOccurred())
 			}
-			fmt.Println("line 211")
 			verifyExampleOutput(pathToExample, "out.yaml")
 
 		})
 		// TODO: Add more tests here
-		// It("Should ensure the resources are updated if there is an update to dependent resources")
 		// It("Should ensure that the resource are updated if there is an update to the template")
 		// It("should ensure that the resources are created if the number of resources to be created is more than one")
 		// It("should ensure that the resources are updated if the number of resources to be created is more than one")
@@ -303,51 +298,12 @@ func verifyExampleOutput(exampleFolder string, exampleFile string) {
 	}, 30*time.Second, 2*time.Second).Should(Succeed())
 }
 
-// func verifyExampleOutput(exampleFolder string, exampleFile string) {
-// 	ExpectedFilePath := path.Join(exampleFolder, "expected", exampleFile)
-// 	filePath, err := filepath.Abs(ExpectedFilePath)
-// 	Expect(err).NotTo(HaveOccurred())
-
-// 	Eventually(func() error {
-// 		cmd := exec.Command("kubectl", "get", "-f", filePath)
-// 		_, err := utils.Run(cmd)
-// 		return err
-// 	}, 60*time.Second, 2*time.Second).Should(Succeed())
-
-// 	expectedOutput, err := os.ReadFile(filePath)
-// 	Expect(err).NotTo(HaveOccurred())
-// 	var expectedData interface{}
-// 	err = yaml.Unmarshal(expectedOutput, &expectedData)
-// 	Expect(err).NotTo(HaveOccurred())
-// 	Eventually(func() error {
-
-// 		cmd := exec.Command("kubectl", "get", "-f", filePath, "-o", "yaml")
-// 		actualOutput, err := utils.Run(cmd)
-// 		Expect(err).NotTo(HaveOccurred())
-
-// 		var actualData map[string]interface{}
-// 		err = yaml.Unmarshal(actualOutput, &actualData)
-// 		Expect(err).NotTo(HaveOccurred())
-
-// 		if metadata, ok := actualData["metadata"].(map[string]interface{}); ok {
-// 			delete(metadata, "creationTimestamp")
-// 			delete(metadata, "resourceVersion")
-// 			delete(metadata, "uid")
-// 		}
-
-// 		Expect(actualData).To(Equal(expectedData))
-// 		return nil
-// 	}, 60*time.Second, 2*time.Second).Should(Succeed())
-
-// }
-
 func deleteExample(exampleFolder string) {
 	TemplateFilePath := path.Join("examples", exampleFolder, "input", "templates")
 	filePath, err := filepath.Abs(TemplateFilePath)
 	Expect(err).NotTo(HaveOccurred())
 	cmd := exec.Command("kubectl", "delete", "-R", "-f", filePath)
 	_, err = utils.Run(cmd)
-	fmt.Println("exampleFolder", exampleFolder, "it was deleted")
 	Expect(err).NotTo(HaveOccurred())
 }
 
