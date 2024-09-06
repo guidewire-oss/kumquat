@@ -142,6 +142,7 @@ var _ = Describe("controller", Ordered, func() {
 				verifyExampleDeletion(exampleFolder)
 			}
 		})
+
 		It("Should delete all the resources we have created", func() {
 			By("Deleting the resources")
 			exampleFolderPath := path.Join("examples")
@@ -159,6 +160,26 @@ var _ = Describe("controller", Ordered, func() {
 						Expect(err).NotTo(HaveOccurred())
 					}
 				}
+				By("Waiting for the resources to be deleted from the cluster")
+				Eventually(func() error {
+					for _, exampleFolder := range exampleFolders {
+						TemplateFilePath := path.Join("examples", exampleFolder, "input")
+						filePath, err := filepath.Abs(TemplateFilePath)
+						Expect(err).NotTo(HaveOccurred())
+						cmd := exec.Command("kubectl", "get", "-R", "-f", filePath)
+						output, err := utils.Run(cmd)
+						if err != nil {
+							if strings.Contains(err.Error(), "not found") {
+								continue
+							}
+							return err
+						}
+						if string(output) != "" {
+							return fmt.Errorf("resources still exist: %s", output)
+						}
+					}
+					return nil
+				}, 60*time.Second, 5*time.Second).Should(Succeed())
 
 			}
 		})
