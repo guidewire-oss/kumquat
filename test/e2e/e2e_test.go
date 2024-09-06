@@ -3,7 +3,6 @@ package e2e
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -169,7 +168,7 @@ var _ = Describe("controller", Ordered, func() {
 			applyResources(pathToExample)
 			verifyExampleOutput(pathToExample, "out.yaml")
 			pathToCrds := path.Join("test", "resources", "extending-rbac", "input", "crds")
-			files, err := ioutil.ReadDir(pathToCrds)
+			files, err := os.ReadDir(pathToCrds)
 			Expect(err).NotTo(HaveOccurred())
 			var dynamodbCRDs []string
 			for _, file := range files {
