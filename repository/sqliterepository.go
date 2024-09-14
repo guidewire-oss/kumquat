@@ -148,7 +148,7 @@ func (r *SQLiteRepository) Upsert(resource Resource) error {
 	}
 
 	table := resource.Kind() + "." + resource.Group()
-	fmt.Println("Upserting resource", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
+	//fmt.Println("Upserting resource", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
 	contentJSON := string(byteJSON)
 
 	if !r.StoredKinds[table] {
