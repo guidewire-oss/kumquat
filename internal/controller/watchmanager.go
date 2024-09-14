@@ -362,13 +362,13 @@ func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error {
 // processTemplate processes a single template.
 func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName string) error {
 	log := log.FromContext(ctx)
-	dynamicK8sClient, err := NewDynamicK8sClient()
+	k8sClient, err := GetK8sClient()
 	if err != nil {
-		log.Error(err, "unable to create dynamic client")
+		log.Error(err, "unable to get k8s client")
 		return err
 	}
 
-	template, err := dynamicK8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
+	template, err := k8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
 	if err != nil {
 		log.Error(err, "unable to get template", "templateName", templateName)
 		return err

@@ -13,6 +13,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
+// create getk8sclient function
+func GetK8sClient() (K8sClient, error) {
+	return NewDynamicK8sClient()
+}
+
+// K8sClient defines the interface for Kubernetes clients
+type K8sClient interface {
+	Create(ctx context.Context, obj *unstructured.Unstructured) (*unstructured.Unstructured, error)
+	CreateOrUpdate(ctx context.Context, obj *unstructured.Unstructured) (*unstructured.Unstructured, error)
+	List(ctx context.Context, group, kind, namespace string) (*unstructured.UnstructuredList, error)
+	Get(ctx context.Context, group, kind, namespace, name string) (*unstructured.Unstructured, error)
+	Update(ctx context.Context, group, kind, namespace string, obj *unstructured.Unstructured,
+	) (*unstructured.Unstructured, error)
+	Delete(ctx context.Context, group, kind, namespace, name string) error
+	GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error)
+}
+
 type DynamicK8sClient struct {
 	client dynamic.Interface
 	dc     *discovery.DiscoveryClient
@@ -26,11 +43,13 @@ func NewDynamicK8sClient() (*DynamicK8sClient, error) {
 	}
 
 	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to create discovery client: %v", err)
 	}
 
 	dynamicClient, err := dynamic.NewForConfig(cfg)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to create dynamic client: %v", err)
 	}

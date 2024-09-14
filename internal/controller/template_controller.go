@@ -184,14 +184,18 @@ func deleteResourceFromCluster(out string, log logr.Logger) error {
 		log.Error(err, "unable to unmarshal JSON")
 		return err
 	}
+	k8sClient, err := GetK8sClient()
+	if err != nil {
+		log.Error(err, "unable to get k8s client")
+		return err
+	}
 
-	dynamicK8sClient, err := NewDynamicK8sClient()
 	if err != nil {
 		log.Error(err, "unable to create dynamic client")
 		return err
 	}
 	context := context.TODO()
-	err = dynamicK8sClient.Delete(context,
+	err = k8sClient.Delete(context,
 		unstructuredObj.GetObjectKind().GroupVersionKind().Group,
 		unstructuredObj.GetKind(),
 		unstructuredObj.GetNamespace(),
@@ -254,7 +258,7 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	for _, gvk := range gvkList {
-		err := addDataToDatabase(gvk.Group, gvk.Kind)
+		err := addDataToDatabase(gvk.Group, gvk.Kind, log)
 		if err != nil {
 			log.Error(err, "unable to add data to database", "gvk", gvk)
 		}
@@ -289,7 +293,7 @@ func extractGVKsFromQuery(
 	gvkList := make([]schema.GroupVersionKind, 0, len(tableNames))
 
 	for _, tableName := range tableNames {
-		gvk, err := BuildTableGVK(tableName)
+		gvk, err := BuildTableGVK(tableName, log)
 		if err != nil {
 			log.Error(err, "unable to build GVK for table", "table", tableName)
 			return nil, err
@@ -318,7 +322,7 @@ func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return nil
 }
-func BuildTableGVK(tableName string) (schema.GroupVersionKind, error) {
+func BuildTableGVK(tableName string, log logr.Logger) (schema.GroupVersionKind, error) {
 	dotIndex := strings.Index(tableName, ".")
 	if dotIndex == -1 {
 		return schema.GroupVersionKind{}, fmt.Errorf("invalid table name format")
@@ -332,26 +336,28 @@ func BuildTableGVK(tableName string) (schema.GroupVersionKind, error) {
 		group = ""
 	}
 
-	dynamicK8sClient, err := NewDynamicK8sClient()
+	k8sClient, err := GetK8sClient()
 	if err != nil {
+		log.Error(err, "unable to get k8s client")
 		return schema.GroupVersionKind{}, err
 	}
-	gvk, err := dynamicK8sClient.GetPreferredGVK(group, kind)
+	gvk, err := k8sClient.GetPreferredGVK(group, kind)
 	if err != nil {
 		return schema.GroupVersionKind{}, err
 	}
 	return gvk, nil
 }
 
-func addDataToDatabase(group string, kind string) error {
+func addDataToDatabase(group string, kind string, log logr.Logger) error {
 	fmt.Println("Adding data to database for", group, kind)
-	dynamicK8sClient, err := NewDynamicK8sClient()
+	k8sClient, err := GetK8sClient()
 	if err != nil {
+		log.Error(err, "unable to get k8s client")
 		return err
 	}
 	context := context.TODO()
 
-	data, err := dynamicK8sClient.List(context, group, kind, "")
+	data, err := k8sClient.List(context, group, kind, "")
 	if err != nil {
 		return err
 	}
@@ -378,13 +384,15 @@ func upsertResource(obj map[string]interface{}) error {
 	return re.Upsert(resource)
 }
 
-func GetTemplateResourceFromCluster(kind string, group string, name string) (*unstructured.Unstructured, error) {
-	dynamicK8sClient, error := NewDynamicK8sClient()
-	if error != nil {
-		return &unstructured.Unstructured{}, error
+func GetTemplateResourceFromCluster(kind string, group string, name string, log logr.Logger,
+) (*unstructured.Unstructured, error) {
+	k8sClient, err := GetK8sClient()
+	if err != nil {
+		log.Error(err, "unable to get k8s client")
+		return &unstructured.Unstructured{}, err
 	}
 	context := context.TODO()
-	data, error := dynamicK8sClient.Get(context, group, kind, "", name)
+	data, error := k8sClient.Get(context, group, kind, "", name)
 	if error != nil {
 		return &unstructured.Unstructured{}, error
 	}
@@ -448,13 +456,13 @@ func processTemplateResources(
 			return err
 		}
 
-		dynamicK8sClient, err := NewDynamicK8sClient()
+		k8sClient, err := GetK8sClient()
 		if err != nil {
-			log.Error(err, "unable to create dynamic client")
+			log.Error(err, "unable to get k8s client")
 			return err
 		}
 		context := context.TODO()
-		_, err = dynamicK8sClient.CreateOrUpdate(context, unstructuredObj)
+		_, err = k8sClient.CreateOrUpdate(context, unstructuredObj)
 		if err != nil {
 			if strings.Contains(err.Error(), "already exists") {
 				log.Info("resource already exists", "resource", unstructuredObj.GetName())
