@@ -1,157 +1,227 @@
-/*
-Copyright 2024.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controller
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
-
-	corev1 "k8s.io/api/core/v1"                   // Import the core API group
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1" // Import for metadata
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"gopkg.in/yaml.v3"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 
 	kumquatv1beta1 "kumquat/api/v1beta1"
+
+	yamlv3 "gopkg.in/yaml.v3" // Ensure this is included
 )
 
-var _ = Describe("Template Controller", func() {
-	Context("When reconciling a resource", func() {
-		const resourceName = "generate-role"
-		const namespaceName = "templates"
+var _ = Describe("Template Controller Integration Test", func() {
+	const (
+		resourceName  = "generate-role"
+		namespaceName = "templates"
+		timeout       = time.Second * 10
+		interval      = time.Millisecond * 250
+	)
 
-		ctx := context.Background()
+	var ctx context.Context
 
-		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "templates", // TODO(user):Modify as needed
+	BeforeEach(func() {
+		ctx = context.Background()
+
+		By("ensuring the namespace exists")
+		namespace := &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespaceName,
+			},
 		}
-		template := &kumquatv1beta1.Template{}
+		err := k8sClient.Create(ctx, namespace)
+		if err != nil && !errors.IsAlreadyExists(err) {
+			Expect(err).NotTo(HaveOccurred())
+		}
 
-		BeforeEach(func() {
-			By("ensuring the namespace exists")
-			namespace := &corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: namespaceName,
+		By("applying all resources from the crds directory")
+		crdsDir := "resources/crds"
+		applyYAMLFilesFromDirectory(ctx, crdsDir, namespaceName)
+
+		By("creating the Template resource")
+		// print the current working directory
+		wd, err := os.Getwd()
+		Expect(err).NotTo(HaveOccurred())
+		fmt.Println(wd, "working directory")
+		templatePath := filepath.Join("resources/template_resource.yaml")
+
+		templateData, err := os.ReadFile(templatePath)
+		Expect(err).NotTo(HaveOccurred())
+
+		var data map[string]interface{}
+		err = yamlv3.Unmarshal(templateData, &data)
+		Expect(err).NotTo(HaveOccurred())
+
+		// Extract the necessary fields from the YAML
+		spec := data["spec"].(map[string]interface{})
+		query := spec["query"].(string)
+		templateSpec := spec["template"].(map[string]interface{})
+		language := templateSpec["language"].(string)
+		batchModeProcessing := templateSpec["batchModeProcessing"].(bool)
+		fileName := templateSpec["fileName"].(string)
+		templateDataField := templateSpec["data"].(string)
+
+		// Create the Template object
+		template := &kumquatv1beta1.Template{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      resourceName,
+				Namespace: namespaceName,
+			},
+			Spec: kumquatv1beta1.TemplateSpec{
+				Query: query,
+				TemplateDefinition: kumquatv1beta1.TemplateDefinition{
+					Language:            language,
+					BatchModeProcessing: batchModeProcessing,
+					Data:                templateDataField,
+					FileName:            fileName,
 				},
-			}
-			err := k8sClient.Create(ctx, namespace)
-			if err != nil && !errors.IsAlreadyExists(err) {
-				Expect(err).NotTo(HaveOccurred())
-			}
+			},
+		}
 
-			By("creating the custom resource for the Kind Template")
-			err = k8sClient.Get(ctx, typeNamespacedName, template)
-			if err != nil && errors.IsNotFound(err) {
-				templatePath := filepath.Join("internal/controller/resources/template_resource.yaml")
-				templateData, err := os.ReadFile(templatePath)
-				Expect(err).NotTo(HaveOccurred())
-				var data map[string]interface{}
-				err = yaml.Unmarshal(templateData, &data)
-				if err != nil {
-					log.Fatalf("Error unmarshalling YAML: %v", err)
-				}
+		Expect(k8sClient.Create(ctx, template)).To(Succeed())
+	})
 
-				// Step 3: Marshal the map into JSON
-				// Step 2: Access the "query" field under "spec"
-				spec := data["spec"].(map[string]interface{})
-				query := spec["query"].(string)
-				language := spec["template"].(map[string]interface{})["language"].(string)
-				batchModeProcessing := spec["template"].(map[string]interface{})["batchModeProcessing"].(bool)
-				fileName := spec["template"].(map[string]interface{})["fileName"].(string)
-				templateDataa := spec["template"].(map[string]interface{})["data"].(string)
-
-				// convert object to kumquatv1beta1.Template
-				template := &kumquatv1beta1.Template{}
-
-				template.SetName(resourceName)
-				template.SetNamespace(namespaceName)
-				template.APIVersion = "kumquat.guidewire.com/v1beta1"
-				template.Kind = "Template"
-				template.Spec = kumquatv1beta1.TemplateSpec{
-					Query: query,
-					TemplateDefinition: kumquatv1beta1.TemplateDefinition{
-						Language:            language,
-						BatchModeProcessing: batchModeProcessing,
-						Data:                templateDataa,
-						FileName:            fileName,
-					},
-				}
-				fmt.Println("this is template", template)
-				Expect(k8sClient.Create(ctx, template)).To(Succeed())
-
-				obj1 := &unstructured.Unstructured{}
-				// set name, namespace and kind and apiVersion
-				obj1.SetName(resourceName)
-				obj1.SetNamespace(namespaceName)
-				obj1.SetKind("Template")
-				obj1.SetAPIVersion("kumquat.guidewire.com/v1beta1")
-
-				err = k8sClient.Get(ctx, typeNamespacedName, obj1)
-				Expect(err).NotTo(HaveOccurred())
-
-				//	fmt.Fprintf(GinkgoWriter, "Created object: %+v\n", obj)
-
-			}
-		})
-
-		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &unstructured.Unstructured{}
-			resource.SetName(resourceName)
-			resource.SetNamespace(namespaceName)
-			resource.SetKind("Template")
-			resource.SetAPIVersion("kumquat.guidewire.com/v1beta1")
-
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
-
+	AfterEach(func() {
+		By("deleting the Template resource")
+		template := &kumquatv1beta1.Template{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      resourceName,
+				Namespace: namespaceName,
+			},
+		}
+		err := k8sClient.Delete(ctx, template)
+		if err != nil && !errors.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
+		}
 
-			By("Cleanup the specific resource instance Template")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
-		})
-		It("should successfully reconcile the resource", func() {
-
-			obj := &kumquatv1beta1.Template{}
-			err := k8sClient.Get(ctx, typeNamespacedName, obj)
+		By("deleting the namespace")
+		namespace := &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespaceName,
+			},
+		}
+		err = k8sClient.Delete(ctx, namespace)
+		if err != nil && !errors.IsNotFound(err) {
 			Expect(err).NotTo(HaveOccurred())
+		}
+	})
 
-			// fmt.Fprintf(GinkgoWriter, "Created object: %+v\n", obj)
+	It("should reconcile the Template and create expected resources", func() {
+		By("verifying that the Template has been reconciled")
+		Eventually(func() bool {
+			fmt.Println("Checking if the resource generate-role exists in namespace templates")
 
-			By("Reconciling the created resource")
-			controllerReconciler := &TemplateReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
+			// Define the lookup key for the resource
+			resourceLookupKey := client.ObjectKey{
+				Namespace: "templates",
+				Name:      "generate-role",
 			}
 
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
-		})
+			// Define the resource object
+			resource := &kumquatv1beta1.Template{} // Replace with the actual type if different
+
+			// Attempt to get the resource
+			err := k8sClient.Get(ctx, resourceLookupKey, resource)
+			if err != nil {
+				fmt.Println("Error fetching resource:", err)
+				return false
+			}
+			// print the resource
+			fmt.Println(resource, "I am this resourceee")
+
+			// Resource exists
+			return true
+		}, 10*time.Second, 1*time.Second).Should(BeTrue())
+
+		outputFilePath := filepath.Join("resources/out.yaml")
+		outputData, err := os.ReadFile(outputFilePath)
+		Expect(err).NotTo(HaveOccurred())
+
+		// Decode YAML into unstructured.Unstructured
+		decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+		obj := &unstructured.Unstructured{}
+		_, _, err = decoder.Decode(outputData, nil, obj)
+		Expect(err).NotTo(HaveOccurred())
+
+		// Use the information from the output.yaml to verify the resource in the cluster
+		resourceLookupKey := client.ObjectKey{
+			Namespace: obj.GetNamespace(),
+			Name:      obj.GetName(),
+		}
+
+		// Fetch the resource from the cluster
+		clusterResource := &unstructured.Unstructured{}
+		clusterResource.SetGroupVersionKind(obj.GroupVersionKind())
+
+		err = k8sClient.Get(ctx, resourceLookupKey, clusterResource)
+		Expect(err).NotTo(HaveOccurred())
+
+		// Verify the fetched resource from the cluster matches the expected resource
+		Expect(clusterResource.Object).To(Equal(obj.Object), "The resource created in the cluster should match the output.yaml file")
 	})
 })
+
+// Function to apply all YAML files from a directory
+func applyYAMLFilesFromDirectory(ctx context.Context, dir string, namespaceName string) {
+	files, err := os.ReadDir(dir)
+	Expect(err).NotTo(HaveOccurred())
+
+	for _, file := range files {
+		if !file.IsDir() && (strings.HasSuffix(file.Name(), ".yaml") || strings.HasSuffix(file.Name(), ".yml")) {
+			filePath := filepath.Join(dir, file.Name())
+			fmt.Printf("Applying resources from %s\n", filePath)
+
+			content, err := os.ReadFile(filePath)
+			Expect(err).NotTo(HaveOccurred())
+
+			// Split the file into individual YAML documents
+			documents := strings.Split(string(content), "\n---")
+			for _, doc := range documents {
+				doc = strings.TrimSpace(doc)
+				if len(doc) == 0 {
+					continue
+				}
+
+				// Decode YAML into unstructured.Unstructured
+				decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+				obj := &unstructured.Unstructured{}
+				_, _, err := decoder.Decode([]byte(doc), nil, obj)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Remove resourceVersion if set
+				obj.SetResourceVersion("")
+
+				// Set namespace if necessary
+				if obj.GetNamespace() == "" && obj.GetKind() != "Namespace" {
+					obj.SetNamespace(namespaceName) // Use your test namespace
+				}
+
+				// Apply the resource to the cluster
+				err = k8sClient.Create(ctx, obj)
+				if err != nil {
+					if errors.IsAlreadyExists(err) {
+						fmt.Printf("Resource %s/%s already exists, updating it\n", obj.GetNamespace(), obj.GetName())
+						err = k8sClient.Update(ctx, obj)
+						Expect(err).NotTo(HaveOccurred())
+					} else {
+						fmt.Println("Error applying resource", err)
+						Expect(err).NotTo(HaveOccurred())
+					}
+				}
+			}
+		}
+	}
+}

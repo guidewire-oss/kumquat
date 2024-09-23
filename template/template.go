@@ -140,6 +140,7 @@ func NewTemplate(r repository.Resource) (*Template, error) {
 	var err error
 
 	if lang != "" {
+		fmt.Print("I am here with language: ", lang)
 		t.renderer, err = renderer.MakeRenderer(lang, data, name)
 	}
 

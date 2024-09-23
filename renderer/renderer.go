@@ -42,6 +42,7 @@ type RendererMaker func(string, string) (Renderer, error)
 var rendererRegistry map[string]RendererMaker
 
 func Register(name string, f RendererMaker) error {
+	fmt.Print("I want to register a renderer\n", name, f)
 	if rendererRegistry == nil {
 		rendererRegistry = make(map[string]RendererMaker)
 	}
@@ -57,6 +58,12 @@ func Register(name string, f RendererMaker) error {
 }
 
 func MakeRenderer(name, template, source string) (Renderer, error) {
+	// print keys of rendererRegistry
+	fmt.Print("print keys of rendererRegistry\n")
+	for k := range rendererRegistry {
+		fmt.Println(k, "=>", rendererRegistry[k])
+	}
+	fmt.Print("MakeRendererrrrrr\n")
 	f, ok := rendererRegistry[name]
 	if !ok {
 		return nil, &LookupError{rendererName: name}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	kumquatv1beta1 "kumquat/api/v1beta1"
@@ -45,10 +44,9 @@ var _ = BeforeSuite(func() {
 
 	var useExistingCluster bool = true
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "..", "config", "crd", "bases")},
-		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s",
-			fmt.Sprintf("1.30.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
-		UseExistingCluster: &useExistingCluster,
+		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
+		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s", "1.30.0-linux-arm64"),
+		UseExistingCluster:    &useExistingCluster,
 	}
 
 	cfg, err = testEnv.Start()
