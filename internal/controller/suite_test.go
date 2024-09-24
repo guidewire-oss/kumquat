@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath" // Alias the standard library runtime package
+	"time"
 
 	// Alias the standard library runtime package
 	"testing"
@@ -42,6 +43,8 @@ func (m *MockedGetPreferredGVKClient) GetPreferredGVK(group, kind string) (schem
 	return schema.GroupVersionKind{Group: group, Version: "v1", Kind: kind}, nil
 }
 
+var stopMgr context.CancelFunc
+
 func TestControllers(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Controller Suite")
@@ -57,8 +60,6 @@ var _ = BeforeSuite(func() {
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 		ErrorIfCRDPathMissing: true,
-		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s", "1.30.0-linux-arm64"), // Use the aliased goruntime
-
 	}
 
 	var err error
@@ -76,24 +77,27 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(err).NotTo(HaveOccurred())
 	Expect(err).NotTo(HaveOccurred())
-	dynamicK8sClient, err := GetK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
+	dynamicK8sClient, err := GetK8sClient(k8sClient, k8sManager.GetRESTMapper())
 	Expect(err).ToNot(HaveOccurred())
 	mockedClient := &MockedGetPreferredGVKClient{
 		K8sClient: dynamicK8sClient,
 	}
 
 	err = (&TemplateReconciler{
-		Client:    k8sManager.GetClient(),
-		Scheme:    k8sManager.GetScheme(),
+		Client:    k8sClient,
+		Scheme:    scheme,
 		K8sClient: mockedClient,
 
 		// No WatchManager since it's not used in main.go
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 
+	var mgrCtx context.Context
+	mgrCtx, stopMgr = context.WithCancel(context.Background())
+
 	go func() {
 		defer GinkgoRecover()
-		err = k8sManager.Start(ctrl.SetupSignalHandler())
+		err = k8sManager.Start(mgrCtx)
 		Expect(err).ToNot(HaveOccurred())
 	}()
 
@@ -104,6 +108,11 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
+	By("Stopping the manager")
+	stopMgr() // Signal the manager to stop
+
+	//sleep for 10 seconds to allow the controller to clean up
+	time.Sleep(10 * time.Second)
 	By("tearing down the test environment")
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())

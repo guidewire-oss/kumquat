@@ -66,24 +66,16 @@ func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured
 		Name:      obj.GetName(),
 	}
 
-	allTemplates := &kumquatv1beta1.TemplateList{}
-
-	err := k.client.List(ctx, allTemplates)
+	err := k.client.Get(ctx, key, existing)
 	if err != nil {
-		log.Error(err, "Error listing templates")
-
-		fmt.Println(err, "this is erroreeeeeee")
-	}
-	log.Info("Creating or udcsdcsdcpsvsdfvsdfvsdfvdsdsdcsdating object", "object", obj)
-
-	err = k.client.Get(ctx, key, existing)
-	if err != nil {
+		log.Error(err, "Error getting objectttt", "object", obj)
 		if client.IgnoreNotFound(err) != nil {
 			return nil, err
 		}
 		// Not found, create
 		err = k.client.Create(ctx, obj)
 		if err != nil {
+			fmt.Println(err, "this is erroreeeeeeesdds")
 			return nil, err
 		}
 		return obj, nil
@@ -93,6 +85,7 @@ func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured
 	obj.SetResourceVersion(existing.GetResourceVersion())
 	err = k.client.Update(ctx, obj)
 	if err != nil {
+		fmt.Println(err, "this is erroreeeeeeesdsdfsdds")
 		return nil, err
 	}
 	return obj, nil
@@ -170,19 +163,19 @@ func (k *DynamicK8sClient) Delete(ctx context.Context, group, kind, namespace, n
 
 func (k *DynamicK8sClient) GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error) {
 	//list all the templates in the cluster first
-	// Build a partial GVK to search for
-	// 	partialGVK := schema.GroupVersionKind{
-	// 		Group: group,
-	// 		Kind:  kind,
-	// 	}
+	//Build a partial GVK to search for
+	partialGVK := schema.GroupVersionKind{
+		Group: group,
+		Kind:  kind,
+	}
 
-	// 	// Use the RESTMapper to get the preferred GVK
-	// 	mapping, err := k.restMapper.RESTMapping(partialGVK.GroupKind())
-	// 	if err != nil {
-	// 		return schema.GroupVersionKind{}, fmt.Errorf("failed to get GVK from RESTMapper: %v", err)
-	// 	}
+	// Use the RESTMapper to get the preferred GVK
+	mapping, err := k.restMapper.RESTMapping(partialGVK.GroupKind())
+	if err != nil {
+		return schema.GroupVersionKind{}, fmt.Errorf("failed to get GVK from RESTMapper: %v", err)
+	}
 
-	// return mapping.GroupVersionKind, nil
-	return schema.GroupVersionKind{Group: group, Version: "v1", Kind: kind}, nil
+	return mapping.GroupVersionKind, nil
+	//	return schema.GroupVersionKind{Group: group, Version: "v1", Kind: kind}, nil
 
 }

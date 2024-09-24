@@ -135,6 +135,11 @@ func deleteAssociatedResources(
 	log logr.Logger,
 	k8sClient K8sClient,
 ) error {
+	template.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "kumquat.guidewire.com",
+		Version: "v1beta1",
+		Kind:    "Template",
+	})
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 	if err != nil {
 		log.Error(err, "failed to convert template to unstructured map")
@@ -221,6 +226,8 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// list all the templates inside the cluster using main client
 	log := log.FromContext(ctx)
 
+	//update the template with the resources from the cluster
+
 	// log.Info("Reconciling template", "name", req.NamespacedName)
 	// //now getting templates usig dynamicK8sClient
 	// allTemplates2 := &kumquatv1beta1.TemplateList{}
@@ -232,6 +239,14 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	//uopdate the template in cluster with a new query
+	// template.Spec.Query = "SELECT * FROM core.pods"
+	// err = r.Update(ctx, template)
+	// if err != nil {
+	// 	fmt.Println(err, "this is erroreeeeesdfwdsdfdcsdcsdcsdee")
+
+	// }
+	//get a resource that does not exist
 
 	if !template.DeletionTimestamp.IsZero() {
 		return r.handleDeletion(ctx, log, template)
@@ -397,6 +412,12 @@ func processTemplateResources(
 	log logr.Logger,
 	k8sClient K8sClient,
 ) error {
+	template.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "kumquat.guidewire.com",
+		Version: "v1beta1",
+		Kind:    "Template",
+	})
+
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 
 	if err != nil {

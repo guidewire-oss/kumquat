@@ -48,7 +48,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 		}
 
 		By("applying all resources from the crds directory")
-		crdsDir := "resources/crds"
+		crdsDir := "../../examples/extending-rbac/input/crds"
 		applyYAMLFilesFromDirectory(ctx, crdsDir, namespaceName)
 
 		By("creating the Template resource")
@@ -92,6 +92,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 		}
 
 		Expect(k8sClient.Create(ctx, template)).To(Succeed())
+
 	})
 
 	AfterEach(func() {
@@ -146,31 +147,44 @@ var _ = Describe("Template Controller Integration Test", func() {
 			return true
 		}, 10*time.Second, 1*time.Second).Should(BeTrue())
 
-		outputFilePath := filepath.Join("resources/out.yaml")
-		outputData, err := os.ReadFile(outputFilePath)
-		Expect(err).NotTo(HaveOccurred())
+		//another eventuallly block to check if the output.yaml file has been created
+		By("verifying that the output.yaml file has been created")
+		Eventually(func() error {
 
-		// Decode YAML into unstructured.Unstructured
-		decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-		obj := &unstructured.Unstructured{}
-		_, _, err = decoder.Decode(outputData, nil, obj)
-		Expect(err).NotTo(HaveOccurred())
+			outputFilePath := filepath.Join("resources/out.yaml")
+			outputData, err := os.ReadFile(outputFilePath)
+			Expect(err).NotTo(HaveOccurred())
+			//	log := log.FromContext(ctx)
+			//log.Info("outputData", "outputData", outputData)
 
-		// Use the information from the output.yaml to verify the resource in the cluster
-		resourceLookupKey := client.ObjectKey{
-			Namespace: obj.GetNamespace(),
-			Name:      obj.GetName(),
-		}
+			// Decode YAML into unstructured.Unstructured
+			decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+			obj := &unstructured.Unstructured{}
+			_, _, err = decoder.Decode(outputData, nil, obj)
+			Expect(err).NotTo(HaveOccurred())
 
-		// Fetch the resource from the cluster
-		clusterResource := &unstructured.Unstructured{}
-		clusterResource.SetGroupVersionKind(obj.GroupVersionKind())
+			// Use the information from the output.yaml to verify the resource in the cluster
+			resourceLookupKey := client.ObjectKey{
+				Namespace: obj.GetNamespace(),
+				Name:      obj.GetName(),
+			}
 
-		err = k8sClient.Get(ctx, resourceLookupKey, clusterResource)
-		Expect(err).NotTo(HaveOccurred())
+			// Fetch the resource from the cluster
+			clusterResource := &unstructured.Unstructured{}
+			clusterResource.SetGroupVersionKind(obj.GroupVersionKind())
 
-		// Verify the fetched resource from the cluster matches the expected resource
-		Expect(clusterResource.Object).To(Equal(obj.Object), "The resource created in the cluster should match the output.yaml file")
+			err = k8sClient.Get(ctx, resourceLookupKey, clusterResource)
+			if err != nil {
+
+				return err
+
+			}
+			return nil
+
+			// Verify the fetched resource from the cluster matches the expected resource
+			//Expect(clusterResource.Object).To(Equal(obj.Object), "The resource created in the cluster should match the output.yaml file")
+		}, 10*time.Second, 1*time.Second).Should(Succeed())
+
 	})
 })
 

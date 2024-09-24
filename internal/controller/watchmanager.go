@@ -225,7 +225,7 @@ func (wm *WatchManager) stopWatching(gvk schema.GroupVersionKind) {
 	}
 }
 
-// logActiveControllers logs all active controllers.
+// logs all active controllers.
 func (wm *WatchManager) logActiveControllers() {
 	log.Log.Info("Listing all active controllers:")
 	for gvk, entry := range wm.watchedResources {
