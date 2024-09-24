@@ -222,31 +222,13 @@ func deleteResourceFromCluster(out string, log logr.Logger, k8sClient K8sClient)
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.18.4/pkg/reconcile
 func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// check if K8sClientt is not nil
-	// list all the templates inside the cluster using main client
 	log := log.FromContext(ctx)
-
-	//update the template with the resources from the cluster
-
-	// log.Info("Reconciling template", "name", req.NamespacedName)
-	// //now getting templates usig dynamicK8sClient
-	// allTemplates2 := &kumquatv1beta1.TemplateList{}
-	// group := "kumquat.guidewire.com"
-	// kind := "Template"
 
 	template := &kumquatv1beta1.Template{}
 	err := r.Get(ctx, req.NamespacedName, template)
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	//uopdate the template in cluster with a new query
-	// template.Spec.Query = "SELECT * FROM core.pods"
-	// err = r.Update(ctx, template)
-	// if err != nil {
-	// 	fmt.Println(err, "this is erroreeeeesdfwdsdfdcsdcsdcsdee")
-
-	// }
-	//get a resource that does not exist
 
 	if !template.DeletionTimestamp.IsZero() {
 		return r.handleDeletion(ctx, log, template)
@@ -366,7 +348,7 @@ func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8s
 	if err != nil {
 		return err
 	}
-	fmt.Println(len(data.Items), "found in the cluster")
+	log.Info("found in the cluster", "count", len(data.Items))
 
 	for _, item := range data.Items {
 		err := upsertResource(item.Object)
@@ -402,7 +384,8 @@ func GetTemplateResourceFromCluster(kind string, group string, name string, log 
 }
 
 // applyTemplateResources applies the resources generated from the template.
-func applyTemplateResources(template *kumquatv1beta1.Template, re *repository.SQLiteRepository, log logr.Logger, k8sClient K8sClient) error {
+func applyTemplateResources(
+	template *kumquatv1beta1.Template, re *repository.SQLiteRepository, log logr.Logger, k8sClient K8sClient) error {
 	return processTemplateResources(template, re, log, k8sClient)
 }
 
@@ -424,7 +407,6 @@ func processTemplateResources(
 		log.Error(err, "failed to convert template to unstructured map")
 		return err
 	}
-	// fmt.Println(objMap, "this is object map")
 
 	resource, err := repository.MakeResource(objMap)
 	if err != nil {

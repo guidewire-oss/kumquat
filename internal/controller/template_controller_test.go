@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -53,9 +52,6 @@ var _ = Describe("Template Controller Integration Test", func() {
 
 		By("creating the Template resource")
 		// print the current working directory
-		wd, err := os.Getwd()
-		Expect(err).NotTo(HaveOccurred())
-		fmt.Println(wd, "working directory")
 		templatePath := filepath.Join("resources/template_resource.yaml")
 
 		templateData, err := os.ReadFile(templatePath)
@@ -123,7 +119,6 @@ var _ = Describe("Template Controller Integration Test", func() {
 	It("should reconcile the Template and create expected resources", func() {
 		By("verifying that the Template has been reconciled")
 		Eventually(func() bool {
-			fmt.Println("Checking if the resource generate-role exists in namespace templates")
 
 			// Define the lookup key for the resource
 			resourceLookupKey := client.ObjectKey{
@@ -137,27 +132,22 @@ var _ = Describe("Template Controller Integration Test", func() {
 			// Attempt to get the resource
 			err := k8sClient.Get(ctx, resourceLookupKey, resource)
 			if err != nil {
-				fmt.Println("Error fetching resource:", err)
 				return false
 			}
 			// print the resource
-			fmt.Println(resource, "I am this resourceee")
 
 			// Resource exists
 			return true
 		}, 10*time.Second, 1*time.Second).Should(BeTrue())
 
-		//another eventuallly block to check if the output.yaml file has been created
+		// another eventuallly block to check if the output.yaml file has been created
 		By("verifying that the output.yaml file has been created")
 		Eventually(func() error {
 
 			outputFilePath := filepath.Join("resources/out.yaml")
 			outputData, err := os.ReadFile(outputFilePath)
 			Expect(err).NotTo(HaveOccurred())
-			//	log := log.FromContext(ctx)
-			//log.Info("outputData", "outputData", outputData)
 
-			// Decode YAML into unstructured.Unstructured
 			decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 			obj := &unstructured.Unstructured{}
 			_, _, err = decoder.Decode(outputData, nil, obj)
@@ -182,7 +172,8 @@ var _ = Describe("Template Controller Integration Test", func() {
 			return nil
 
 			// Verify the fetched resource from the cluster matches the expected resource
-			//Expect(clusterResource.Object).To(Equal(obj.Object), "The resource created in the cluster should match the output.yaml file")
+			// Expect(clusterResource.Object).To(Equal(obj.Object),
+			// "The resource created in the cluster should match the output.yaml file")
 		}, 10*time.Second, 1*time.Second).Should(Succeed())
 
 	})
@@ -196,7 +187,6 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string, namespaceName 
 	for _, file := range files {
 		if !file.IsDir() && (strings.HasSuffix(file.Name(), ".yaml") || strings.HasSuffix(file.Name(), ".yml")) {
 			filePath := filepath.Join(dir, file.Name())
-			fmt.Printf("Applying resources from %s\n", filePath)
 
 			content, err := os.ReadFile(filePath)
 			Expect(err).NotTo(HaveOccurred())
@@ -227,11 +217,9 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string, namespaceName 
 				err = k8sClient.Create(ctx, obj)
 				if err != nil {
 					if errors.IsAlreadyExists(err) {
-						fmt.Printf("Resource %s/%s already exists, updating it\n", obj.GetNamespace(), obj.GetName())
 						err = k8sClient.Update(ctx, obj)
 						Expect(err).NotTo(HaveOccurred())
 					} else {
-						fmt.Println("Error applying resource", err)
 						Expect(err).NotTo(HaveOccurred())
 					}
 				}

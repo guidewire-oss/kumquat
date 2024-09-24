@@ -2,9 +2,7 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"path/filepath" // Alias the standard library runtime package
-	"time"
 
 	// Alias the standard library runtime package
 	"testing"
@@ -103,7 +101,6 @@ var _ = BeforeSuite(func() {
 
 	// Wait for the cache to sync
 	Expect(k8sManager.GetCache().WaitForCacheSync(context.Background())).To(BeTrue())
-	fmt.Println("k8sManagerrrrrr", k8sManager)
 
 })
 
@@ -111,8 +108,6 @@ var _ = AfterSuite(func() {
 	By("Stopping the manager")
 	stopMgr() // Signal the manager to stop
 
-	//sleep for 10 seconds to allow the controller to clean up
-	time.Sleep(10 * time.Second)
 	By("tearing down the test environment")
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())

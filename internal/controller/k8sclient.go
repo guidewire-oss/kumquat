@@ -3,10 +3,8 @@ package controller
 import (
 	"context"
 	"fmt"
-	kumquatv1beta1 "kumquat/api/v1beta1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -27,7 +25,8 @@ type K8sClient interface {
 	CreateOrUpdate(ctx context.Context, obj *unstructured.Unstructured) (*unstructured.Unstructured, error)
 	List(ctx context.Context, group, kind, namespace string) (*unstructured.UnstructuredList, error)
 	Get(ctx context.Context, group, kind, namespace, name string) (*unstructured.Unstructured, error)
-	Update(ctx context.Context, group, kind, namespace string, obj *unstructured.Unstructured) (*unstructured.Unstructured, error)
+	Update(ctx context.Context, group, kind, namespace string, obj *unstructured.Unstructured) (
+		*unstructured.Unstructured, error)
 	Delete(ctx context.Context, group, kind, namespace, name string) error
 	GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error)
 }
@@ -39,25 +38,18 @@ type DynamicK8sClient struct {
 
 // Implement the methods using client.Client
 
-func (k *DynamicK8sClient) Create(ctx context.Context, obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
-	allTemplates := &kumquatv1beta1.TemplateList{}
+func (k *DynamicK8sClient) Create(ctx context.Context, obj *unstructured.Unstructured) (
+	*unstructured.Unstructured, error) {
 
-	err := k.client.List(ctx, allTemplates)
-	if err != nil {
-		fmt.Println(err, "this is erroreeeeeee")
-	}
-	fmt.Println(allTemplates, "this is all templasdsdvsdctes")
-
-	err = k.client.Create(ctx, obj)
+	err := k.client.Create(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
 	return obj, nil
 }
 
-func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
-	log := log.FromContext(ctx)
-	log.Info("Creating or updsdsdcsdating object", "object", obj)
+func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured.Unstructured) (
+	*unstructured.Unstructured, error) {
 
 	existing := &unstructured.Unstructured{}
 	existing.SetGroupVersionKind(obj.GroupVersionKind())
@@ -68,14 +60,12 @@ func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured
 
 	err := k.client.Get(ctx, key, existing)
 	if err != nil {
-		log.Error(err, "Error getting objectttt", "object", obj)
 		if client.IgnoreNotFound(err) != nil {
 			return nil, err
 		}
 		// Not found, create
 		err = k.client.Create(ctx, obj)
 		if err != nil {
-			fmt.Println(err, "this is erroreeeeeeesdds")
 			return nil, err
 		}
 		return obj, nil
@@ -85,23 +75,13 @@ func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured
 	obj.SetResourceVersion(existing.GetResourceVersion())
 	err = k.client.Update(ctx, obj)
 	if err != nil {
-		fmt.Println(err, "this is erroreeeeeeesdsdfsdds")
 		return nil, err
 	}
 	return obj, nil
 }
 
-func (k *DynamicK8sClient) List(ctx context.Context, group, kind, namespace string) (*unstructured.UnstructuredList, error) {
-	log := log.FromContext(ctx)
-
-	//list all the templates in the cluster first
-	allTemplates := &kumquatv1beta1.TemplateList{}
-	err := k.client.List(ctx, allTemplates)
-	if err != nil {
-		log.Error(err, "unascsdcdsvkjdnfvkjdfbsdcsdble to list templates")
-
-	}
-	fmt.Println(allTemplates, "this is all templates")
+func (k *DynamicK8sClient) List(ctx context.Context, group, kind, namespace string) (
+	*unstructured.UnstructuredList, error) {
 
 	gvk, err := k.GetPreferredGVK(group, kind)
 	if err != nil {
@@ -117,7 +97,8 @@ func (k *DynamicK8sClient) List(ctx context.Context, group, kind, namespace stri
 	return list, nil
 }
 
-func (k *DynamicK8sClient) Get(ctx context.Context, group, kind, namespace, name string) (*unstructured.Unstructured, error) {
+func (k *DynamicK8sClient) Get(ctx context.Context, group, kind, namespace, name string) (
+	*unstructured.Unstructured, error) {
 	gvk, err := k.GetPreferredGVK(group, kind)
 	if err != nil {
 		return nil, err
@@ -136,7 +117,8 @@ func (k *DynamicK8sClient) Get(ctx context.Context, group, kind, namespace, name
 	return obj, nil
 }
 
-func (k *DynamicK8sClient) Update(ctx context.Context, group, kind, namespace string, obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
+func (k *DynamicK8sClient) Update(ctx context.Context, group, kind, namespace string, obj *unstructured.Unstructured) (
+	*unstructured.Unstructured, error) {
 	err := k.client.Update(ctx, obj)
 	if err != nil {
 		return nil, err
@@ -162,8 +144,7 @@ func (k *DynamicK8sClient) Delete(ctx context.Context, group, kind, namespace, n
 }
 
 func (k *DynamicK8sClient) GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error) {
-	//list all the templates in the cluster first
-	//Build a partial GVK to search for
+	// Build a partial GVK to search for
 	partialGVK := schema.GroupVersionKind{
 		Group: group,
 		Kind:  kind,
