@@ -95,13 +95,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 
 			// Attempt to get the resource
 			err := k8sClient.Get(ctx, resourceLookupKey, resource)
-			if err != nil {
-				return false
-			}
-			// print the resource
-
-			// Resource exists
-			return true
+			return err == nil
 		}, 10*time.Second, 1*time.Second).Should(BeTrue())
 
 		// another eventuallly block to check if the output.yaml file has been created
@@ -200,63 +194,6 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
 			}
 		}
 	}
-}
-
-// func verifyExampleOutput(exampleFolder string, exampleFile string) {
-// 	expectedFilePath := path.Join(exampleFolder, "expected", exampleFile)
-// 	filePath, err := filepath.Abs(expectedFilePath)
-// 	Expect(err).NotTo(HaveOccurred())
-
-// 	expectedOutput, err := os.ReadFile(filePath)
-// 	Expect(err).NotTo(HaveOccurred())
-
-// 	Eventually(func() error {
-// 		// Decode expected data using Kubernetes decoder
-// 		expectedData := &unstructured.Unstructured{}
-// 		decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-// 		_, _, err := decoder.Decode(expectedOutput, nil, expectedData)
-// 		Expect(err).NotTo(HaveOccurred())
-
-// 		// Set GVK for actualOutput based on expectedData
-// 		actualOutput := &unstructured.Unstructured{}
-// 		actualOutput.SetGroupVersionKind(expectedData.GroupVersionKind())
-
-// 		resourceLookupKey := client.ObjectKey{
-// 			Namespace: expectedData.GetNamespace(),
-// 			Name:      expectedData.GetName(),
-// 		}
-
-// 		err = k8sClient.Get(context.Background(), resourceLookupKey, actualOutput)
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		// Clean up metadata fields that may differ
-// 		cleanupUnstructuredObject(actualOutput)
-// 		cleanupUnstructuredObject(expectedData)
-
-// 		// Compare the objects directly
-// 		if !cmp.Equal(actualOutput.Object, expectedData.Object, cmpopts.SortSlices(func(x, y interface{}) bool {
-// 			return fmt.Sprintf("%v", x) < fmt.Sprintf("%v", y)
-// 		})) {
-// 			diff := cmp.Diff(actualOutput.Object, expectedData.Object, cmpopts.SortSlices(func(x, y interface{}) bool {
-// 				return fmt.Sprintf("%v", x) < fmt.Sprintf("%v", y)
-// 			}))
-// 			fmt.Printf("Difference: %v\n", diff)
-// 			return fmt.Errorf("actual data does not match expected data")
-// 		}
-
-// 		return nil
-// 	}, 30*time.Second, 2*time.Second).Should(Succeed())
-// }
-
-func cleanupUnstructuredObject(obj *unstructured.Unstructured) {
-	unstructured.RemoveNestedField(obj.Object, "metadata", "creationTimestamp")
-	unstructured.RemoveNestedField(obj.Object, "metadata", "resourceVersion")
-	unstructured.RemoveNestedField(obj.Object, "metadata", "uid")
-	unstructured.RemoveNestedField(obj.Object, "metadata", "managedFields")
-	unstructured.RemoveNestedField(obj.Object, "metadata", "generation")
-	unstructured.RemoveNestedField(obj.Object, "metadata", "selfLink")
 }
 
 func deleteExample(exampleFolder string, ctx context.Context) {

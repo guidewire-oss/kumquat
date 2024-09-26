@@ -157,7 +157,7 @@ func main() {
 		setupLog.Error(err, "unable to create dynamic k8s client")
 		os.Exit(1)
 	}
-	//create the dynamic k8s client
+	// create the dynamic k8s client
 	k8sClient, err := controller.GetK8sClient(mgr.GetClient(), mgr.GetRESTMapper())
 	if err != nil {
 		setupLog.Error(err, "unable to create dynamic k8s client")
