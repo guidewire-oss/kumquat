@@ -2,12 +2,16 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -20,8 +24,7 @@ import (
 
 	kumquatv1beta1 "kumquat/api/v1beta1"
 	"kumquat/test/utils"
-
-	yamlv3 "gopkg.in/yaml.v3" // Ensure this is included
+	// Ensure this is included
 )
 
 var _ = Describe("Template Controller Integration Test", func() {
@@ -67,58 +70,18 @@ var _ = Describe("Template Controller Integration Test", func() {
 		}
 	})
 
-	It("should reconcile the Template and create expected resources", func() {
+	It("should apply and verify examples", func() {
 
-		const (
-			resourceName  = "generate-role"
-			namespaceName = "templates"
-			timeout       = time.Second * 10
-			interval      = time.Millisecond * 250
-		)
-		By("applying all resources from the crds directory")
-		crdsDir := "../../examples/extending-rbac/input/crds"
-		applyYAMLFilesFromDirectory(ctx, crdsDir, namespaceName)
-
-		By("creating the Template resource")
-		// print the current working directory
-		templatePath := filepath.Join("resources/template_resource.yaml")
-
-		templateData, err := os.ReadFile(templatePath)
+		exampleFolderPath := path.Join("../", "../", "examples")
+		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
 		Expect(err).NotTo(HaveOccurred())
-
-		var data map[string]interface{}
-		err = yamlv3.Unmarshal(templateData, &data)
-		Expect(err).NotTo(HaveOccurred())
-
-		// Extract the necessary fields from the YAML
-		spec := data["spec"].(map[string]interface{})
-		query := spec["query"].(string)
-		templateSpec := spec["template"].(map[string]interface{})
-		language := templateSpec["language"].(string)
-		batchModeProcessing := templateSpec["batchModeProcessing"].(bool)
-		fileName := templateSpec["fileName"].(string)
-		templateDataField := templateSpec["data"].(string)
-
-		// Create the Template object
-		template := &kumquatv1beta1.Template{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      resourceName,
-				Namespace: namespaceName,
-			},
-			Spec: kumquatv1beta1.TemplateSpec{
-				Query: query,
-				TemplateDefinition: kumquatv1beta1.TemplateDefinition{
-					Language:            language,
-					BatchModeProcessing: batchModeProcessing,
-					Data:                templateDataField,
-					FileName:            fileName,
-				},
-			},
+		for _, exampleFolder := range exampleFolders {
+			By(fmt.Sprintf("Running example %s", exampleFolder))
+			applyExampleResources(ctx, path.Join(exampleFolderPath, exampleFolder))
 		}
 
-		Expect(k8sClient.Create(ctx, template)).To(Succeed())
-
 		By("verifying that the Template has been reconciled")
+		//for loop on the outp
 		Eventually(func() bool {
 
 			// Define the lookup key for the resource
@@ -143,6 +106,10 @@ var _ = Describe("Template Controller Integration Test", func() {
 
 		// another eventuallly block to check if the output.yaml file has been created
 		By("verifying that the output.yaml file has been created")
+		for _, exampleFolder := range exampleFolders {
+			exampleFolderPath := path.Join("..", "..", "examples", exampleFolder)
+			verifyExampleOutput(exampleFolderPath, "out.yaml")
+		}
 		Eventually(func() error {
 
 			outputFilePath := filepath.Join("resources/out.yaml")
@@ -180,8 +147,19 @@ var _ = Describe("Template Controller Integration Test", func() {
 	})
 })
 
+// Function to apply resources from an example
+func applyExampleResources(ctx context.Context, examplePath string) {
+	inputPath := filepath.Join(examplePath, "input")
+	// get all folders in the input directory
+	folders, err := utils.GetSubDirs(inputPath)
+	Expect(err).NotTo(HaveOccurred())
+	for _, folder := range folders {
+		applyYAMLFilesFromDirectory(ctx, path.Join(inputPath, folder))
+	}
+}
+
 // Function to apply all YAML files from a directory
-func applyYAMLFilesFromDirectory(ctx context.Context, dir string, namespaceName string) {
+func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
 	files, err := os.ReadDir(dir)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -209,11 +187,6 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string, namespaceName 
 				// Remove resourceVersion if set
 				obj.SetResourceVersion("")
 
-				// Set namespace if necessary
-				if obj.GetNamespace() == "" && obj.GetKind() != "Namespace" {
-					obj.SetNamespace(namespaceName) // Use your test namespace
-				}
-
 				// Apply the resource to the cluster
 				err = k8sClient.Create(ctx, obj)
 				if err != nil {
@@ -227,6 +200,63 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string, namespaceName 
 			}
 		}
 	}
+}
+
+// func verifyExampleOutput(exampleFolder string, exampleFile string) {
+// 	expectedFilePath := path.Join(exampleFolder, "expected", exampleFile)
+// 	filePath, err := filepath.Abs(expectedFilePath)
+// 	Expect(err).NotTo(HaveOccurred())
+
+// 	expectedOutput, err := os.ReadFile(filePath)
+// 	Expect(err).NotTo(HaveOccurred())
+
+// 	Eventually(func() error {
+// 		// Decode expected data using Kubernetes decoder
+// 		expectedData := &unstructured.Unstructured{}
+// 		decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+// 		_, _, err := decoder.Decode(expectedOutput, nil, expectedData)
+// 		Expect(err).NotTo(HaveOccurred())
+
+// 		// Set GVK for actualOutput based on expectedData
+// 		actualOutput := &unstructured.Unstructured{}
+// 		actualOutput.SetGroupVersionKind(expectedData.GroupVersionKind())
+
+// 		resourceLookupKey := client.ObjectKey{
+// 			Namespace: expectedData.GetNamespace(),
+// 			Name:      expectedData.GetName(),
+// 		}
+
+// 		err = k8sClient.Get(context.Background(), resourceLookupKey, actualOutput)
+// 		if err != nil {
+// 			return err
+// 		}
+
+// 		// Clean up metadata fields that may differ
+// 		cleanupUnstructuredObject(actualOutput)
+// 		cleanupUnstructuredObject(expectedData)
+
+// 		// Compare the objects directly
+// 		if !cmp.Equal(actualOutput.Object, expectedData.Object, cmpopts.SortSlices(func(x, y interface{}) bool {
+// 			return fmt.Sprintf("%v", x) < fmt.Sprintf("%v", y)
+// 		})) {
+// 			diff := cmp.Diff(actualOutput.Object, expectedData.Object, cmpopts.SortSlices(func(x, y interface{}) bool {
+// 				return fmt.Sprintf("%v", x) < fmt.Sprintf("%v", y)
+// 			}))
+// 			fmt.Printf("Difference: %v\n", diff)
+// 			return fmt.Errorf("actual data does not match expected data")
+// 		}
+
+// 		return nil
+// 	}, 30*time.Second, 2*time.Second).Should(Succeed())
+// }
+
+func cleanupUnstructuredObject(obj *unstructured.Unstructured) {
+	unstructured.RemoveNestedField(obj.Object, "metadata", "creationTimestamp")
+	unstructured.RemoveNestedField(obj.Object, "metadata", "resourceVersion")
+	unstructured.RemoveNestedField(obj.Object, "metadata", "uid")
+	unstructured.RemoveNestedField(obj.Object, "metadata", "managedFields")
+	unstructured.RemoveNestedField(obj.Object, "metadata", "generation")
+	unstructured.RemoveNestedField(obj.Object, "metadata", "selfLink")
 }
 
 func deleteExample(exampleFolder string, ctx context.Context) {
@@ -248,5 +278,81 @@ func deleteExample(exampleFolder string, ctx context.Context) {
 		}
 		Expect(err).NotTo(HaveOccurred())
 	}
+
+}
+
+func verifyExampleOutput(exampleFolder string, exampleFile string) {
+	expectedFilePath := path.Join(exampleFolder, "expected", exampleFile)
+	filePath, err := filepath.Abs(expectedFilePath)
+	Expect(err).NotTo(HaveOccurred())
+	expectedOutput, err := os.ReadFile(filePath)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(func() error {
+		// convert expected data to unsructured
+		expectedData := &unstructured.Unstructured{}
+		decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+		_, _, err := decoder.Decode(expectedOutput, nil, expectedData)
+		Expect(err).NotTo(HaveOccurred())
+
+		resourceLookupKey := client.ObjectKey{
+			Namespace: expectedData.GetNamespace(),
+			Name:      expectedData.GetName(),
+		}
+
+		actualOutput := &unstructured.Unstructured{}
+		actualOutput.SetGroupVersionKind(expectedData.GroupVersionKind())
+
+		err = k8sClient.Get(context.Background(), resourceLookupKey, actualOutput)
+		if err != nil {
+			return err
+		}
+		// delete metadata creationTimestamp, resourceVersion, uid from the actual output
+		if metadata, ok := actualOutput.Object["metadata"].(map[string]interface{}); ok {
+			delete(metadata, "creationTimestamp")
+			delete(metadata, "resourceVersion")
+			delete(metadata, "uid")
+			delete(metadata, "managedFields") // Ensure this is removed
+			delete(metadata, "generation")
+			delete(metadata, "selfLink")
+		}
+
+		// Convert to JSON for comparison
+		actualJSON, err := json.Marshal(actualOutput)
+		if err != nil {
+			return err
+		}
+
+		expectedJSON, err := json.Marshal(expectedData)
+		if err != nil {
+
+			return err
+		}
+
+		var actualJSONData interface{}
+		var expectedJSONData interface{}
+
+		err = json.Unmarshal(actualJSON, &actualJSONData)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(expectedJSON, &expectedJSONData)
+		if err != nil {
+			return err
+		}
+
+		// Compare JSON objects ignoring the order of elements in arrays
+		if diff := cmp.Diff(actualJSONData, expectedJSONData, cmpopts.SortSlices(func(x, y interface{}) bool {
+			return fmt.Sprintf("%v", x) < fmt.Sprintf("%v", y)
+		})); diff != "" {
+			fmt.Printf("Actual data: %v\n", actualJSONData)
+			fmt.Printf("Expected data: %v\n", expectedJSONData)
+			fmt.Printf("Difference: %v\n", diff)
+			return fmt.Errorf("actual data does not match expected data")
+		}
+
+		return nil
+	}, 10*time.Second, 2*time.Second).Should(Succeed())
 
 }
