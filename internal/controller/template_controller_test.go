@@ -186,12 +186,11 @@ func verifyExampleOutput(exampleFolder string, exampleFile string) {
 		if err != nil {
 			return err
 		}
-		//convert actualourput to yaml
-		//convert unstuctured to yaml
 
 		yamlData, err := sigyaml.Marshal(actualOutput)
+		Expect(err).NotTo(HaveOccurred())
 		fmt.Println(string(yamlData), "this issss")
-		// delete metadata creationTimestamp, resourceVersion, uid from the actual output
+		// delete metadata creationTimestamp, resourceVersion, uid, generation, selfLink
 		if metadata, ok := actualOutput.Object["metadata"].(map[string]interface{}); ok {
 			delete(metadata, "creationTimestamp")
 			delete(metadata, "resourceVersion")
