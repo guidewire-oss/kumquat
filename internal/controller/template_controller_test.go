@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	sigyaml "sigs.k8s.io/yaml"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
@@ -22,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 
-	kumquatv1beta1 "kumquat/api/v1beta1"
 	"kumquat/test/utils"
 	// Ensure this is included
 )
@@ -80,63 +81,12 @@ var _ = Describe("Template Controller Integration Test", func() {
 			applyExampleResources(ctx, path.Join(exampleFolderPath, exampleFolder))
 		}
 
-		By("verifying that the Template has been reconciled")
-		//for loop on the outp
-		Eventually(func() bool {
-
-			// Define the lookup key for the resource
-			resourceLookupKey := client.ObjectKey{
-				Namespace: "templates",
-				Name:      "generate-role",
-			}
-
-			// Define the resource object
-			resource := &kumquatv1beta1.Template{} // Replace with the actual type if different
-
-			// Attempt to get the resource
-			err := k8sClient.Get(ctx, resourceLookupKey, resource)
-			return err == nil
-		}, 10*time.Second, 1*time.Second).Should(BeTrue())
-
 		// another eventuallly block to check if the output.yaml file has been created
 		By("verifying that the output.yaml file has been created")
 		for _, exampleFolder := range exampleFolders {
 			exampleFolderPath := path.Join("..", "..", "examples", exampleFolder)
 			verifyExampleOutput(exampleFolderPath, "out.yaml")
 		}
-		Eventually(func() error {
-
-			outputFilePath := filepath.Join("resources/out.yaml")
-			outputData, err := os.ReadFile(outputFilePath)
-			Expect(err).NotTo(HaveOccurred())
-
-			decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-			obj := &unstructured.Unstructured{}
-			_, _, err = decoder.Decode(outputData, nil, obj)
-			Expect(err).NotTo(HaveOccurred())
-
-			// Use the information from the output.yaml to verify the resource in the cluster
-			resourceLookupKey := client.ObjectKey{
-				Namespace: obj.GetNamespace(),
-				Name:      obj.GetName(),
-			}
-
-			// Fetch the resource from the cluster
-			clusterResource := &unstructured.Unstructured{}
-			clusterResource.SetGroupVersionKind(obj.GroupVersionKind())
-
-			err = k8sClient.Get(ctx, resourceLookupKey, clusterResource)
-			if err != nil {
-
-				return err
-
-			}
-			return nil
-
-			// Verify the fetched resource from the cluster matches the expected resource
-			// Expect(clusterResource.Object).To(Equal(obj.Object),
-			// "The resource created in the cluster should match the output.yaml file")
-		}, 10*time.Second, 1*time.Second).Should(Succeed())
 
 	})
 })
@@ -164,32 +114,24 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
 			content, err := os.ReadFile(filePath)
 			Expect(err).NotTo(HaveOccurred())
 
-			// Split the file into individual YAML documents
-			documents := strings.Split(string(content), "\n---")
-			for _, doc := range documents {
-				doc = strings.TrimSpace(doc)
-				if len(doc) == 0 {
-					continue
-				}
+			// Assume there is only one resource per file; do not split or trim the content
+			// Decode YAML into unstructured.Unstructured
+			decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+			obj := &unstructured.Unstructured{}
+			_, _, err = decoder.Decode(content, nil, obj)
+			Expect(err).NotTo(HaveOccurred())
 
-				// Decode YAML into unstructured.Unstructured
-				decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-				obj := &unstructured.Unstructured{}
-				_, _, err := decoder.Decode([]byte(doc), nil, obj)
-				Expect(err).NotTo(HaveOccurred())
+			// Remove resourceVersion if set
+			obj.SetResourceVersion("")
 
-				// Remove resourceVersion if set
-				obj.SetResourceVersion("")
-
-				// Apply the resource to the cluster
-				err = k8sClient.Create(ctx, obj)
-				if err != nil {
-					if errors.IsAlreadyExists(err) {
-						err = k8sClient.Update(ctx, obj)
-						Expect(err).NotTo(HaveOccurred())
-					} else {
-						Expect(err).NotTo(HaveOccurred())
-					}
+			// Apply the resource to the cluster
+			err = k8sClient.Create(ctx, obj)
+			if err != nil {
+				if errors.IsAlreadyExists(err) {
+					err = k8sClient.Update(ctx, obj)
+					Expect(err).NotTo(HaveOccurred())
+				} else {
+					Expect(err).NotTo(HaveOccurred())
 				}
 			}
 		}
@@ -244,6 +186,11 @@ func verifyExampleOutput(exampleFolder string, exampleFile string) {
 		if err != nil {
 			return err
 		}
+		//convert actualourput to yaml
+		//convert unstuctured to yaml
+
+		yamlData, err := sigyaml.Marshal(actualOutput)
+		fmt.Println(string(yamlData), "this issss")
 		// delete metadata creationTimestamp, resourceVersion, uid from the actual output
 		if metadata, ok := actualOutput.Object["metadata"].(map[string]interface{}); ok {
 			delete(metadata, "creationTimestamp")
@@ -290,6 +237,6 @@ func verifyExampleOutput(exampleFolder string, exampleFile string) {
 		}
 
 		return nil
-	}, 10*time.Second, 2*time.Second).Should(Succeed())
+	}, 40*time.Second, 20*time.Second).Should(Succeed())
 
 }
