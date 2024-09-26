@@ -234,6 +234,6 @@ func verifyExampleOutput(exampleFolder string, exampleFile string) {
 		}
 
 		return nil
-	}, 40*time.Second, 20*time.Second).Should(Succeed())
+	}, 10*time.Second, 2*time.Second).Should(Succeed())
 
 }
