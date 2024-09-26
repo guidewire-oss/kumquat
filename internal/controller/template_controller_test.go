@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -18,19 +19,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 
 	kumquatv1beta1 "kumquat/api/v1beta1"
+	"kumquat/test/utils"
 
 	yamlv3 "gopkg.in/yaml.v3" // Ensure this is included
 )
 
 var _ = Describe("Template Controller Integration Test", func() {
-	const (
-		resourceName  = "generate-role"
-		namespaceName = "templates"
-		timeout       = time.Second * 10
-		interval      = time.Millisecond * 250
-	)
 
 	var ctx context.Context
+	const namespaceName = "templates"
 
 	BeforeEach(func() {
 		ctx = context.Background()
@@ -46,6 +43,38 @@ var _ = Describe("Template Controller Integration Test", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
+	})
+
+	AfterEach(func() {
+		By("deleting all Template resources")
+		exampleFolderPath := path.Join("../", "../", "examples")
+		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
+
+		Expect(err).NotTo(HaveOccurred())
+		for _, exampleFolder := range exampleFolders {
+			deleteExample(path.Join(exampleFolderPath, exampleFolder, "input", "templates"), ctx)
+		}
+
+		By("deleting the namespace")
+		namespace := &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespaceName,
+			},
+		}
+		err = k8sClient.Delete(ctx, namespace)
+		if err != nil && !errors.IsNotFound(err) {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	})
+
+	It("should reconcile the Template and create expected resources", func() {
+
+		const (
+			resourceName  = "generate-role"
+			namespaceName = "templates"
+			timeout       = time.Second * 10
+			interval      = time.Millisecond * 250
+		)
 		By("applying all resources from the crds directory")
 		crdsDir := "../../examples/extending-rbac/input/crds"
 		applyYAMLFilesFromDirectory(ctx, crdsDir, namespaceName)
@@ -89,34 +118,6 @@ var _ = Describe("Template Controller Integration Test", func() {
 
 		Expect(k8sClient.Create(ctx, template)).To(Succeed())
 
-	})
-
-	AfterEach(func() {
-		By("deleting the Template resource")
-		template := &kumquatv1beta1.Template{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      resourceName,
-				Namespace: namespaceName,
-			},
-		}
-		err := k8sClient.Delete(ctx, template)
-		if err != nil && !errors.IsNotFound(err) {
-			Expect(err).NotTo(HaveOccurred())
-		}
-
-		By("deleting the namespace")
-		namespace := &corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: namespaceName,
-			},
-		}
-		err = k8sClient.Delete(ctx, namespace)
-		if err != nil && !errors.IsNotFound(err) {
-			Expect(err).NotTo(HaveOccurred())
-		}
-	})
-
-	It("should reconcile the Template and create expected resources", func() {
 		By("verifying that the Template has been reconciled")
 		Eventually(func() bool {
 
@@ -226,4 +227,26 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string, namespaceName 
 			}
 		}
 	}
+}
+
+func deleteExample(exampleFolder string, ctx context.Context) {
+	files, err := os.ReadDir(exampleFolder)
+	Expect(err).NotTo(HaveOccurred())
+
+	Expect(err).NotTo(HaveOccurred())
+	for _, file := range files {
+		filePath := filepath.Join(exampleFolder, file.Name())
+		fileData, err := os.ReadFile(filePath)
+		Expect(err).NotTo(HaveOccurred())
+		decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+		obj := &unstructured.Unstructured{}
+		_, _, err = decoder.Decode(fileData, nil, obj)
+		Expect(err).NotTo(HaveOccurred())
+		err = k8sClient.Delete(ctx, obj)
+		if errors.IsNotFound(err) {
+			continue
+		}
+		Expect(err).NotTo(HaveOccurred())
+	}
+
 }
