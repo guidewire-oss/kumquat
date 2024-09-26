@@ -139,7 +139,6 @@ func (wm *WatchManager) RemoveWatch(templateName string) {
 			if wm.refCounts[gvk] <= 0 {
 				wm.stopWatching(gvk)
 				delete(wm.refCounts, gvk)
-				//	deleteTableFromDataBase(gvk) // nolint:errcheck
 			}
 		}
 		delete(wm.templates, templateName)
@@ -171,7 +170,6 @@ func (wm *WatchManager) removeWatchForGVK(templateName string, gvk schema.GroupV
 	if wm.refCounts[gvk] <= 0 {
 		wm.stopWatching(gvk)
 		delete(wm.refCounts, gvk)
-		//	deleteTableFromDataBase(gvk) // nolint:errcheck
 	}
 	delete(wm.templates[templateName], gvk)
 	log.Log.Info("Decremented watch reference count", "gvk", gvk, "count", wm.refCounts[gvk])

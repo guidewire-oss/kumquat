@@ -114,8 +114,6 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
 			content, err := os.ReadFile(filePath)
 			Expect(err).NotTo(HaveOccurred())
 
-			// Assume there is only one resource per file; do not split or trim the content
-			// Decode YAML into unstructured.Unstructured
 			decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 			obj := &unstructured.Unstructured{}
 			_, _, err = decoder.Decode(content, nil, obj)

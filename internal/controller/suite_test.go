@@ -85,8 +85,6 @@ var _ = BeforeSuite(func() {
 		Client:    k8sClient,
 		Scheme:    scheme,
 		K8sClient: mockedClient,
-
-		// No WatchManager since it's not used in main.go
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 

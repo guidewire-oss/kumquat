@@ -144,19 +144,16 @@ func (k *DynamicK8sClient) Delete(ctx context.Context, group, kind, namespace, n
 }
 
 func (k *DynamicK8sClient) GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error) {
-	// Build a partial GVK to search for
 	partialGVK := schema.GroupVersionKind{
 		Group: group,
 		Kind:  kind,
 	}
 
-	// Use the RESTMapper to get the preferred GVK
 	mapping, err := k.restMapper.RESTMapping(partialGVK.GroupKind())
 	if err != nil {
 		return schema.GroupVersionKind{}, fmt.Errorf("failed to get GVK from RESTMapper: %v", err)
 	}
 
 	return mapping.GroupVersionKind, nil
-	//	return schema.GroupVersionKind{Group: group, Version: "v1", Kind: kind}, nil
 
 }
