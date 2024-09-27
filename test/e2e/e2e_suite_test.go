@@ -16,10 +16,6 @@ import (
 	"sigs.k8s.io/e2e-framework/support/kind"
 )
 
-//var cfg *rest.Config
-
-// var k8sClient client.Client
-// var testEnv *envtest.Environment
 var kindClusterName = "kind"
 var kindCluster *kind.Cluster
 
