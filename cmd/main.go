@@ -144,19 +144,6 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-	if err != nil {
-		setupLog.Error(err, "unable to get Kubernetes config")
-		os.Exit(1)
-	}
-
-	if err != nil {
-		setupLog.Error(err, "unable to create dynamic k8s client")
-		os.Exit(1)
-	}
-	if err != nil {
-		setupLog.Error(err, "unable to create dynamic k8s client")
-		os.Exit(1)
-	}
 	// create the dynamic k8s client
 	k8sClient, err := controller.GetK8sClient(mgr.GetClient(), mgr.GetRESTMapper())
 	if err != nil {

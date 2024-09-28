@@ -77,7 +77,7 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 		}
 		wm.templates[templateName][gvk] = struct{}{}
 		if wm.refCounts[gvk] == 0 {
-			deleteTableFromDataBase(gvk) // nolint:errcheck
+			//deleteTableFromDataBase(gvk) // nolint:errcheck
 			if err := wm.startWatching(gvk); err != nil {
 				return err
 			}

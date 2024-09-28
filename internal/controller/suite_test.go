@@ -11,8 +11,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/dynamic"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -26,20 +27,13 @@ import (
 )
 
 var (
-	cfg       *rest.Config
-	k8sClient client.Client
-	testEnv   *envtest.Environment
-	scheme    = runtime.NewScheme()
+	cfg             *rest.Config
+	k8sClient       client.Client
+	testEnv         *envtest.Environment
+	scheme          = runtime.NewScheme()
+	dynamicClient   dynamic.Interface
+	discoveryClient discovery.DiscoveryInterface
 )
-
-type MockedGetPreferredGVKClient struct {
-	K8sClient
-}
-
-func (m *MockedGetPreferredGVKClient) GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error) {
-	// Return a predefined GVK
-	return schema.GroupVersionKind{Group: group, Version: "v1", Kind: kind}, nil
-}
 
 var stopMgr context.CancelFunc
 
@@ -49,44 +43,53 @@ func TestControllers(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	var err error
+
+	// Set up the logger
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
-	By("bootstrapping test environment")
+	// Add schemes
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kumquatv1beta1.AddToScheme(scheme))
 
+	// Bootstrap the test environment
+	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 		ErrorIfCRDPathMissing: true,
 	}
 
-	var err error
+	// Start the test environment and obtain the configuration
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
+	// Initialize the k8sClient using the test environment's configuration
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
+	// Initialize the dynamic client using the test environment's configuration
+	dynamicClient, err = dynamic.NewForConfig(cfg)
+	Expect(err).NotTo(HaveOccurred(), "Failed to create dynamic client")
+
+	// Initialize the discovery client using the test environment's configuration
+	discoveryClient, err = discovery.NewDiscoveryClientForConfig(cfg)
+	Expect(err).NotTo(HaveOccurred(), "Failed to create discovery client")
+
 	// Start the manager and controller
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{Scheme: scheme})
-	Expect(err).ToNot(HaveOccurred())
 	Expect(err).NotTo(HaveOccurred())
+
+	dynamicK8sClient, err := GetK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
 	Expect(err).NotTo(HaveOccurred())
-	Expect(err).NotTo(HaveOccurred())
-	dynamicK8sClient, err := GetK8sClient(k8sClient, k8sManager.GetRESTMapper())
-	Expect(err).ToNot(HaveOccurred())
-	mockedClient := &MockedGetPreferredGVKClient{
-		K8sClient: dynamicK8sClient,
-	}
 
 	err = (&TemplateReconciler{
-		Client:    k8sClient,
+		Client:    k8sManager.GetClient(),
 		Scheme:    scheme,
-		K8sClient: mockedClient,
+		K8sClient: dynamicK8sClient,
 	}).SetupWithManager(k8sManager)
-	Expect(err).ToNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 
 	var mgrCtx context.Context
 	mgrCtx, stopMgr = context.WithCancel(context.Background())
@@ -94,20 +97,9 @@ var _ = BeforeSuite(func() {
 	go func() {
 		defer GinkgoRecover()
 		err = k8sManager.Start(mgrCtx)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 	}()
 
 	// Wait for the cache to sync
 	Expect(k8sManager.GetCache().WaitForCacheSync(context.Background())).To(BeTrue())
-
-})
-
-var _ = AfterSuite(func() {
-	By("Stopping the manager")
-	stopMgr() // Signal the manager to stop
-
-	By("tearing down the test environment")
-	err := testEnv.Stop()
-	Expect(err).NotTo(HaveOccurred())
-
 })
