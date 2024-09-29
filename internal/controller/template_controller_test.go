@@ -91,7 +91,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 		}
 
 	})
-	It("should apply and verify examples", func() {
+	It("repeate apply and verify examples to check some race conditions", func() {
 
 		exampleFolderPath := path.Join("../", "../", "examples")
 		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
@@ -198,7 +198,6 @@ func verifyExampleOutput(exampleFolder string, exampleFile string) {
 	filePath, err := filepath.Abs(expectedFilePath)
 	Expect(err).NotTo(HaveOccurred())
 	expectedOutput, err := os.ReadFile(filePath)
-	Expect(err).NotTo(HaveOccurred())
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
 		// convert expected data to unsructured

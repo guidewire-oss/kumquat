@@ -57,10 +57,6 @@ func Register(name string, f RendererMaker) error {
 }
 
 func MakeRenderer(name, template, source string) (Renderer, error) {
-	// print keys of rendererRegistry
-	for k := range rendererRegistry {
-		fmt.Println(k, "=>", rendererRegistry[k])
-	}
 	f, ok := rendererRegistry[name]
 	if !ok {
 		return nil, &LookupError{rendererName: name}
