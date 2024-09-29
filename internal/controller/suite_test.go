@@ -81,7 +81,7 @@ var _ = BeforeSuite(func() {
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{Scheme: scheme})
 	Expect(err).NotTo(HaveOccurred())
 
-	dynamicK8sClient, err := GetK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
+	dynamicK8sClient, err := NewDynamicK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
 	Expect(err).NotTo(HaveOccurred())
 
 	err = (&TemplateReconciler{

@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func GetK8sClient(client client.Client, restMapper meta.RESTMapper) (K8sClient, error) {
+func NewDynamicK8sClient(client client.Client, restMapper meta.RESTMapper) (K8sClient, error) {
 
 	return &DynamicK8sClient{
 		client:     client,

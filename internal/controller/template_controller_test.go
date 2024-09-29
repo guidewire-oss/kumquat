@@ -144,14 +144,10 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
 
 			// Apply the resource to the cluster
 			err = k8sClient.Create(ctx, obj)
-			if err != nil {
-				if errors.IsAlreadyExists(err) {
-					err = k8sClient.Update(ctx, obj)
-					Expect(err).NotTo(HaveOccurred())
-				} else {
-					Expect(err).NotTo(HaveOccurred())
-				}
+			if errors.IsAlreadyExists(err) {
+				err = k8sClient.Update(ctx, obj)
 			}
+			Expect(err).NotTo(HaveOccurred())
 		}
 	}
 }
