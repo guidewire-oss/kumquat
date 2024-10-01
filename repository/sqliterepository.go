@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"regexp"
 	"strings"
+	"sync"
 
 	_ "github.com/mattn/go-sqlite3"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -15,6 +16,7 @@ import (
 type SQLiteRepository struct {
 	Db          *sql.DB
 	StoredKinds map[string]bool
+	mu          sync.Mutex
 }
 
 type GroupKind struct {
@@ -25,6 +27,9 @@ type GroupKind struct {
 var tableErrorRegexp = regexp.MustCompile(`^no such table: (.*)$`)
 
 func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	slog.Debug("Running query", "query", query)
 	fmt.Println("Running query", "query", query)
 
@@ -33,6 +38,8 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 
 	for rows, err = r.Db.Query(query); err != nil; rows, err = r.Db.Query(query) {
 		m := tableErrorRegexp.FindStringSubmatch(err.Error())
+		// print m to see the table name
+		log.Log.Info("Error running qsdsduery", "error", err.Error(), "table", m)
 
 		if m != nil {
 			fmt.Println("Table not found, creating table", "table", m[1])
@@ -115,7 +122,6 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 		Names:   columnNames,
 		Results: results,
 	}
-
 	return resultset, nil
 }
 
@@ -141,6 +147,8 @@ func (r *SQLiteRepository) createTable(table string) error {
 }
 
 func (r *SQLiteRepository) Upsert(resource Resource) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	byteJSON, err := json.Marshal(resource.Content())
 
 	if err != nil {
@@ -172,6 +180,8 @@ func (r *SQLiteRepository) Upsert(resource Resource) error {
 
 // a function that builds data columns from the resource and check if a row with the same value for data column exists
 func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	byteJSON, err := json.Marshal(resource.Content())
 
 	if err != nil {
@@ -182,6 +192,7 @@ func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error
 	fmt.Println("Checking if resource with same data already exists",
 		"table", table, "namespace", resource.Namespace(), "name", resource.Name())
 	contentJSON := string(byteJSON)
+	log.Log.Info("Checking if resource exists", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
 
 	if !r.StoredKinds[table] {
 		err := r.createTable(table)
@@ -246,6 +257,7 @@ func NewSQLiteRepository() (*SQLiteRepository, error) {
 	repo := &SQLiteRepository{
 		Db:          db,
 		StoredKinds: make(map[string]bool),
+		mu:          sync.Mutex{},
 	}
 
 	return repo, nil

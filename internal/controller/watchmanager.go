@@ -39,20 +39,22 @@ type WatchManager struct {
 	client           client.Client
 	scheme           *runtime.Scheme
 	mgr              manager.Manager
+	K8sClient        K8sClient
 }
 
 var wm *WatchManager
 
 // NewWatchManager creates a new WatchManager instance.
-func NewWatchManager(mgr manager.Manager) *WatchManager {
+func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
 	watchManager := &WatchManager{
 		watchedResources: make(map[schema.GroupVersionKind]ControllerEntry),
 		refCounts:        make(map[schema.GroupVersionKind]int),
 		templates:        make(map[string]map[schema.GroupVersionKind]struct{}),
 		cache:            mgr.GetCache(),
-		client:           mgr.GetClient(),
 		scheme:           mgr.GetScheme(),
 		mgr:              mgr,
+		K8sClient:        k8sClient,
+		client:           mgr.GetClient(),
 	}
 	wm = watchManager
 	return watchManager
@@ -75,6 +77,10 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 		}
 		wm.templates[templateName][gvk] = struct{}{}
 		if wm.refCounts[gvk] == 0 {
+			err := deleteTableFromDataBase(gvk)
+			if err != nil {
+				return err
+			}
 			if err := wm.startWatching(gvk); err != nil {
 				return err
 			}
@@ -136,7 +142,6 @@ func (wm *WatchManager) RemoveWatch(templateName string) {
 			if wm.refCounts[gvk] <= 0 {
 				wm.stopWatching(gvk)
 				delete(wm.refCounts, gvk)
-				deleteTableFromDataBase(gvk) // nolint:errcheck
 			}
 		}
 		delete(wm.templates, templateName)
@@ -168,7 +173,6 @@ func (wm *WatchManager) removeWatchForGVK(templateName string, gvk schema.GroupV
 	if wm.refCounts[gvk] <= 0 {
 		wm.stopWatching(gvk)
 		delete(wm.refCounts, gvk)
-		deleteTableFromDataBase(gvk) // nolint:errcheck
 	}
 	delete(wm.templates[templateName], gvk)
 	log.Log.Info("Decremented watch reference count", "gvk", gvk, "count", wm.refCounts[gvk])
@@ -181,8 +185,10 @@ func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error {
 	obj.SetGroupVersionKind(gvk)
 
 	dynamicReconciler := &DynamicReconciler{
-		Client: wm.client,
-		GVK:    gvk,
+		Client:    wm.client,
+		GVK:       gvk,
+		K8sClient: wm.K8sClient, // Pass the K8sClient here
+
 	}
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
@@ -221,7 +227,7 @@ func (wm *WatchManager) stopWatching(gvk schema.GroupVersionKind) {
 	}
 }
 
-// logActiveControllers logs all active controllers.
+// logs all active controllers.
 func (wm *WatchManager) logActiveControllers() {
 	log.Log.Info("Listing all active controllers:")
 	for gvk, entry := range wm.watchedResources {
@@ -266,7 +272,8 @@ func deleteTableFromDataBase(gvk schema.GroupVersionKind) error {
 // DynamicReconciler reconciles dynamic resources.
 type DynamicReconciler struct {
 	client.Client
-	GVK schema.GroupVersionKind
+	GVK       schema.GroupVersionKind
+	K8sClient K8sClient
 }
 
 func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
@@ -362,13 +369,14 @@ func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error {
 // processTemplate processes a single template.
 func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName string) error {
 	log := log.FromContext(ctx)
-	dynamicK8sClient, err := NewDynamicK8sClient()
-	if err != nil {
-		log.Error(err, "unable to create dynamic client")
+
+	k8sClient := r.K8sClient
+	if k8sClient == nil {
+		err := fmt.Errorf("K8sClient is not initialized")
+		log.Error(err, "K8sClient is not initialized")
 		return err
 	}
-
-	template, err := dynamicK8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
+	template, err := k8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
 	if err != nil {
 		log.Error(err, "unable to get template", "templateName", templateName)
 		return err
@@ -396,7 +404,7 @@ func (r *DynamicReconciler) fetchResource(
 ) (*unstructured.Unstructured, error) {
 	resource := &unstructured.Unstructured{}
 	resource.SetGroupVersionKind(r.GVK)
-	err := r.Get(ctx, req.NamespacedName, resource)
+	err := r.Client.Get(ctx, req.NamespacedName, resource)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return nil, err
@@ -420,7 +428,7 @@ func (r *DynamicReconciler) evaluateTemplate(
 		return err
 	}
 
-	return processTemplateResources(templateObj, re, log.FromContext(ctx))
+	return processTemplateResources(templateObj, re, log.FromContext(ctx), r.K8sClient)
 }
 
 // unstructuredEventHandler handles events for unstructured resources.

@@ -187,14 +187,10 @@ func (t *Template) Evaluate(repo repository.Repository) (*TemplateOutput, error)
 		return nil, fmt.Errorf("query failed in Template '%s': %w", t.name, err)
 	}
 
-	// fmt.Printf("resultset: %v\n", resultset)
-
 	output, err := renderer.Render(t.renderer, resultset.Results, t.batchMode)
 	if err != nil {
 		return nil, fmt.Errorf("error rendering Template '%s': %w", t.name, err)
 	}
-
-	// fmt.Printf("output: %v\n", output)
 
 	fileNamesOutput, err := renderer.Render(t.fileNameTemplate, resultset.Results, t.batchMode)
 	if err != nil {

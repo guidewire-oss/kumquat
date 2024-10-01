@@ -1,32 +1,22 @@
-/*
-Copyright 2024.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controller
 
 import (
-	"fmt"
-	"path/filepath"
-	"runtime"
+	"context"
+	"path/filepath" // Alias the standard library runtime package
+
+	// Alias the standard library runtime package
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/dynamic"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -36,55 +26,80 @@ import (
 	// +kubebuilder:scaffold:imports
 )
 
-// These tests use Ginkgo (BDD-style Go testing framework). Refer to
-// http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
+var (
+	cfg             *rest.Config
+	k8sClient       client.Client
+	testEnv         *envtest.Environment
+	scheme          = runtime.NewScheme()
+	dynamicClient   dynamic.Interface
+	discoveryClient discovery.DiscoveryInterface
+)
 
-var cfg *rest.Config
-var k8sClient client.Client
-var testEnv *envtest.Environment
+var stopMgr context.CancelFunc
 
 func TestControllers(t *testing.T) {
 	RegisterFailHandler(Fail)
-
 	RunSpecs(t, "Controller Suite")
 }
 
 var _ = BeforeSuite(func() {
+	var err error
+
+	// Set up the logger
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
+	// Add schemes
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(kumquatv1beta1.AddToScheme(scheme))
+
+	// Bootstrap the test environment
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 		ErrorIfCRDPathMissing: true,
-
-		// The BinaryAssetsDirectory is only required if you want to run the tests directly
-		// without call the makefile target test. If not informed it will look for the
-		// default path defined in controller-runtime which is /usr/local/kubebuilder/.
-		// Note that you must have the required binaries setup under the bin directory to perform
-		// the tests directly. When we run make test it will be setup and used automatically.
-		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s",
-			fmt.Sprintf("1.30.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
 	}
 
-	var err error
-	// cfg is defined in this file globally.
+	// Start the test environment and obtain the configuration
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	err = kumquatv1beta1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
-
-	// +kubebuilder:scaffold:scheme
-
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+	// Initialize the k8sClient using the test environment's configuration
+	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-})
+	// Initialize the dynamic client using the test environment's configuration
+	dynamicClient, err = dynamic.NewForConfig(cfg)
+	Expect(err).NotTo(HaveOccurred(), "Failed to create dynamic client")
 
-var _ = AfterSuite(func() {
-	By("tearing down the test environment")
-	err := testEnv.Stop()
+	// Initialize the discovery client using the test environment's configuration
+	discoveryClient, err = discovery.NewDiscoveryClientForConfig(cfg)
+	Expect(err).NotTo(HaveOccurred(), "Failed to create discovery client")
+
+	// Start the manager and controller
+	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{Scheme: scheme})
 	Expect(err).NotTo(HaveOccurred())
+
+	dynamicK8sClient, err := NewDynamicK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
+	Expect(err).NotTo(HaveOccurred())
+
+	err = (&TemplateReconciler{
+		Client:    k8sManager.GetClient(),
+		Scheme:    scheme,
+		K8sClient: dynamicK8sClient,
+	}).SetupWithManager(k8sManager)
+	Expect(err).NotTo(HaveOccurred())
+
+	var mgrCtx context.Context
+	mgrCtx, stopMgr = context.WithCancel(context.Background())
+
+	go func() {
+		defer GinkgoRecover()
+		err = k8sManager.Start(mgrCtx)
+		Expect(err).NotTo(HaveOccurred())
+	}()
+
+	// Wait for the cache to sync
+	Expect(k8sManager.GetCache().WaitForCacheSync(context.Background())).To(BeTrue())
 })

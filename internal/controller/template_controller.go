@@ -32,7 +32,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"sigs.k8s.io/yaml"
 
@@ -97,9 +96,9 @@ func (r *TemplateReconciler) RemoveFinalizer(template *kumquatv1beta1.Template) 
 // TemplateReconciler reconciles a Template object
 type TemplateReconciler struct {
 	client.Client
-	Scheme            *runtime.Scheme
-	WatchManager      *WatchManager
-	DynamicReconciler reconcile.Reconciler
+	Scheme       *runtime.Scheme
+	WatchManager *WatchManager
+	K8sClient    K8sClient
 }
 
 func (r *TemplateReconciler) handleDeletion(
@@ -116,7 +115,7 @@ func (r *TemplateReconciler) handleDeletion(
 		return ctrl.Result{}, err
 	}
 
-	err = deleteAssociatedResources(template, re, log)
+	err = deleteAssociatedResources(template, re, log, r.K8sClient)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -134,7 +133,13 @@ func deleteAssociatedResources(
 	template *kumquatv1beta1.Template,
 	re *repository.SQLiteRepository,
 	log logr.Logger,
+	k8sClient K8sClient,
 ) error {
+	template.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "kumquat.guidewire.com",
+		Version: "v1beta1",
+		Kind:    "Template",
+	})
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 	if err != nil {
 		log.Error(err, "failed to convert template to unstructured map")
@@ -165,14 +170,14 @@ func deleteAssociatedResources(
 		}
 		fmt.Println(out)
 
-		err = deleteResourceFromCluster(out, log)
+		err = deleteResourceFromCluster(out, log, k8sClient)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
-func deleteResourceFromCluster(out string, log logr.Logger) error {
+func deleteResourceFromCluster(out string, log logr.Logger, k8sClient K8sClient) error {
 	jsonData, err := yaml.YAMLToJSON([]byte(out))
 	if err != nil {
 		log.Error(err, "unable to convert YAML to JSON")
@@ -185,13 +190,8 @@ func deleteResourceFromCluster(out string, log logr.Logger) error {
 		return err
 	}
 
-	dynamicK8sClient, err := NewDynamicK8sClient()
-	if err != nil {
-		log.Error(err, "unable to create dynamic client")
-		return err
-	}
 	context := context.TODO()
-	err = dynamicK8sClient.Delete(context,
+	err = k8sClient.Delete(context,
 		unstructuredObj.GetObjectKind().GroupVersionKind().Group,
 		unstructuredObj.GetKind(),
 		unstructuredObj.GetNamespace(),
@@ -223,7 +223,6 @@ func deleteResourceFromCluster(out string, log logr.Logger) error {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.18.4/pkg/reconcile
 func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
-	log.Info("Reconciling template", "name", req.NamespacedName)
 
 	template := &kumquatv1beta1.Template{}
 	err := r.Get(ctx, req.NamespacedName, template)
@@ -248,13 +247,13 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	gvkList, err := extractGVKsFromQuery(template.Spec.Query, re, log)
+	gvkList, err := extractGVKsFromQuery(template.Spec.Query, re, log, r.K8sClient)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	for _, gvk := range gvkList {
-		err := addDataToDatabase(gvk.Group, gvk.Kind)
+		err := addDataToDatabase(gvk.Group, gvk.Kind, log, r.K8sClient)
 		if err != nil {
 			log.Error(err, "unable to add data to database", "gvk", gvk)
 		}
@@ -267,7 +266,7 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	fmt.Println(len(data.Results), "found in the database")
 
-	err = applyTemplateResources(template, re, log)
+	err = applyTemplateResources(template, re, log, r.K8sClient)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -284,12 +283,13 @@ func extractGVKsFromQuery(
 	query string,
 	re *repository.SQLiteRepository,
 	log logr.Logger,
+	k8sClient K8sClient,
 ) ([]schema.GroupVersionKind, error) {
 	tableNames := re.ExtractTableNamesFromQuery(query)
 	gvkList := make([]schema.GroupVersionKind, 0, len(tableNames))
 
 	for _, tableName := range tableNames {
-		gvk, err := BuildTableGVK(tableName)
+		gvk, err := BuildTableGVK(tableName, log, k8sClient)
 		if err != nil {
 			log.Error(err, "unable to build GVK for table", "table", tableName)
 			return nil, err
@@ -314,11 +314,11 @@ func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	r.WatchManager = NewWatchManager(mgr)
+	r.WatchManager = NewWatchManager(mgr, r.K8sClient)
 
 	return nil
 }
-func BuildTableGVK(tableName string) (schema.GroupVersionKind, error) {
+func BuildTableGVK(tableName string, log logr.Logger, k8sClient K8sClient) (schema.GroupVersionKind, error) {
 	dotIndex := strings.Index(tableName, ".")
 	if dotIndex == -1 {
 		return schema.GroupVersionKind{}, fmt.Errorf("invalid table name format")
@@ -332,30 +332,23 @@ func BuildTableGVK(tableName string) (schema.GroupVersionKind, error) {
 		group = ""
 	}
 
-	dynamicK8sClient, err := NewDynamicK8sClient()
-	if err != nil {
-		return schema.GroupVersionKind{}, err
-	}
-	gvk, err := dynamicK8sClient.GetPreferredGVK(group, kind)
+	gvk, err := k8sClient.GetPreferredGVK(group, kind)
 	if err != nil {
 		return schema.GroupVersionKind{}, err
 	}
 	return gvk, nil
 }
 
-func addDataToDatabase(group string, kind string) error {
+func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8sClient) error {
 	fmt.Println("Adding data to database for", group, kind)
-	dynamicK8sClient, err := NewDynamicK8sClient()
-	if err != nil {
-		return err
-	}
+
 	context := context.TODO()
 
-	data, err := dynamicK8sClient.List(context, group, kind, "")
+	data, err := k8sClient.List(context, group, kind, "")
 	if err != nil {
 		return err
 	}
-	fmt.Println(len(data.Items), "found in the cluster")
+	log.Info("found in the cluster", "count", len(data.Items))
 
 	for _, item := range data.Items {
 		err := upsertResource(item.Object)
@@ -378,13 +371,11 @@ func upsertResource(obj map[string]interface{}) error {
 	return re.Upsert(resource)
 }
 
-func GetTemplateResourceFromCluster(kind string, group string, name string) (*unstructured.Unstructured, error) {
-	dynamicK8sClient, error := NewDynamicK8sClient()
-	if error != nil {
-		return &unstructured.Unstructured{}, error
-	}
+func GetTemplateResourceFromCluster(kind string, group string, name string, log logr.Logger,
+	k8sClient K8sClient) (*unstructured.Unstructured, error) {
+
 	context := context.TODO()
-	data, error := dynamicK8sClient.Get(context, group, kind, "", name)
+	data, error := k8sClient.Get(context, group, kind, "", name)
 	if error != nil {
 		return &unstructured.Unstructured{}, error
 	}
@@ -393,22 +384,29 @@ func GetTemplateResourceFromCluster(kind string, group string, name string) (*un
 }
 
 // applyTemplateResources applies the resources generated from the template.
-func applyTemplateResources(template *kumquatv1beta1.Template, re *repository.SQLiteRepository, log logr.Logger) error {
-	return processTemplateResources(template, re, log)
+func applyTemplateResources(
+	template *kumquatv1beta1.Template, re *repository.SQLiteRepository, log logr.Logger, k8sClient K8sClient) error {
+	return processTemplateResources(template, re, log, k8sClient)
 }
 
 func processTemplateResources(
 	template *kumquatv1beta1.Template,
 	re *repository.SQLiteRepository,
 	log logr.Logger,
+	k8sClient K8sClient,
 ) error {
+	template.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "kumquat.guidewire.com",
+		Version: "v1beta1",
+		Kind:    "Template",
+	})
+
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 
 	if err != nil {
 		log.Error(err, "failed to convert template to unstructured map")
 		return err
 	}
-	// fmt.Println(objMap, "this is object map")
 
 	resource, err := repository.MakeResource(objMap)
 	if err != nil {
@@ -447,14 +445,9 @@ func processTemplateResources(
 			log.Error(err, "unable to unmarshal JSON")
 			return err
 		}
+		context := context.Background()
+		_, err = k8sClient.CreateOrUpdate(context, unstructuredObj)
 
-		dynamicK8sClient, err := NewDynamicK8sClient()
-		if err != nil {
-			log.Error(err, "unable to create dynamic client")
-			return err
-		}
-		context := context.TODO()
-		_, err = dynamicK8sClient.CreateOrUpdate(context, unstructuredObj)
 		if err != nil {
 			if strings.Contains(err.Error(), "already exists") {
 				log.Info("resource already exists", "resource", unstructuredObj.GetName())
