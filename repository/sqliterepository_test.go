@@ -348,36 +348,38 @@ func TestQueryObjectPooling(t *testing.T) {
 	require.NoError(t, err)
 
 	// Query the Cartesian product and check that the objects ARE NOT pooled
-	r.UseQueryObjectPool = false
-	rs, err := r.Query(
-		`SELECT a.data AS a, b.data AS b FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
-	require.NoError(t, err)
-	require.Len(t, rs.Results, 9)
-	assert.Equal(t, "alpha", rs.Results[0]["a"].Name())
-	assert.Equal(t, "alpha", rs.Results[1]["a"].Name())
-	assert.Equal(t, "alpha", rs.Results[2]["a"].Name())
-	assert.Equal(t, "alpha", rs.Results[0]["b"].Name())
+	t.Run("PoolingDisabled", func(t *testing.T) {
+		r.UseQueryObjectPool = false
+		rs, err := r.Query(
+			`SELECT a.data AS a, b.data AS b FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
+		require.NoError(t, err)
+		require.Len(t, rs.Results, 9)
+		assert.Equal(t, "alpha", rs.Results[0]["a"].Name())
+		assert.Equal(t, "alpha", rs.Results[1]["a"].Name())
+		assert.Equal(t, "alpha", rs.Results[2]["a"].Name())
+		assert.Equal(t, "alpha", rs.Results[0]["b"].Name())
 
-	assert.NotSame(t, rs.Results[0]["a"], rs.Results[1]["a"])
-	assert.NotSame(t, rs.Results[0]["a"], rs.Results[2]["a"])
-	assert.NotSame(t, rs.Results[0]["a"], rs.Results[0]["b"])
+		assert.NotSame(t, rs.Results[0]["a"], rs.Results[1]["a"])
+		assert.NotSame(t, rs.Results[0]["a"], rs.Results[2]["a"])
+		assert.NotSame(t, rs.Results[0]["a"], rs.Results[0]["b"])
+	})
 
 	// Query the Cartesian product and check that the objects ARE pooled
-	r.UseQueryObjectPool = true
-	rs, err = r.Query(
-		`SELECT a.data AS a, b.data AS b FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
-	require.NoError(t, err)
-	require.Len(t, rs.Results, 9)
-	assert.Equal(t, "alpha", rs.Results[0]["a"].Name())
-	assert.Equal(t, "alpha", rs.Results[1]["a"].Name())
-	assert.Equal(t, "alpha", rs.Results[2]["a"].Name())
-	assert.Equal(t, "alpha", rs.Results[0]["b"].Name())
+	t.Run("PoolingEnabled", func(t *testing.T) {
+		r.UseQueryObjectPool = true
+		rs, err := r.Query(
+			`SELECT a.data AS a, b.data AS b FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
+		require.NoError(t, err)
+		require.Len(t, rs.Results, 9)
+		assert.Equal(t, "alpha", rs.Results[0]["a"].Name())
+		assert.Equal(t, "alpha", rs.Results[1]["a"].Name())
+		assert.Equal(t, "alpha", rs.Results[2]["a"].Name())
+		assert.Equal(t, "alpha", rs.Results[0]["b"].Name())
 
-	fmt.Printf("rs.Results[0][\"a\"] = %p\n", rs.Results[0]["a"])
-	fmt.Printf("rs.Results[0][\"b\"] = %p\n", rs.Results[0]["b"])
-	assert.Same(t, rs.Results[0]["a"], rs.Results[1]["a"])
-	assert.Same(t, rs.Results[0]["a"], rs.Results[2]["a"])
-	assert.Same(t, rs.Results[0]["a"], rs.Results[0]["b"])
+		assert.Same(t, rs.Results[0]["a"], rs.Results[1]["a"])
+		assert.Same(t, rs.Results[0]["a"], rs.Results[2]["a"])
+		assert.Same(t, rs.Results[0]["a"], rs.Results[0]["b"])
+	})
 }
 
 func BenchmarkQueryPerformance(b *testing.B) {
@@ -402,38 +404,16 @@ func BenchmarkQueryPerformance(b *testing.B) {
 		require.NoError(b, err)
 	}
 
-	queryOneResourceBenchmark := func(name string) func(*testing.B) {
+	benchmarkQueryExpecting := func(query string, expected int) func(*testing.B) {
 		return func(b *testing.B) {
-			q := fmt.Sprintf(
-				`SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = '%s'`,
-				name)
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				rs, err := r.Query(q)
+				rs, err := r.Query(query)
 				if err != nil {
 					b.Fatal(err)
 				}
 
-				if len(rs.Results) != 1 || len(rs.Results[0]) != 1 {
-					b.Fatalf("unexpected result: %v", rs)
-				}
-			}
-		}
-	}
-
-	queryMissingResourceBenchmark := func(name string) func(*testing.B) {
-		return func(b *testing.B) {
-			q := fmt.Sprintf(
-				`SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = '%s'`,
-				name)
-			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
-				rs, err := r.Query(q)
-				if err != nil {
-					b.Fatal(err)
-				}
-
-				if len(rs.Results) != 0 {
+				if len(rs.Results) != expected {
 					b.Fatalf("unexpected result: %v", rs)
 				}
 			}
@@ -441,50 +421,38 @@ func BenchmarkQueryPerformance(b *testing.B) {
 	}
 
 	// Find the time to query the first resource
+	q := fmt.Sprintf(
+		`SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = '%04d'`,
+		0,
+	)
 	r.UseQueryObjectPool = false
-	b.Run("QueryFirstNoPool", queryOneResourceBenchmark("0000"))
+	b.Run("QueryFirstNoPool", benchmarkQueryExpecting(q, 1))
 	r.UseQueryObjectPool = true
-	b.Run("QueryFirstWithPool", queryOneResourceBenchmark("0000"))
+	b.Run("QueryFirstWithPool", benchmarkQueryExpecting(q, 1))
 
 	// Find the time to query the last resource
+	q = fmt.Sprintf(
+		`SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = '%04d'`,
+		DB_ENTRIES-1,
+	)
 	r.UseQueryObjectPool = false
-	b.Run("QueryLastNoPool", queryOneResourceBenchmark(fmt.Sprintf("%04d", DB_ENTRIES-1)))
+	b.Run("QueryLastNoPool", benchmarkQueryExpecting(q, 1))
 	r.UseQueryObjectPool = true
-	b.Run("QueryLastWithPool", queryOneResourceBenchmark(fmt.Sprintf("%04d", DB_ENTRIES-1)))
+	b.Run("QueryLastWithPool", benchmarkQueryExpecting(q, 1))
 
 	// Find the time to query a non-existent resource
+	q = `SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = 'missing'`
 	r.UseQueryObjectPool = false
-	b.Run("QueryMissingNoPool", queryMissingResourceBenchmark("missing"))
+	b.Run("QueryMissingNoPool", benchmarkQueryExpecting(q, 0))
 	r.UseQueryObjectPool = true
-	b.Run("QueryMissingWithPool", queryMissingResourceBenchmark("missing"))
+	b.Run("QueryMissingWithPool", benchmarkQueryExpecting(q, 0))
 
 	// Get Cartesian product of table with itself; no object pooling
+	q = `SELECT a.data, b.data FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`
 	r.UseQueryObjectPool = false
-	b.Run("QueryCartesianProductNoPool", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			rs, err := r.Query(`SELECT a.data, b.data FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
-			if err != nil {
-				b.Fatal(err)
-			}
-
-			if len(rs.Results) != DB_ENTRIES*DB_ENTRIES {
-				b.Fatalf("unexpected result: %v", rs)
-			}
-		}
-	})
+	b.Run("QueryCartesianProductNoPool", benchmarkQueryExpecting(q, DB_ENTRIES*DB_ENTRIES))
 
 	// Get Cartesian product of table with itself; with object pooling
 	r.UseQueryObjectPool = true
-	b.Run("QueryCartesianProductWithPool", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			rs, err := r.Query(`SELECT a.data, b.data FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
-			if err != nil {
-				b.Fatal(err)
-			}
-
-			if len(rs.Results) != DB_ENTRIES*DB_ENTRIES {
-				b.Fatalf("unexpected result: %v", rs)
-			}
-		}
-	})
+	b.Run("QueryCartesianProductWithPool", benchmarkQueryExpecting(q, DB_ENTRIES*DB_ENTRIES))
 }

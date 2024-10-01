@@ -18,16 +18,16 @@ type SQLiteRepository struct {
 	UseQueryObjectPool bool
 }
 
-type objectKey struct {
-	kind      string
-	namespace string
-	name      string
-}
-
 var tableErrorRegexp = regexp.MustCompile(`^no such table: (.*)$`)
 
 func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 	slog.Debug("Running query", "query", query)
+
+	type objectKey struct {
+		kind      string
+		namespace string
+		name      string
+	}
 
 	var rows *sql.Rows
 	var err error
@@ -99,6 +99,7 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 						strings.Trim(columnName, "'"), err)
 				}
 
+				resPtr := &res
 				if r.UseQueryObjectPool {
 					key := objectKey{
 						kind:      res.Kind(),
@@ -107,14 +108,13 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 					}
 
 					if found, ok := pool[key]; ok {
-						result[columnName] = found
+						resPtr = found
 					} else {
-						pool[key] = &res
-						result[columnName] = &res
+						pool[key] = resPtr
 					}
-				} else {
-					result[columnName] = &res
 				}
+
+				result[columnName] = resPtr
 			default:
 				return ResultSet{}, fmt.Errorf("expected JSON object in column '%s' but got %T",
 					strings.Trim(columnName, "'"), v)
@@ -166,7 +166,6 @@ func (r *SQLiteRepository) Upsert(resource Resource) error {
 	}
 
 	table := resource.Kind() + "." + resource.Group()
-	//fmt.Println("Upserting resource", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
 	contentJSON := string(byteJSON)
 
 	if !r.StoredKinds[table] {
