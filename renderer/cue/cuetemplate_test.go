@@ -26,7 +26,7 @@ func TestRenderCUEWithEmptyResources(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	results := []map[string]repository.Resource{}
+	results := []map[string]*repository.Resource{}
 	output, err := renderer.Render(tpl, results, false)
 	require.NoError(t, err)
 	assert.Equal(t, 0, output.ResourceCount())
@@ -42,7 +42,7 @@ func TestRenderCUEImportStrings(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	results := []map[string]repository.Resource{}
+	results := []map[string]*repository.Resource{}
 	output, err := renderer.Render(tpl, results, true)
 	require.NoError(t, err)
 	assert.Equal(t, 1, output.ResourceCount())
@@ -75,9 +75,9 @@ func TestRenderCUEWithBatchModeProcessingOffWithSingleResourceOutput(t *testing.
 	a1 := getTestResource(t, "test1")
 	a2 := getTestResource(t, "test2")
 
-	results := []map[string]repository.Resource{
-		{"a": a1},
-		{"a": a2},
+	results := []map[string]*repository.Resource{
+		{"a": &a1},
+		{"a": &a2},
 	}
 
 	output, err := renderer.Render(tpl, results, false)
@@ -110,9 +110,9 @@ func TestRenderCUEWithBatchModeProcessingOffWithMultipleResourcesOutput(t *testi
 	a1 := getTestResource(t, "test1")
 	a2 := getTestResource(t, "test2")
 
-	results := []map[string]repository.Resource{
-		{"a": a1},
-		{"a": a2},
+	results := []map[string]*repository.Resource{
+		{"a": &a1},
+		{"a": &a2},
 	}
 
 	output, err := renderer.Render(tpl, results, false)
@@ -141,9 +141,9 @@ func TestRenderCUEWithBatchModeProcessingOnWithMultipleResourcesOutput(t *testin
 	a1 := getTestResource(t, "test1")
 	a2 := getTestResource(t, "test2")
 
-	results := []map[string]repository.Resource{
-		{"a": a1},
-		{"a": a2},
+	results := []map[string]*repository.Resource{
+		{"a": &a1},
+		{"a": &a2},
 	}
 
 	output, err := renderer.Render(tpl, results, true)
@@ -170,9 +170,9 @@ func TestRenderCUEWithBatchModeProcessingOnWithSingleResourceOutput(t *testing.T
 	a1 := getTestResource(t, "test1")
 	a2 := getTestResource(t, "test2")
 
-	results := []map[string]repository.Resource{
-		{"a": a1},
-		{"a": a2},
+	results := []map[string]*repository.Resource{
+		{"a": &a1},
+		{"a": &a2},
 	}
 
 	output, err := renderer.Render(tpl, results, true)
@@ -193,7 +193,7 @@ func TestErrorUnknownVariableReference(t *testing.T) {
 	require.NotNil(t, tpl)
 
 	t.Run("BatchModeOn", func(t *testing.T) {
-		results := []map[string]repository.Resource{}
+		results := []map[string]*repository.Resource{}
 		_, err = renderer.Render(tpl, results, true)
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "error evaluating CUE template")
@@ -208,9 +208,9 @@ func TestErrorUnknownVariableReference(t *testing.T) {
 	})
 
 	t.Run("BatchModeOff", func(t *testing.T) {
-		results := []map[string]repository.Resource{
+		results := []map[string]*repository.Resource{
 			{
-				"x": repository.Resource{},
+				"x": &repository.Resource{},
 			},
 		}
 		_, err = renderer.Render(tpl, results, false)
@@ -232,7 +232,7 @@ func TestErrorBadlyFormed(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	results := []map[string]repository.Resource{}
+	results := []map[string]*repository.Resource{}
 	_, err = renderer.Render(tpl, results, true)
 	assert.Error(t, err)
 
@@ -250,9 +250,9 @@ func TestErrorNoOutput(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	results := []map[string]repository.Resource{
+	results := []map[string]*repository.Resource{
 		{
-			"x": repository.Resource{},
+			"x": &repository.Resource{},
 		},
 	}
 
@@ -274,9 +274,9 @@ func TestErrorUnsupportedOutputType(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	results := []map[string]repository.Resource{
+	results := []map[string]*repository.Resource{
 		{
-			"x": repository.Resource{},
+			"x": &repository.Resource{},
 		},
 	}
 
@@ -298,9 +298,9 @@ func TestErrorMismatchedOutputType(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, renderToList)
 
-	results := []map[string]repository.Resource{
+	results := []map[string]*repository.Resource{
 		{
-			"x": repository.Resource{},
+			"x": &repository.Resource{},
 		},
 	}
 

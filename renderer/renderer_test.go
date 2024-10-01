@@ -69,6 +69,14 @@ func (r *MockRenderer) Render(results any, output *renderer.Output) error {
 	return r.render(results, output)
 }
 
+func explodeOnErrAndDereference[X any](x X, err error) *X {
+	if err != nil {
+		panic(err)
+	}
+
+	return &x
+}
+
 func explodeOnErr[X any](x X, err error) X {
 	if err != nil {
 		panic(err)
@@ -93,9 +101,9 @@ func TestRenderBatchMode(t *testing.T) {
 	res2 := getResourceContent()
 	res2["metadata"].(map[string]any)["name"] = "test2"
 	r := new(MockRenderer)
-	results := []map[string]repository.Resource{
-		{"resource1": explodeOnErr(repository.MakeResource(res1))},
-		{"resource1": explodeOnErr(repository.MakeResource(res2))},
+	results := []map[string]*repository.Resource{
+		{"resource1": explodeOnErrAndDereference(repository.MakeResource(res1))},
+		{"resource1": explodeOnErrAndDereference(repository.MakeResource(res2))},
 	}
 
 	t.Run("RendererGetsTwoRows", func(t *testing.T) {
@@ -121,9 +129,9 @@ func TestRenderNonBatchMode(t *testing.T) {
 	res2 := getResourceContent()
 	res2["metadata"].(map[string]any)["name"] = "test2"
 	r := new(MockRenderer)
-	results := []map[string]repository.Resource{
-		{"resource1": explodeOnErr(repository.MakeResource(res1))},
-		{"resource1": explodeOnErr(repository.MakeResource(res2))},
+	results := []map[string]*repository.Resource{
+		{"resource1": explodeOnErrAndDereference(repository.MakeResource(res1))},
+		{"resource1": explodeOnErrAndDereference(repository.MakeResource(res2))},
 	}
 
 	t.Run("RendererGetsOneRowTwice", func(t *testing.T) {

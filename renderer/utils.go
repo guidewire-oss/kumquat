@@ -5,7 +5,7 @@ import (
 )
 
 // stripResourcesFromResults removes the Resource objects from the results, replacing them with the underlying content.
-func StripResourcesFromResults(results []map[string]repository.Resource) []map[string]any {
+func StripResourcesFromResults(results []map[string]*repository.Resource) []map[string]any {
 	strippedResults := make([]map[string]any, len(results))
 	for i, result := range results {
 		stripped := make(map[string]any)

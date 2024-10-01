@@ -53,11 +53,11 @@ func TestJsonnetRendererWithNoResults(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, r)
 
-	res, err := renderer.Render(r, []map[string]repository.Resource{}, false)
+	res, err := renderer.Render(r, []map[string]*repository.Resource{}, false)
 	require.NoError(t, err)
 	assert.Zero(t, res.ResourceCount())
 
-	res, err = renderer.Render(r, []map[string]repository.Resource{}, true)
+	res, err = renderer.Render(r, []map[string]*repository.Resource{}, true)
 	require.NoError(t, err)
 	assert.Equal(t, 1, res.ResourceCount())
 	s, err := res.ResultString(0)
@@ -96,8 +96,8 @@ func TestJsonnetRendererWithOneResult(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, r)
 
-		rs := []map[string]repository.Resource{
-			{"x": res1},
+		rs := []map[string]*repository.Resource{
+			{"x": &res1},
 		}
 
 		res, err := renderer.Render(r, rs, false)
@@ -117,8 +117,8 @@ func TestJsonnetRendererWithOneResult(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, r)
 
-		rs := []map[string]repository.Resource{
-			{"x": res1},
+		rs := []map[string]*repository.Resource{
+			{"x": &res1},
 		}
 
 		res, err := renderer.Render(r, rs, true)
@@ -138,8 +138,8 @@ func TestJsonnetRendererWithOneResult(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, r)
 
-		rs := []map[string]repository.Resource{
-			{"x": res1},
+		rs := []map[string]*repository.Resource{
+			{"x": &res1},
 		}
 
 		_, err = renderer.Render(r, rs, false)
@@ -187,9 +187,9 @@ func TestJsonnetRendererWithTwoResults(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, r)
 
-		rs := []map[string]repository.Resource{
-			{"x": rs1},
-			{"x": rs2},
+		rs := []map[string]*repository.Resource{
+			{"x": &rs1},
+			{"x": &rs2},
 		}
 
 		res, err := renderer.Render(r, rs, false)
@@ -214,9 +214,9 @@ func TestJsonnetRendererWithTwoResults(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, r)
 
-		rs := []map[string]repository.Resource{
-			{"x": rs1},
-			{"x": rs2},
+		rs := []map[string]*repository.Resource{
+			{"x": &rs1},
+			{"x": &rs2},
 		}
 
 		res, err := renderer.Render(r, rs, true)

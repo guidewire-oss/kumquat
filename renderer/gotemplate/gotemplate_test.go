@@ -14,11 +14,11 @@ func TestNewGoRenderer(t *testing.T) {
 	tpl, err := gotemplate.NewGoRenderer("test", t.Name())
 	assert.NoError(t, err)
 
-	r, err := renderer.Render(tpl, []map[string]repository.Resource{}, false)
+	r, err := renderer.Render(tpl, []map[string]*repository.Resource{}, false)
 	assert.NoError(t, err)
 	assert.Zero(t, r.ResourceCount())
 
-	r, err = renderer.Render(tpl, []map[string]repository.Resource{}, true)
+	r, err = renderer.Render(tpl, []map[string]*repository.Resource{}, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, r.ResourceCount())
 	s, err := r.ResultString(0)
@@ -31,11 +31,11 @@ func TestNewGoRendererWithEmptyTemplate(t *testing.T) {
 	require.NotNil(t, tpl)
 	require.NoError(t, err)
 
-	r, err := renderer.Render(tpl, []map[string]repository.Resource{}, false)
+	r, err := renderer.Render(tpl, []map[string]*repository.Resource{}, false)
 	require.NoError(t, err)
 	assert.Zero(t, r.ResourceCount())
 
-	r, err = renderer.Render(tpl, []map[string]repository.Resource{}, true)
+	r, err = renderer.Render(tpl, []map[string]*repository.Resource{}, true)
 	require.NoError(t, err)
 	assert.Equal(t, 1, r.ResourceCount())
 	s, err := r.ResultString(0)
@@ -79,7 +79,7 @@ func TestRenderGoWithEmptyResourcesWithBatchModeOff(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	results := []map[string]repository.Resource{}
+	results := []map[string]*repository.Resource{}
 	output, err := renderer.Render(tpl, results, false)
 	require.NoError(t, err)
 	require.NotNil(t, output)
@@ -94,7 +94,7 @@ func TestRenderGoWithEmptyResourcesWithBatchModeOn(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
-	results := []map[string]repository.Resource{}
+	results := []map[string]*repository.Resource{}
 	output, err := renderer.Render(tpl, results, true)
 	require.NoError(t, err)
 	require.NotNil(t, output)
@@ -135,9 +135,9 @@ func TestRenderGoWithTwoInputsBatchModeProcessingFalse(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	results := []map[string]repository.Resource{
-		{"a": a1},
-		{"a": a2},
+	results := []map[string]*repository.Resource{
+		{"a": &a1},
+		{"a": &a2},
 	}
 	output, err := renderer.Render(tpl, results, false)
 	require.NoError(t, err)
@@ -181,9 +181,9 @@ func TestRenderGoWithTwoInputsBatchModeProcessingOn(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	results := []map[string]repository.Resource{
-		{"a": a1},
-		{"a": a2},
+	results := []map[string]*repository.Resource{
+		{"a": &a1},
+		{"a": &a2},
 	}
 	output, err := renderer.Render(tpl, results, true)
 	require.NoError(t, err)
@@ -215,8 +215,8 @@ func TestRenderErrors(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	results := []map[string]repository.Resource{
-		{"a": a1},
+	results := []map[string]*repository.Resource{
+		{"a": &a1},
 	}
 
 	t.Run("BatchModeOff", func(t *testing.T) {

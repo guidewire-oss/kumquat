@@ -1,6 +1,7 @@
 package repository_test
 
 import (
+	"fmt"
 	"kumquat/repository"
 	"testing"
 
@@ -303,3 +304,187 @@ func TestExtractingTableNamesFromQueryWithMultipleSubqueries(t *testing.T) {
 // 	require.NoError(t, err)
 // 	assert.ElementsMatch(t, tableNames, []string{"employees", "departments"})
 // }
+
+func TestQueryObjectPooling(t *testing.T) {
+	r, err := repository.NewSQLiteRepository()
+	require.NoError(t, err)
+	defer r.Close() //nolint:errcheck
+
+	// Populate repository with some resources
+	res, err := repository.MakeResource(map[string]any{
+		"apiVersion": "guidewire.com/v1beta1",
+		"kind":       "Example",
+		"metadata": map[string]any{
+			"name":      "alpha",
+			"namespace": "examples",
+		},
+	})
+	require.NoError(t, err)
+	err = r.Upsert(res)
+	require.NoError(t, err)
+
+	res, err = repository.MakeResource(map[string]any{
+		"apiVersion": "guidewire.com/v1beta1",
+		"kind":       "Example",
+		"metadata": map[string]any{
+			"name":      "beta",
+			"namespace": "examples",
+		},
+	})
+	require.NoError(t, err)
+	err = r.Upsert(res)
+	require.NoError(t, err)
+
+	res, err = repository.MakeResource(map[string]any{
+		"apiVersion": "guidewire.com/v1beta1",
+		"kind":       "Example",
+		"metadata": map[string]any{
+			"name":      "gamma",
+			"namespace": "examples",
+		},
+	})
+	require.NoError(t, err)
+	err = r.Upsert(res)
+	require.NoError(t, err)
+
+	// Query the Cartesian product and check that the objects ARE NOT pooled
+	r.UseQueryObjectPool = false
+	rs, err := r.Query(
+		`SELECT a.data AS a, b.data AS b FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
+	require.NoError(t, err)
+	require.Len(t, rs.Results, 9)
+	assert.Equal(t, "alpha", rs.Results[0]["a"].Name())
+	assert.Equal(t, "alpha", rs.Results[1]["a"].Name())
+	assert.Equal(t, "alpha", rs.Results[2]["a"].Name())
+	assert.Equal(t, "alpha", rs.Results[0]["b"].Name())
+
+	assert.NotSame(t, rs.Results[0]["a"], rs.Results[1]["a"])
+	assert.NotSame(t, rs.Results[0]["a"], rs.Results[2]["a"])
+	assert.NotSame(t, rs.Results[0]["a"], rs.Results[0]["b"])
+
+	// Query the Cartesian product and check that the objects ARE pooled
+	r.UseQueryObjectPool = true
+	rs, err = r.Query(
+		`SELECT a.data AS a, b.data AS b FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
+	require.NoError(t, err)
+	require.Len(t, rs.Results, 9)
+	assert.Equal(t, "alpha", rs.Results[0]["a"].Name())
+	assert.Equal(t, "alpha", rs.Results[1]["a"].Name())
+	assert.Equal(t, "alpha", rs.Results[2]["a"].Name())
+	assert.Equal(t, "alpha", rs.Results[0]["b"].Name())
+
+	fmt.Printf("rs.Results[0][\"a\"] = %p\n", rs.Results[0]["a"])
+	fmt.Printf("rs.Results[0][\"b\"] = %p\n", rs.Results[0]["b"])
+	assert.Same(t, rs.Results[0]["a"], rs.Results[1]["a"])
+	assert.Same(t, rs.Results[0]["a"], rs.Results[2]["a"])
+	assert.Same(t, rs.Results[0]["a"], rs.Results[0]["b"])
+}
+
+func BenchmarkQueryPerformance(b *testing.B) {
+	const DB_ENTRIES = 500
+
+	r, err := repository.NewSQLiteRepository()
+	require.NoError(b, err)
+	defer r.Close() //nolint:errcheck
+
+	// Populate repository with some resources
+	for i := 0; i < DB_ENTRIES; i++ {
+		res, err := repository.MakeResource(map[string]any{
+			"apiVersion": "guidewire.com/v1beta1",
+			"kind":       "Example",
+			"metadata": map[string]any{
+				"name":      fmt.Sprintf("%04d", i),
+				"namespace": "examples",
+			},
+		})
+		require.NoError(b, err)
+		err = r.Upsert(res)
+		require.NoError(b, err)
+	}
+
+	queryOneResourceBenchmark := func(name string) func(*testing.B) {
+		return func(b *testing.B) {
+			q := fmt.Sprintf(
+				`SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = '%s'`,
+				name)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				rs, err := r.Query(q)
+				if err != nil {
+					b.Fatal(err)
+				}
+
+				if len(rs.Results) != 1 || len(rs.Results[0]) != 1 {
+					b.Fatalf("unexpected result: %v", rs)
+				}
+			}
+		}
+	}
+
+	queryMissingResourceBenchmark := func(name string) func(*testing.B) {
+		return func(b *testing.B) {
+			q := fmt.Sprintf(
+				`SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = '%s'`,
+				name)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				rs, err := r.Query(q)
+				if err != nil {
+					b.Fatal(err)
+				}
+
+				if len(rs.Results) != 0 {
+					b.Fatalf("unexpected result: %v", rs)
+				}
+			}
+		}
+	}
+
+	// Find the time to query the first resource
+	r.UseQueryObjectPool = false
+	b.Run("QueryFirstNoPool", queryOneResourceBenchmark("0000"))
+	r.UseQueryObjectPool = true
+	b.Run("QueryFirstWithPool", queryOneResourceBenchmark("0000"))
+
+	// Find the time to query the last resource
+	r.UseQueryObjectPool = false
+	b.Run("QueryLastNoPool", queryOneResourceBenchmark(fmt.Sprintf("%04d", DB_ENTRIES-1)))
+	r.UseQueryObjectPool = true
+	b.Run("QueryLastWithPool", queryOneResourceBenchmark(fmt.Sprintf("%04d", DB_ENTRIES-1)))
+
+	// Find the time to query a non-existent resource
+	r.UseQueryObjectPool = false
+	b.Run("QueryMissingNoPool", queryMissingResourceBenchmark("missing"))
+	r.UseQueryObjectPool = true
+	b.Run("QueryMissingWithPool", queryMissingResourceBenchmark("missing"))
+
+	// Get Cartesian product of table with itself; no object pooling
+	r.UseQueryObjectPool = false
+	b.Run("QueryCartesianProductNoPool", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			rs, err := r.Query(`SELECT a.data, b.data FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			if len(rs.Results) != DB_ENTRIES*DB_ENTRIES {
+				b.Fatalf("unexpected result: %v", rs)
+			}
+		}
+	})
+
+	// Get Cartesian product of table with itself; with object pooling
+	r.UseQueryObjectPool = true
+	b.Run("QueryCartesianProductWithPool", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			rs, err := r.Query(`SELECT a.data, b.data FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			if len(rs.Results) != DB_ENTRIES*DB_ENTRIES {
+				b.Fatalf("unexpected result: %v", rs)
+			}
+		}
+	})
+}

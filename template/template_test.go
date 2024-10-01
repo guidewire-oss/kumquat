@@ -331,12 +331,12 @@ func (m *MockRepository) Upsert(r repository.Resource) error {
 	return nil
 }
 
-func explodeOnErr[X any](x X, err error) X {
+func explodeOnErr[X any](x X, err error) *X {
 	if err != nil {
 		panic(err)
 	}
 
-	return x
+	return &x
 }
 
 func TestEvaluateNonBatch(t *testing.T) {
@@ -366,7 +366,7 @@ func TestEvaluateNonBatch(t *testing.T) {
 		mockRepo.queryError = nil
 		mockRepo.queryResult = repository.ResultSet{
 			Names: []string{"test"},
-			Results: []map[string]repository.Resource{
+			Results: []map[string]*repository.Resource{
 				{"test": explodeOnErr(repository.MakeResource(map[string]any{
 					"apiVersion": "v1",
 					"kind":       "Whatever",
@@ -431,7 +431,7 @@ func TestEvaluateWithBatch(t *testing.T) {
 		mockRepo.queryError = nil
 		mockRepo.queryResult = repository.ResultSet{
 			Names: []string{"test"},
-			Results: []map[string]repository.Resource{
+			Results: []map[string]*repository.Resource{
 				{"test": explodeOnErr(repository.MakeResource(map[string]any{
 					"apiVersion": "v1",
 					"kind":       "Whatever",
@@ -473,7 +473,7 @@ func TestEvaluateWithRenderError(t *testing.T) {
 	mockRepo.queryError = nil
 	mockRepo.queryResult = repository.ResultSet{
 		Names: []string{"test"},
-		Results: []map[string]repository.Resource{
+		Results: []map[string]*repository.Resource{
 			{"test": {}},
 		},
 	}
@@ -500,7 +500,7 @@ func TestEvaluateWithFilenameRenderError(t *testing.T) {
 	mockRepo.queryError = nil
 	mockRepo.queryResult = repository.ResultSet{
 		Names: []string{"test"},
-		Results: []map[string]repository.Resource{
+		Results: []map[string]*repository.Resource{
 			{"test": {}},
 		},
 	}

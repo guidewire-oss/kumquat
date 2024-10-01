@@ -41,7 +41,7 @@ func main() {
 
 	for _, tplrs := range tplrs.Results {
 		tplres := tplrs["tpl"]
-		t, err := template.NewTemplate(tplres)
+		t, err := template.NewTemplate(*tplres)
 
 		if err != nil {
 			fmt.Printf("%v\n", err)

@@ -13,7 +13,7 @@ type Renderer interface {
 
 // Render the results using the provided renderer. If batchMode is true, the renderer will be called once
 // with all the results; otherwise, the renderer will be called once for each result.
-func Render(renderer Renderer, results []map[string]repository.Resource, batchMode bool) (*Output, error) {
+func Render(renderer Renderer, results []map[string]*repository.Resource, batchMode bool) (*Output, error) {
 	var o *Output
 	resultsWithoutResources := StripResourcesFromResults(results)
 

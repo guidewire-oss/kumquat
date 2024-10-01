@@ -13,20 +13,21 @@ import (
 )
 
 type SQLiteRepository struct {
-	Db          *sql.DB
-	StoredKinds map[string]bool
+	Db                 *sql.DB
+	StoredKinds        map[string]bool
+	UseQueryObjectPool bool
 }
 
-type GroupKind struct {
-	Group string
-	Kind  string
+type objectKey struct {
+	kind      string
+	namespace string
+	name      string
 }
 
 var tableErrorRegexp = regexp.MustCompile(`^no such table: (.*)$`)
 
 func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 	slog.Debug("Running query", "query", query)
-	fmt.Println("Running query", "query", query)
 
 	var rows *sql.Rows
 	var err error
@@ -70,7 +71,8 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 	/*
 	 * Process Rows
 	 */
-	var results = make([]map[string]Resource, 0)
+	var results = make([]map[string]*Resource, 0)
+	var pool = make(map[objectKey]*Resource)
 
 	for rows.Next() {
 		err = rows.Scan(columnValuePtrs...)
@@ -78,7 +80,7 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 			return ResultSet{}, fmt.Errorf("error while scanning query result: %w", err)
 		}
 
-		var result = make(map[string]Resource)
+		var result = make(map[string]*Resource)
 
 		for i, columnName := range columnNames {
 			var parsed any
@@ -96,7 +98,23 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 					return ResultSet{}, fmt.Errorf("error retrieving resource from column '%s': %w",
 						strings.Trim(columnName, "'"), err)
 				}
-				result[columnName] = res
+
+				if r.UseQueryObjectPool {
+					key := objectKey{
+						kind:      res.Kind(),
+						namespace: res.Namespace(),
+						name:      res.Name(),
+					}
+
+					if found, ok := pool[key]; ok {
+						result[columnName] = found
+					} else {
+						pool[key] = &res
+						result[columnName] = &res
+					}
+				} else {
+					result[columnName] = &res
+				}
 			default:
 				return ResultSet{}, fmt.Errorf("expected JSON object in column '%s' but got %T",
 					strings.Trim(columnName, "'"), v)
@@ -148,7 +166,7 @@ func (r *SQLiteRepository) Upsert(resource Resource) error {
 	}
 
 	table := resource.Kind() + "." + resource.Group()
-	fmt.Println("Upserting resource", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
+	//fmt.Println("Upserting resource", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
 	contentJSON := string(byteJSON)
 
 	if !r.StoredKinds[table] {

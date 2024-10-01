@@ -150,7 +150,7 @@ type Repository interface {
 
 type ResultSet struct {
 	Names   []string
-	Results []map[string]Resource
+	Results []map[string]*Resource
 }
 
 // LoadYAMLFromDirectoryTree loads all YAML files from a directory tree into a repository.
