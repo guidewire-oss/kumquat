@@ -1,8 +1,12 @@
 package controller
 
 import (
+	"bufio"
 	"context"
+	"fmt"
+	"os"
 	"path/filepath" // Alias the standard library runtime package
+	"strings"
 
 	// Alias the standard library runtime package
 	"testing"
@@ -53,10 +57,39 @@ var _ = BeforeSuite(func() {
 	utilruntime.Must(kumquatv1beta1.AddToScheme(scheme))
 
 	// Bootstrap the test environment
+	// Assumes that the manifests, generate, and envtest Makefile targets are up-to-date
 	By("bootstrapping test environment")
+
+	// Open the Makefile and parse it to extract the value of ENVTEST_K8S_VERSION
+	binaryDir := os.Getenv("KUBEBUILDER_ASSETS")
+
+	if binaryDir == "" {
+		makefilePath := filepath.Join("..", "..", "Makefile")
+		makefile, err := os.Open(makefilePath)
+		Expect(err).NotTo(HaveOccurred(), "Failed to open Makefile")
+		defer makefile.Close() // nolint:errcheck
+		scanner := bufio.NewScanner(makefile)
+
+		envtestK8sVersion := "1.30.0" // Default version if ENVTEST_K8S_VERSION is not set
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			if strings.HasPrefix(line, "ENVTEST_K8S_VERSION") {
+				parts := strings.Split(line, "=")
+				if len(parts) == 2 {
+					envtestK8sVersion = strings.TrimSpace(parts[1])
+					break
+				}
+			}
+		}
+		Expect(scanner.Err()).NotTo(HaveOccurred(), "Failed to read Makefile")
+
+		binaryDir = filepath.Join("..", "..", "bin", "k8s", fmt.Sprintf("%s-linux-amd64", envtestK8sVersion))
+	}
+
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 		ErrorIfCRDPathMissing: true,
+		BinaryAssetsDirectory: binaryDir,
 	}
 
 	// Start the test environment and obtain the configuration

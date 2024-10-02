@@ -30,6 +30,10 @@
 	"remoteEnv": {
 		"GOFLAGS": "-buildvcs=false"
 	},
+	// When files change, get the latest tools and re-run envtest setup to get the latest
+	// Kubernetes version. The version is extracted from the "ENVTEST_K8S_VERSION = x.y.z"
+	// line in the Makefile.
+	"updateContentCommand": "make envtest && bin/setup-envtest use $(grep -E '^ENVTEST_K8S_VERSION[[:space:]]*=[[:space:]]*[[:digit:][:punct:]]*' Makefile | cut -d'=' -f2 | tr -d '[:space:]') --bin-dir /workspaces/kumquat/bin",
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -39,7 +43,7 @@
 				"ruschaaf.extended-embedded-languages",
 				"asdine.cue",
 				"redhat.vscode-yaml",
-				"eamodio.gitlens"
+				"eamodio.gitlens"dbaeumer.vscode-eslint
 			]
 		}
 	}
