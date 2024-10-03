@@ -1,8 +1,6 @@
 module kumquat
 
-go 1.22.3
-
-toolchain go1.22.6
+go 1.23.1
 
 require (
 	cuelang.org/go v0.10.0
