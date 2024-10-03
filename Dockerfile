@@ -1,5 +1,5 @@
 # Build the manager binary with static linking
-FROM golang:1.22 AS builder
+FROM golang:1.23 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
