@@ -19,14 +19,9 @@
 			"version": "v0.16.0"
 		}
 	},
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-	// Configure tool-specific properties.
-	// "customizations": {},
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+
+	// Install GoNB and its dependencies
+	"onCreateCommand": "go install github.com/janpfeifer/gonb@latest && go install golang.org/x/tools/cmd/goimports@latest && gonb --install",
 	"remoteEnv": {
 		"GOFLAGS": "-buildvcs=false"
 	},
@@ -39,7 +34,9 @@
 				"ruschaaf.extended-embedded-languages",
 				"asdine.cue",
 				"redhat.vscode-yaml",
-				"eamodio.gitlens"
+				"eamodio.gitlens",
+				"ms-toolsai.jupyter",
+				"github.vscode-github-actions"
 			]
 		}
 	}
