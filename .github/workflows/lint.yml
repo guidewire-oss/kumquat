@@ -10,7 +10,7 @@ jobs:
   golangci:
     name: lint
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/devcontainers/go:1-1.22-bullseye
+    container: mcr.microsoft.com/devcontainers/go:1-1.23-bullseye
     env:
       GOFLAGS: -buildvcs=false
     permissions:
@@ -25,7 +25,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.59
+          version: v1.61.0
           args: --timeout=5m
           # We are not using actions/setup-go so we must use the embedded problem matchers
           problem-matchers: true
