@@ -20,7 +20,7 @@ spec:
             apiVersion: "v1"
             kind: "ConfigMap"
             metadata: {
-              name: "aws-auth-\(DATA.cm.metadata.name)"
+              name: "test-\(DATA.cm.metadata.name)"
               namespace: "kube-system"
             }
             data: {

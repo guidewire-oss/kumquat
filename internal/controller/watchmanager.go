@@ -255,6 +255,7 @@ func DeleteRecord(table, namespace, name string) error {
 	_, err = re.Db.Exec( /* sql */ `DELETE FROM "`+table+`" WHERE namespace = ? AND name = ?`, namespace, name)
 	if err != nil {
 		log.Log.Error(err, "unable to delete record")
+		log.Log.Info("Record not found", "table", table, "namespace", namespace, "name", name)
 		return err
 	}
 	log.Log.Info("Record deleted", "table", table, "namespace", namespace, "name", name)
@@ -301,9 +302,15 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 
 	if resource == nil {
 		log.Info("Resource deleted", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
+		//set gvk group to v1 if it is empty
+		group := r.GVK.Group
+		if r.GVK.Group == "" {
+			group = "core"
+		}
 		// delete record from database
 		// TODO: checking the return code and returning an error causes the E2E tests to fail during delete template
-		DeleteRecord(r.GVK.Kind+"."+r.GVK.Group, req.Namespace, req.Name) // nolint:errcheck
+
+		DeleteRecord(r.GVK.Kind+"."+group, req.Namespace, req.Name) // nolint:errcheck
 
 		r.reconcileTemplates(ctx) // nolint:errcheck
 
@@ -359,6 +366,9 @@ func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error {
 	var templates []string
 
 	for templateName, gvks := range wm.templates {
+		fmt.Println("Template Name: ", templateName)
+		fmt.Println("GVKssss: ", gvks)
+		fmt.Println("GVKkkkkk: ", r.GVK)
 		if _, exists := gvks[r.GVK]; exists {
 			log.Info("Reconciling template", "templateName", templateName)
 			templates = append(templates, templateName)

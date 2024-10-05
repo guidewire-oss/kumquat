@@ -474,12 +474,18 @@ func processTemplateResources(
 		key := resourceKeyFromRI(ri)
 		existingResources[key] = ri
 	}
+	fmt.Println("Existing resourcessss", "resources", existingResources)
+	//print desired resources
+	fmt.Println("Desired resourcessss", "resources", desiredResources)
 
 	// Identify resources to delete
 	var resourcesToDelete []ResourceIdentifier
 	for key, ri := range existingResources {
+
+		fmt.Println("Checking if resource exists", "key", key, "resource", ri)
 		if _, exists := desiredResources[key]; !exists {
 			resourcesToDelete = append(resourcesToDelete, ri)
+			fmt.Println("Resource to deleteeee", "resource", ri)
 		}
 	}
 
@@ -502,7 +508,9 @@ func processTemplateResources(
 	}
 
 	// Update the generatedResources in WatchManager
+	wm.mu.Lock()
 	wm.generatedResources[template.Name] = desiredResourceIdentifiers
+	wm.mu.Unlock()
 
 	return nil
 }
