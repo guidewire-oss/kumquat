@@ -10,7 +10,7 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/devcontainers/go:1-1.22-bullseye
+      image: mcr.microsoft.com/devcontainers/go:1-1.23-bullseye
     permissions:
       # Allow write access to update notes
       contents: write

@@ -1,11 +1,14 @@
 {
     "go.testFlags": [
         "-skip",
-        "^(TestE2E|TestControllers)$"
+        "^(TestE2E)$",
+        "-benchtime",
+        "5s"
     ],
     "go.lintTool": "golangci-lint",
     "editor.wordWrapColumn": 120,
     "editor.rulers": [
         120
-    ]
+    ],
+    "remote.autoForwardPorts": false
 }
