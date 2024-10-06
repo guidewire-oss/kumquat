@@ -2,7 +2,8 @@
 
 *Hi everybody, I'm kumquat! You can configure me to watch Kubernetes resources and generate new resources from them!*
 
-![badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/jamesdobson/cb14f8ad568d175cf0ba9f7ac6d0a6ca/raw/kumquat-coverage.json)
+![coverage-badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/jamesdobson/cb14f8ad568d175cf0ba9f7ac6d0a6ca/raw/kumquat-coverage.json)
+[![performance-badge](https://img.shields.io/badge/benchmarks-olive)](https://guidewire-oss.github.io/kumquat/dev/bench/)
 
 # Kumquat
 Kumquat is **KU**bernetes **M**etacontroller **QU**ery **A**nd **T**emplate.
@@ -112,6 +113,11 @@ test in a way.
 ```
 go build -buildvcs=false -tags jsonnet .
 ```
+
+## Development
+
+Historic results for the benchmarks are available on the
+[benchmarks page](https://guidewire-oss.github.io/kumquat/dev/bench/).
 
 
 ## References
