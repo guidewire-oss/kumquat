@@ -1,31 +1,37 @@
 apiVersion: kumquat.guidewire.com/v1beta1
 kind: Template
 metadata:
-  name: aws-auth
+  name: generate-role
   namespace: templates
 spec:
   query: | #sql
-    SELECT cm.data AS cm
-    FROM "ConfigMap.core" AS cm
-    WHERE cm.namespace = 'kube-system' AND
-    json_extract(cm.data, '$.metadata.annotations.aggregate') = 'aws-auth'
+    SELECT crd.data AS crd
+    FROM "CustomResourceDefinition.apiextensions.k8s.io" AS crd
+    WHERE crd.name LIKE "%.aws.upbound.io"
   template:
     language: cue
     batchModeProcessing: true
     fileName: |
       ./output/out.yaml
     data: | #cue
-      import "strings"
-
-      mapRoles: strings.Join([for result in data {result.cm.data.mapRoles}], "")
+      unique_groups_map: {
+        for result in data {
+          "\(result.crd.spec.group)": result.crd.spec.group
+        }
+      }
+      unique_groups: [ for g in unique_groups_map {g}]
       out: {
-        apiVersion: "v1"
-        kind: "ConfigMap"
-        metadata: {
-          name: "aws-auth"
-          namespace: "kube-system"
-        }
-        data: {
-          "mapRoles": mapRoles
-        }
+        apiVersion: "rbac.authorization.k8s.io/v1"
+        kind: "ClusterRole"
+        metadata:
+          name: "crossplane-aws-readers-role"
+        rules: [
+            {
+              apiGroups: unique_groups
+              resources: [
+                  "*"
+              ]
+              verbs: ["get", "list", "watch"]
+            }
+        ]
       }
