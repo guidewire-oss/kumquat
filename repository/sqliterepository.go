@@ -31,7 +31,6 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 	defer r.mu.Unlock()
 
 	slog.Debug("Running query", "query", query)
-	fmt.Println("Running query", "query", query)
 
 	var rows *sql.Rows
 	var err error
@@ -232,6 +231,7 @@ func (r *SQLiteRepository) ExtractTableNamesFromQuery(query string) []string {
 
 	return tableNames
 }
+
 func (r *SQLiteRepository) DropTable(table string) error {
 	if !r.StoredKinds[table] {
 		return fmt.Errorf("table does not exist: %s", table)

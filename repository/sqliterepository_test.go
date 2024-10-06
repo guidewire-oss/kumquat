@@ -1,6 +1,7 @@
 package repository_test
 
 import (
+	"fmt"
 	"kumquat/repository"
 	"testing"
 
@@ -303,3 +304,64 @@ func TestExtractingTableNamesFromQueryWithMultipleSubqueries(t *testing.T) {
 // 	require.NoError(t, err)
 // 	assert.ElementsMatch(t, tableNames, []string{"employees", "departments"})
 // }
+
+func BenchmarkQueryPerformance(b *testing.B) {
+	const DB_ENTRIES = 500
+
+	r, err := repository.NewSQLiteRepository()
+	require.NoError(b, err)
+	defer r.Close() //nolint:errcheck
+
+	// Populate repository with some resources
+	for i := 0; i < DB_ENTRIES; i++ {
+		res, err := repository.MakeResource(map[string]any{
+			"apiVersion": "guidewire.com/v1beta1",
+			"kind":       "Example",
+			"metadata": map[string]any{
+				"name":      fmt.Sprintf("%04d", i),
+				"namespace": "examples",
+			},
+		})
+		require.NoError(b, err)
+		err = r.Upsert(res)
+		require.NoError(b, err)
+	}
+
+	benchmarkQueryExpecting := func(query string, expected int) func(*testing.B) {
+		return func(b *testing.B) {
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				rs, err := r.Query(query)
+				if err != nil {
+					b.Fatal(err)
+				}
+
+				if len(rs.Results) != expected {
+					b.Fatalf("unexpected result: %v", rs)
+				}
+			}
+		}
+	}
+
+	// Find the time to query the first resource
+	q := fmt.Sprintf(
+		`SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = '%04d'`,
+		0,
+	)
+	b.Run("QueryFirst", benchmarkQueryExpecting(q, 1))
+
+	// Find the time to query the last resource
+	q = fmt.Sprintf(
+		`SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = '%04d'`,
+		DB_ENTRIES-1,
+	)
+	b.Run("QueryLast", benchmarkQueryExpecting(q, 1))
+
+	// Find the time to query a non-existent resource
+	q = `SELECT example.data AS e FROM "Example.guidewire.com" AS example WHERE example.name = 'missing'`
+	b.Run("QueryMissing", benchmarkQueryExpecting(q, 0))
+
+	// Get Cartesian product of table with itself
+	q = `SELECT a.data, b.data FROM "Example.guidewire.com" AS a CROSS JOIN "Example.guidewire.com" AS b`
+	b.Run("QueryCartesianProduct", benchmarkQueryExpecting(q, DB_ENTRIES*DB_ENTRIES))
+}
