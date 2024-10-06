@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728230020901,
+  "lastUpdate": 1728249829522,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -42,6 +42,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1431688576,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "dc483d51cd0639c3ddffd272b759fccc96e7938d",
+          "message": "👷 Add CI build for continuous benchmarking",
+          "timestamp": "2024-10-06T18:20:58-03:00",
+          "tree_id": "d9e0c27191aaede126fd3eefa5613023bfbbdad7",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/dc483d51cd0639c3ddffd272b759fccc96e7938d"
+        },
+        "date": 1728249828594,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29681,
+            "unit": "ns/op",
+            "extra": "405544 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29776,
+            "unit": "ns/op",
+            "extra": "398517 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25375,
+            "unit": "ns/op",
+            "extra": "470068 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1426820522,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
