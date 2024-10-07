@@ -68,6 +68,7 @@ jobs:
 
     - name: Update coverage report on gh-pages
       if: github.ref_name == 'main' 
+      shell: bash
       run: |
         echo "Coverage report: ${{ steps.coverage.outputs.report-pathname }}"
         mkdir -p /tmp/coverage-report
@@ -81,10 +82,10 @@ jobs:
         git add ./dev/coverage
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
-        git commit -m "Update coverage report for commit ${{ github.sha }}"
+        git commit -m "Update coverage report for commit ${{ github.sha }}" || true
         git push origin gh-pages
         git switch ${{ github.ref }}
-        git stash pop
+        git stash pop || true
 
     - name: Fail on low coverage
       if: steps.coverage.outputs.meets-threshold == 'false'
