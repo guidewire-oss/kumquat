@@ -124,9 +124,9 @@ var _ = Describe("Template Controller Integration Test", func() {
 			}
 			return nil
 		}, 10*time.Second, 2*time.Second).Should(Succeed())
-		//delete a configmap with nmame aws-auth-tenant-acme and
-		//expect that the configmap with name test-aws-auth-tenant-acme
-		//will be deleted as well but the other two will remain
+		// delete a configmap with nmame aws-auth-tenant-acme and
+		// expect that the configmap with name test-aws-auth-tenant-acme
+		// will be deleted as well but the other two will remain
 		configmap := &corev1.ConfigMap{}
 		err := k8sClient.Get(ctx, client.ObjectKey{Namespace: "kube-system", Name: "aws-auth-tenant-acme"}, configmap)
 		Expect(err).NotTo(HaveOccurred())
