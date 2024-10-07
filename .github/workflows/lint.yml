@@ -10,7 +10,6 @@ jobs:
   golangci:
     name: lint
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/devcontainers/go:1-1.23-bullseye
     env:
       GOFLAGS: -buildvcs=false
     permissions:
@@ -21,11 +20,16 @@ jobs:
       # Optional: allow write access to checks to allow the action to annotate code in the PR.
       checks: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Lint
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Go 📦
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Lint 🚨
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.61.0
           args: --timeout=5m
-          # We are not using actions/setup-go so we must use the embedded problem matchers
-          problem-matchers: true
