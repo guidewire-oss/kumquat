@@ -1,0 +1,3133 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>v1beta1: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">kumquat/api/v1beta1/template_types.go (100.0%)</option>
+				
+				<option value="file1">kumquat/api/v1beta1/zz_generated.deepcopy.go (0.0%)</option>
+				
+				<option value="file2">kumquat/cmd/main.go (0.0%)</option>
+				
+				<option value="file3">kumquat/internal/controller/k8sclient.go (0.0%)</option>
+				
+				<option value="file4">kumquat/internal/controller/template_controller.go (0.0%)</option>
+				
+				<option value="file5">kumquat/internal/controller/watchmanager.go (0.0%)</option>
+				
+				<option value="file6">kumquat/main.go (0.0%)</option>
+				
+				<option value="file7">kumquat/renderer/cue/cuetemplate.go (85.4%)</option>
+				
+				<option value="file8">kumquat/renderer/errors.go (100.0%)</option>
+				
+				<option value="file9">kumquat/renderer/gotemplate/gotemplate.go (95.8%)</option>
+				
+				<option value="file10">kumquat/renderer/jsonnet/jsonnet.go (87.9%)</option>
+				
+				<option value="file11">kumquat/renderer/renderer.go (100.0%)</option>
+				
+				<option value="file12">kumquat/renderer/utils.go (100.0%)</option>
+				
+				<option value="file13">kumquat/repository/repository.go (98.5%)</option>
+				
+				<option value="file14">kumquat/repository/sqliterepository.go (68.5%)</option>
+				
+				<option value="file15">kumquat/store/store.go (75.0%)</option>
+				
+				<option value="file16">kumquat/template/errors.go (100.0%)</option>
+				
+				<option value="file17">kumquat/template/template.go (92.6%)</option>
+				
+				<option value="file18">kumquat/test/utils/utils.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">/*
+Copyright 2024.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package v1beta1
+
+import (
+        metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+// TemplateSpec defines the desired state of Template
+
+type TemplateDefinition struct {
+        Language            string `json:"language,omitempty"`
+        BatchModeProcessing bool   `json:"batchModeProcessing,omitempty"`
+        Data                string `json:"data,omitempty"`
+        FileName            string `json:"fileName,omitempty"`
+}
+
+type TemplateSpec struct {
+        Query              string             `json:"query,omitempty"`
+        TemplateDefinition TemplateDefinition `json:"template,omitempty"`
+}
+
+// TemplateStatus defines the observed state of Template
+type TemplateStatus struct {
+        // INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+        // Important: Run "make" to regenerate code after modifying this file
+}
+
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+
+// Template is the Schema for the templates API
+type Template struct {
+        metav1.TypeMeta   `json:",inline"`
+        metav1.ObjectMeta `json:"metadata,omitempty"`
+
+        Spec   TemplateSpec   `json:"spec,omitempty"`
+        Status TemplateStatus `json:"status,omitempty"`
+}
+
+// +kubebuilder:object:root=true
+
+// TemplateList contains a list of Template
+type TemplateList struct {
+        metav1.TypeMeta `json:",inline"`
+        metav1.ListMeta `json:"metadata,omitempty"`
+        Items           []Template `json:"items"`
+}
+
+func init() <span class="cov10" title="2">{
+        SchemeBuilder.Register(&amp;Template{}, &amp;TemplateList{})
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">//go:build !ignore_autogenerated
+
+/*
+Copyright 2024.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Code generated by controller-gen. DO NOT EDIT.
+
+package v1beta1
+
+import (
+        runtime "k8s.io/apimachinery/pkg/runtime"
+)
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *Template) DeepCopyInto(out *Template) <span class="cov0" title="0">{
+        *out = *in
+        out.TypeMeta = in.TypeMeta
+        in.ObjectMeta.DeepCopyInto(&amp;out.ObjectMeta)
+        out.Spec = in.Spec
+        out.Status = in.Status
+}</span>
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new Template.
+func (in *Template) DeepCopy() *Template <span class="cov0" title="0">{
+        if in == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">out := new(Template)
+        in.DeepCopyInto(out)
+        return out</span>
+}
+
+// DeepCopyObject is an autogenerated deepcopy function, copying the receiver, creating a new runtime.Object.
+func (in *Template) DeepCopyObject() runtime.Object <span class="cov0" title="0">{
+        if c := in.DeepCopy(); c != nil </span><span class="cov0" title="0">{
+                return c
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *TemplateDefinition) DeepCopyInto(out *TemplateDefinition) <span class="cov0" title="0">{
+        *out = *in
+}</span>
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new TemplateDefinition.
+func (in *TemplateDefinition) DeepCopy() *TemplateDefinition <span class="cov0" title="0">{
+        if in == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">out := new(TemplateDefinition)
+        in.DeepCopyInto(out)
+        return out</span>
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *TemplateList) DeepCopyInto(out *TemplateList) <span class="cov0" title="0">{
+        *out = *in
+        out.TypeMeta = in.TypeMeta
+        in.ListMeta.DeepCopyInto(&amp;out.ListMeta)
+        if in.Items != nil </span><span class="cov0" title="0">{
+                in, out := &amp;in.Items, &amp;out.Items
+                *out = make([]Template, len(*in))
+                for i := range *in </span><span class="cov0" title="0">{
+                        (*in)[i].DeepCopyInto(&amp;(*out)[i])
+                }</span>
+        }
+}
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new TemplateList.
+func (in *TemplateList) DeepCopy() *TemplateList <span class="cov0" title="0">{
+        if in == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">out := new(TemplateList)
+        in.DeepCopyInto(out)
+        return out</span>
+}
+
+// DeepCopyObject is an autogenerated deepcopy function, copying the receiver, creating a new runtime.Object.
+func (in *TemplateList) DeepCopyObject() runtime.Object <span class="cov0" title="0">{
+        if c := in.DeepCopy(); c != nil </span><span class="cov0" title="0">{
+                return c
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *TemplateSpec) DeepCopyInto(out *TemplateSpec) <span class="cov0" title="0">{
+        *out = *in
+        out.TemplateDefinition = in.TemplateDefinition
+}</span>
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new TemplateSpec.
+func (in *TemplateSpec) DeepCopy() *TemplateSpec <span class="cov0" title="0">{
+        if in == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">out := new(TemplateSpec)
+        in.DeepCopyInto(out)
+        return out</span>
+}
+
+// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *TemplateStatus) DeepCopyInto(out *TemplateStatus) <span class="cov0" title="0">{
+        *out = *in
+}</span>
+
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new TemplateStatus.
+func (in *TemplateStatus) DeepCopy() *TemplateStatus <span class="cov0" title="0">{
+        if in == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov0" title="0">out := new(TemplateStatus)
+        in.DeepCopyInto(out)
+        return out</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">/*
+Copyright 2024.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package main
+
+import (
+        "crypto/tls"
+        "flag"
+        _ "kumquat/renderer/cue"
+        "os"
+
+        // Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+        // to ensure that exec-entrypoint and run can make use of them.
+        _ "k8s.io/client-go/plugin/pkg/client/auth"
+
+        "k8s.io/apimachinery/pkg/runtime"
+        utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+        clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+        ctrl "sigs.k8s.io/controller-runtime"
+        "sigs.k8s.io/controller-runtime/pkg/healthz"
+        "sigs.k8s.io/controller-runtime/pkg/log/zap"
+        "sigs.k8s.io/controller-runtime/pkg/metrics/filters"
+        metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+        "sigs.k8s.io/controller-runtime/pkg/webhook"
+
+        kumquatv1beta1 "kumquat/api/v1beta1"
+        "kumquat/internal/controller"
+        // +kubebuilder:scaffold:imports
+)
+
+var (
+        scheme   = runtime.NewScheme()
+        setupLog = ctrl.Log.WithName("setup")
+)
+
+func init() <span class="cov0" title="0">{
+        utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+
+        utilruntime.Must(kumquatv1beta1.AddToScheme(scheme))
+        // +kubebuilder:scaffold:scheme
+}</span>
+
+func main() <span class="cov0" title="0">{
+        var metricsAddr string
+        var enableLeaderElection bool
+        var probeAddr string
+        var secureMetrics bool
+        var enableHTTP2 bool
+        var tlsOpts []func(*tls.Config)
+        flag.StringVar(&amp;metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
+                "Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
+        flag.StringVar(&amp;probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+        flag.BoolVar(&amp;enableLeaderElection, "leader-elect", false,
+                "Enable leader election for controller manager. "+
+                        "Enabling this will ensure there is only one active controller manager.")
+        flag.BoolVar(&amp;secureMetrics, "metrics-secure", true,
+                "If set, the metrics endpoint is served securely via HTTPS. Use --metrics-secure=false to use HTTP instead.")
+        flag.BoolVar(&amp;enableHTTP2, "enable-http2", false,
+                "If set, HTTP/2 will be enabled for the metrics and webhook servers")
+        opts := zap.Options{
+                Development: true,
+        }
+        opts.BindFlags(flag.CommandLine)
+        flag.Parse()
+
+        ctrl.SetLogger(zap.New(zap.UseFlagOptions(&amp;opts)))
+
+        // if the enable-http2 flag is false (the default), http/2 should be disabled
+        // due to its vulnerabilities. More specifically, disabling http/2 will
+        // prevent from being vulnerable to the HTTP/2 Stream Cancellation and
+        // Rapid Reset CVEs. For more information see:
+        // - https://github.com/advisories/GHSA-qppj-fm5r-hxr3
+        // - https://github.com/advisories/GHSA-4374-p667-p6c8
+        disableHTTP2 := func(c *tls.Config) </span><span class="cov0" title="0">{
+                setupLog.Info("disabling http/2")
+                c.NextProtos = []string{"http/1.1"}
+        }</span>
+
+        <span class="cov0" title="0">if !enableHTTP2 </span><span class="cov0" title="0">{
+                tlsOpts = append(tlsOpts, disableHTTP2)
+        }</span>
+
+        <span class="cov0" title="0">webhookServer := webhook.NewServer(webhook.Options{
+                TLSOpts: tlsOpts,
+        })
+
+        // Metrics endpoint is enabled in 'config/default/kustomization.yaml'. The Metrics options configure the server.
+        // More info:
+        // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.18.4/pkg/metrics/server
+        // - https://book.kubebuilder.io/reference/metrics.html
+        metricsServerOptions := metricsserver.Options{
+                BindAddress:   metricsAddr,
+                SecureServing: secureMetrics,
+                // TODO(user): TLSOpts is used to allow configuring the TLS config used for the server. If certificates are
+                // not provided, self-signed certificates will be generated by default. This option is not recommended for
+                // production environments as self-signed certificates do not offer the same level of trust and security
+                // as certificates issued by a trusted Certificate Authority (CA). The primary risk is potentially allowing
+                // unauthorized access to sensitive metrics data. Consider replacing with CertDir, CertName, and KeyName
+                // to provide certificates, ensuring the server communicates using trusted and secure certificates.
+                TLSOpts: tlsOpts,
+        }
+
+        if secureMetrics </span><span class="cov0" title="0">{
+                // FilterProvider is used to protect the metrics endpoint with authn/authz.
+                // These configurations ensure that only authorized users and service accounts
+                // can access the metrics endpoint. The RBAC are configured in 'config/rbac/kustomization.yaml'. More info:
+                // https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.18.4/pkg/metrics/filters#WithAuthenticationAndAuthorization
+                metricsServerOptions.FilterProvider = filters.WithAuthenticationAndAuthorization
+        }</span>
+
+        <span class="cov0" title="0">mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+                Scheme:                 scheme,
+                Metrics:                metricsServerOptions,
+                WebhookServer:          webhookServer,
+                HealthProbeBindAddress: probeAddr,
+                LeaderElection:         enableLeaderElection,
+                LeaderElectionID:       "857969d7.guidewire.com",
+                // LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
+                // when the Manager ends. This requires the binary to immediately end when the
+                // Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
+                // speeds up voluntary leader transitions as the new leader don't have to wait
+                // LeaseDuration time first.
+                //
+                // In the default scaffold provided, the program ends immediately after
+                // the manager stops, so would be fine to enable this option. However,
+                // if you are doing or is intended to do any operation such as perform cleanups
+                // after the manager stops then its usage might be unsafe.
+                // LeaderElectionReleaseOnCancel: true,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                setupLog.Error(err, "unable to start manager")
+                os.Exit(1)
+        }</span>
+        // create the dynamic k8s client
+        <span class="cov0" title="0">k8sClient, err := controller.NewDynamicK8sClient(mgr.GetClient(), mgr.GetRESTMapper())
+        if err != nil </span><span class="cov0" title="0">{
+                setupLog.Error(err, "unable to create dynamic k8s client")
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">if err = (&amp;controller.TemplateReconciler{
+                Client:    mgr.GetClient(),
+                Scheme:    mgr.GetScheme(),
+                K8sClient: k8sClient,
+        }).SetupWithManager(mgr); err != nil </span><span class="cov0" title="0">{
+                setupLog.Error(err, "unable to create controller", "controller", "Template")
+                os.Exit(1)
+        }</span>
+        // +kubebuilder:scaffold:builder
+
+        <span class="cov0" title="0">if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil </span><span class="cov0" title="0">{
+                setupLog.Error(err, "unable to set up health check")
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil </span><span class="cov0" title="0">{
+                setupLog.Error(err, "unable to set up ready check")
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">setupLog.Info("starting manager")
+        if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil </span><span class="cov0" title="0">{
+                setupLog.Error(err, "problem running manager")
+                os.Exit(1)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package controller
+
+import (
+        "context"
+        "fmt"
+
+        "sigs.k8s.io/controller-runtime/pkg/client"
+
+        "k8s.io/apimachinery/pkg/api/meta"
+        "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+        "k8s.io/apimachinery/pkg/runtime/schema"
+)
+
+func NewDynamicK8sClient(client client.Client, restMapper meta.RESTMapper) (K8sClient, error) <span class="cov0" title="0">{
+
+        return &amp;DynamicK8sClient{
+                client:     client,
+                restMapper: restMapper,
+        }, nil
+}</span>
+
+// K8sClient interface remains the same
+type K8sClient interface {
+        Create(ctx context.Context, obj *unstructured.Unstructured) (*unstructured.Unstructured, error)
+        CreateOrUpdate(ctx context.Context, obj *unstructured.Unstructured) (*unstructured.Unstructured, error)
+        List(ctx context.Context, group, kind, namespace string) (*unstructured.UnstructuredList, error)
+        Get(ctx context.Context, group, kind, namespace, name string) (*unstructured.Unstructured, error)
+        Update(ctx context.Context, group, kind, namespace string, obj *unstructured.Unstructured) (
+                *unstructured.Unstructured, error)
+        Delete(ctx context.Context, group, kind, namespace, name string) error
+        GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error)
+}
+
+type DynamicK8sClient struct {
+        client     client.Client
+        restMapper meta.RESTMapper
+}
+
+// Implement the methods using client.Client
+
+func (k *DynamicK8sClient) Create(ctx context.Context, obj *unstructured.Unstructured) (
+        *unstructured.Unstructured, error) <span class="cov0" title="0">{
+
+        err := k.client.Create(ctx, obj)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return obj, nil</span>
+}
+
+func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured.Unstructured) (
+        *unstructured.Unstructured, error) <span class="cov0" title="0">{
+
+        existing := &amp;unstructured.Unstructured{}
+        existing.SetGroupVersionKind(obj.GroupVersionKind())
+        key := client.ObjectKey{
+                Namespace: obj.GetNamespace(),
+                Name:      obj.GetName(),
+        }
+
+        err := k.client.Get(ctx, key, existing)
+        if err != nil </span><span class="cov0" title="0">{
+                if client.IgnoreNotFound(err) != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                // Not found, create
+                <span class="cov0" title="0">err = k.client.Create(ctx, obj)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">return obj, nil</span>
+        }
+
+        // Resource exists, update
+        <span class="cov0" title="0">obj.SetResourceVersion(existing.GetResourceVersion())
+        err = k.client.Update(ctx, obj)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return obj, nil</span>
+}
+
+func (k *DynamicK8sClient) List(ctx context.Context, group, kind, namespace string) (
+        *unstructured.UnstructuredList, error) <span class="cov0" title="0">{
+
+        gvk, err := k.GetPreferredGVK(group, kind)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">list := &amp;unstructured.UnstructuredList{}
+        list.SetGroupVersionKind(gvk)
+        err = k.client.List(ctx, list, client.InNamespace(namespace))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return list, nil</span>
+}
+
+func (k *DynamicK8sClient) Get(ctx context.Context, group, kind, namespace, name string) (
+        *unstructured.Unstructured, error) <span class="cov0" title="0">{
+        gvk, err := k.GetPreferredGVK(group, kind)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">obj := &amp;unstructured.Unstructured{}
+        obj.SetGroupVersionKind(gvk)
+        key := client.ObjectKey{
+                Namespace: namespace,
+                Name:      name,
+        }
+        err = k.client.Get(ctx, key, obj)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return obj, nil</span>
+}
+
+func (k *DynamicK8sClient) Update(ctx context.Context, group, kind, namespace string, obj *unstructured.Unstructured) (
+        *unstructured.Unstructured, error) <span class="cov0" title="0">{
+        err := k.client.Update(ctx, obj)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return obj, nil</span>
+}
+
+func (k *DynamicK8sClient) Delete(ctx context.Context, group, kind, namespace, name string) error <span class="cov0" title="0">{
+        gvk, err := k.GetPreferredGVK(group, kind)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">obj := &amp;unstructured.Unstructured{}
+        obj.SetGroupVersionKind(gvk)
+        obj.SetNamespace(namespace)
+        obj.SetName(name)
+        err = k.client.Delete(ctx, obj)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (k *DynamicK8sClient) GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error) <span class="cov0" title="0">{
+        partialGVK := schema.GroupVersionKind{
+                Group: group,
+                Kind:  kind,
+        }
+
+        mapping, err := k.restMapper.RESTMapping(partialGVK.GroupKind())
+        if err != nil </span><span class="cov0" title="0">{
+                return schema.GroupVersionKind{}, fmt.Errorf("failed to get GVK from RESTMapper: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return mapping.GroupVersionKind, nil</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">/*
+Copyright 2024.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package controller
+
+import (
+        "context"
+        "fmt"
+        "strings"
+
+        kumquatTemplate "kumquat/template"
+
+        "github.com/go-logr/logr"
+        "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+        "k8s.io/apimachinery/pkg/runtime"
+        "k8s.io/apimachinery/pkg/runtime/schema"
+        ctrl "sigs.k8s.io/controller-runtime"
+        "sigs.k8s.io/controller-runtime/pkg/client"
+        "sigs.k8s.io/controller-runtime/pkg/controller"
+        "sigs.k8s.io/controller-runtime/pkg/handler"
+        "sigs.k8s.io/controller-runtime/pkg/log"
+        "sigs.k8s.io/controller-runtime/pkg/source"
+        "sigs.k8s.io/yaml"
+
+        kumquatv1beta1 "kumquat/api/v1beta1"
+        "kumquat/repository"
+)
+
+const templateFinalizer = "kumquat.guidewire.com/finalizer"
+
+var SqliteRepository *repository.SQLiteRepository // Initially nil
+
+func GetSqliteRepository() (*repository.SQLiteRepository, error) <span class="cov0" title="0">{
+        if SqliteRepository == nil </span><span class="cov0" title="0">{
+                rep, err := repository.NewSQLiteRepository()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">SqliteRepository = rep</span>
+        }
+        <span class="cov0" title="0">return SqliteRepository, nil</span>
+}
+
+// containsString checks if a string is in a slice
+func containsString(slice []string, s string) bool <span class="cov0" title="0">{
+        for _, item := range slice </span><span class="cov0" title="0">{
+                if item == s </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+// removeString removes a string from a slice
+func removeString(slice []string, s string) []string <span class="cov0" title="0">{
+        var result []string
+        for _, item := range slice </span><span class="cov0" title="0">{
+                if item != s </span><span class="cov0" title="0">{
+                        result = append(result, item)
+                }</span>
+        }
+        <span class="cov0" title="0">return result</span>
+}
+
+// EnsureFinalizer adds a finalizer to the resource if not present
+func (r *TemplateReconciler) EnsureFinalizer(template *kumquatv1beta1.Template) bool <span class="cov0" title="0">{
+        if !containsString(template.GetFinalizers(), templateFinalizer) </span><span class="cov0" title="0">{
+                template.SetFinalizers(append(template.GetFinalizers(), templateFinalizer))
+                return true
+        }</span>
+        <span class="cov0" title="0">return false</span>
+}
+
+// RemoveFinalizer removes the finalizer from the resource
+func (r *TemplateReconciler) RemoveFinalizer(template *kumquatv1beta1.Template) bool <span class="cov0" title="0">{
+        if containsString(template.GetFinalizers(), templateFinalizer) </span><span class="cov0" title="0">{
+                template.SetFinalizers(removeString(template.GetFinalizers(), templateFinalizer))
+                return true
+        }</span>
+        <span class="cov0" title="0">return false</span>
+}
+
+// TemplateReconciler reconciles a Template object
+type TemplateReconciler struct {
+        client.Client
+        Scheme       *runtime.Scheme
+        WatchManager *WatchManager
+        K8sClient    K8sClient
+}
+
+func (r *TemplateReconciler) handleDeletion(
+        ctx context.Context,
+        log logr.Logger,
+        template *kumquatv1beta1.Template,
+) (ctrl.Result, error) <span class="cov0" title="0">{
+        log.Info("template deleted", "name", template.Name)
+        r.WatchManager.RemoveWatch(template.Name)
+
+        re, err := GetSqliteRepository()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to get repository")
+                return ctrl.Result{}, err
+        }</span>
+
+        <span class="cov0" title="0">err = deleteAssociatedResources(template, re, log, r.K8sClient)
+        if err != nil </span><span class="cov0" title="0">{
+                return ctrl.Result{}, err
+        }</span>
+
+        <span class="cov0" title="0">if r.RemoveFinalizer(template) </span><span class="cov0" title="0">{
+                err := r.Update(ctx, template)
+                if err != nil </span><span class="cov0" title="0">{
+                        return ctrl.Result{}, err
+                }</span>
+        }
+
+        <span class="cov0" title="0">return ctrl.Result{}, nil</span>
+}
+func deleteAssociatedResources(
+        template *kumquatv1beta1.Template,
+        re *repository.SQLiteRepository,
+        log logr.Logger,
+        k8sClient K8sClient,
+) error <span class="cov0" title="0">{
+        template.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+                Group:   "kumquat.guidewire.com",
+                Version: "v1beta1",
+                Kind:    "Template",
+        })
+        objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "failed to convert template to unstructured map")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">resource, err := repository.MakeResource(objMap)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to make resource from object")
+                return err
+        }</span>
+        <span class="cov0" title="0">t, err := kumquatTemplate.NewTemplate(resource)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to create template from resource")
+                return err
+        }</span>
+        <span class="cov0" title="0">o, err := t.Evaluate(re)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to evaluate template")
+                return err
+        }</span>
+        <span class="cov0" title="0">fmt.Println(o.Output)
+        for i := 0; i &lt; o.Output.ResourceCount(); i++ </span><span class="cov0" title="0">{
+                out, err := o.Output.ResultString(i)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error(err, "unable to get result string")
+                        return err
+                }</span>
+                <span class="cov0" title="0">fmt.Println(out)
+
+                err = deleteResourceFromCluster(out, log, k8sClient)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+func deleteResourceFromCluster(out string, log logr.Logger, k8sClient K8sClient) error <span class="cov0" title="0">{
+        jsonData, err := yaml.YAMLToJSON([]byte(out))
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to convert YAML to JSON")
+                return err
+        }</span>
+        <span class="cov0" title="0">unstructuredObj := &amp;unstructured.Unstructured{}
+        err = unstructuredObj.UnmarshalJSON(jsonData)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to unmarshal JSON")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">context := context.TODO()
+        err = k8sClient.Delete(context,
+                unstructuredObj.GetObjectKind().GroupVersionKind().Group,
+                unstructuredObj.GetKind(),
+                unstructuredObj.GetNamespace(),
+                unstructuredObj.GetName())
+        if err != nil </span><span class="cov0" title="0">{
+                if strings.Contains(err.Error(), "not found") </span><span class="cov0" title="0">{
+                        log.Info("resource already deleted", "resource", unstructuredObj.GetName())
+                }</span> else<span class="cov0" title="0"> {
+                        log.Error(err, "unable to delete resource")
+                        return err
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// +kubebuilder:rbac:groups=kumquat.guidewire.com,resources=templates,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kumquat.guidewire.com,resources=templates/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=kumquat.guidewire.com,resources=templates/finalizers,verbs=update
+// +kubebuilder:rbac:groups=*,resources=*,verbs=*
+
+// Reconcile is part of the main kubernetes reconciliation loop which aims to
+// move the current state of the cluster closer to the desired state.
+// TODO(user): Modify the Reconcile function to compare the state specified by
+// the Template object against the actual cluster state, and then
+// perform operations to make the cluster state reflect the state specified by
+// the user.
+//
+// For more details, check Reconcile and its Result here:
+// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.18.4/pkg/reconcile
+func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) <span class="cov0" title="0">{
+        log := log.FromContext(ctx)
+
+        template := &amp;kumquatv1beta1.Template{}
+        err := r.Get(ctx, req.NamespacedName, template)
+        if err != nil </span><span class="cov0" title="0">{
+                return ctrl.Result{}, client.IgnoreNotFound(err)
+        }</span>
+
+        <span class="cov0" title="0">if !template.DeletionTimestamp.IsZero() </span><span class="cov0" title="0">{
+                return r.handleDeletion(ctx, log, template)
+        }</span>
+
+        <span class="cov0" title="0">if r.EnsureFinalizer(template) </span><span class="cov0" title="0">{
+                err := r.Update(ctx, template)
+                if err != nil </span><span class="cov0" title="0">{
+                        return ctrl.Result{}, err
+                }</span>
+        }
+
+        <span class="cov0" title="0">re, err := GetSqliteRepository()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to get repository")
+                return ctrl.Result{}, err
+        }</span>
+
+        <span class="cov0" title="0">gvkList, err := extractGVKsFromQuery(template.Spec.Query, re, log, r.K8sClient)
+        if err != nil </span><span class="cov0" title="0">{
+                return ctrl.Result{}, err
+        }</span>
+
+        <span class="cov0" title="0">for _, gvk := range gvkList </span><span class="cov0" title="0">{
+                err := addDataToDatabase(gvk.Group, gvk.Kind, log, r.K8sClient)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error(err, "unable to add data to database", "gvk", gvk)
+                }</span>
+        }
+        <span class="cov0" title="0">data, err := re.Query(template.Spec.Query)
+        fmt.Println(template, "this is template")
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to query database", "query", template.Spec.Query)
+                return ctrl.Result{}, err
+        }</span>
+        <span class="cov0" title="0">fmt.Println(len(data.Results), "found in the database")
+
+        err = applyTemplateResources(template, re, log, r.K8sClient)
+        if err != nil </span><span class="cov0" title="0">{
+                return ctrl.Result{}, err
+        }</span>
+
+        <span class="cov0" title="0">err = r.WatchManager.UpdateWatch(template.Name, gvkList)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to update watch for resource", "template", template.Name)
+        }</span>
+
+        <span class="cov0" title="0">return ctrl.Result{}, nil</span>
+}
+
+func extractGVKsFromQuery(
+        query string,
+        re *repository.SQLiteRepository,
+        log logr.Logger,
+        k8sClient K8sClient,
+) ([]schema.GroupVersionKind, error) <span class="cov0" title="0">{
+        tableNames := re.ExtractTableNamesFromQuery(query)
+        gvkList := make([]schema.GroupVersionKind, 0, len(tableNames))
+
+        for _, tableName := range tableNames </span><span class="cov0" title="0">{
+                gvk, err := BuildTableGVK(tableName, log, k8sClient)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error(err, "unable to build GVK for table", "table", tableName)
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">gvkList = append(gvkList, gvk)</span>
+        }
+        <span class="cov0" title="0">return gvkList, nil</span>
+}
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error <span class="cov0" title="0">{
+        c, err := controller.New("template-controller", mgr, controller.Options{Reconciler: r})
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">err = c.Watch(source.Kind(
+                mgr.GetCache(),
+                &amp;kumquatv1beta1.Template{},
+                &amp;handler.TypedEnqueueRequestForObject[*kumquatv1beta1.Template]{}))
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">r.WatchManager = NewWatchManager(mgr, r.K8sClient)
+
+        return nil</span>
+}
+func BuildTableGVK(tableName string, log logr.Logger, k8sClient K8sClient) (schema.GroupVersionKind, error) <span class="cov0" title="0">{
+        dotIndex := strings.Index(tableName, ".")
+        if dotIndex == -1 </span><span class="cov0" title="0">{
+                return schema.GroupVersionKind{}, fmt.Errorf("invalid table name format")
+        }</span>
+
+        <span class="cov0" title="0">kind := tableName[:dotIndex]
+        group := tableName[dotIndex+1:]
+
+        // The core API group is represented by the empty string in Kubernetes API calls
+        if group == "core" </span><span class="cov0" title="0">{
+                group = ""
+        }</span>
+
+        <span class="cov0" title="0">gvk, err := k8sClient.GetPreferredGVK(group, kind)
+        if err != nil </span><span class="cov0" title="0">{
+                return schema.GroupVersionKind{}, err
+        }</span>
+        <span class="cov0" title="0">return gvk, nil</span>
+}
+
+func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8sClient) error <span class="cov0" title="0">{
+        fmt.Println("Adding data to database for", group, kind)
+
+        context := context.TODO()
+
+        data, err := k8sClient.List(context, group, kind, "")
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">log.Info("found in the cluster", "count", len(data.Items))
+
+        for _, item := range data.Items </span><span class="cov0" title="0">{
+                err := upsertResource(item.Object)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+func upsertResource(obj map[string]interface{}) error <span class="cov0" title="0">{
+        resource, err := repository.MakeResource(obj)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">re, err := GetSqliteRepository()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return re.Upsert(resource)</span>
+}
+
+func GetTemplateResourceFromCluster(kind string, group string, name string, log logr.Logger,
+        k8sClient K8sClient) (*unstructured.Unstructured, error) <span class="cov0" title="0">{
+
+        context := context.TODO()
+        data, error := k8sClient.Get(context, group, kind, "", name)
+        if error != nil </span><span class="cov0" title="0">{
+                return &amp;unstructured.Unstructured{}, error
+        }</span>
+        <span class="cov0" title="0">return data, nil</span>
+
+}
+
+// applyTemplateResources applies the resources generated from the template.
+func applyTemplateResources(
+        template *kumquatv1beta1.Template, re *repository.SQLiteRepository, log logr.Logger, k8sClient K8sClient) error <span class="cov0" title="0">{
+        return processTemplateResources(template, re, log, k8sClient)
+}</span>
+
+func processTemplateResources(
+        template *kumquatv1beta1.Template,
+        re *repository.SQLiteRepository,
+        log logr.Logger,
+        k8sClient K8sClient,
+) error <span class="cov0" title="0">{
+        template.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+                Group:   "kumquat.guidewire.com",
+                Version: "v1beta1",
+                Kind:    "Template",
+        })
+
+        objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "failed to convert template to unstructured map")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">resource, err := repository.MakeResource(objMap)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to make resource from object")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">t, err := kumquatTemplate.NewTemplate(resource)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to create template from resource")
+                return err
+        }</span>
+        <span class="cov0" title="0">o, err := t.Evaluate(re)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to evaluate template")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">fmt.Println(o.Output)
+
+        for i := 0; i &lt; o.Output.ResourceCount(); i++ </span><span class="cov0" title="0">{
+                out, err := o.Output.ResultString(i)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error(err, "unable to get result string")
+                        return err
+                }</span>
+
+                <span class="cov0" title="0">jsonData, err := yaml.YAMLToJSON([]byte(out))
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error(err, "unable to convert YAML to JSON")
+                        return err
+                }</span>
+                <span class="cov0" title="0">unstructuredObj := &amp;unstructured.Unstructured{}
+                err = unstructuredObj.UnmarshalJSON(jsonData)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error(err, "unable to unmarshal JSON")
+                        return err
+                }</span>
+                <span class="cov0" title="0">context := context.Background()
+                _, err = k8sClient.CreateOrUpdate(context, unstructuredObj)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        if strings.Contains(err.Error(), "already exists") </span><span class="cov0" title="0">{
+                                log.Info("resource already exists", "resource", unstructuredObj.GetName())
+                        }</span> else<span class="cov0" title="0"> {
+                                log.Error(err, "unable to create resource")
+                                return err
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package controller
+
+import (
+        "context"
+        "fmt"
+        kumquatv1beta1 "kumquat/api/v1beta1"
+        "kumquat/repository"
+        "sync"
+
+        "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+        "k8s.io/apimachinery/pkg/runtime"
+        "k8s.io/apimachinery/pkg/runtime/schema"
+        "k8s.io/client-go/util/workqueue"
+        ctrl "sigs.k8s.io/controller-runtime"
+        "sigs.k8s.io/controller-runtime/pkg/cache"
+        "sigs.k8s.io/controller-runtime/pkg/client"
+        "sigs.k8s.io/controller-runtime/pkg/controller"
+        "sigs.k8s.io/controller-runtime/pkg/event"
+        "sigs.k8s.io/controller-runtime/pkg/log"
+        "sigs.k8s.io/controller-runtime/pkg/manager"
+        "sigs.k8s.io/controller-runtime/pkg/reconcile"
+        "sigs.k8s.io/controller-runtime/pkg/source"
+)
+
+// ControllerEntry represents a dynamically managed controller.
+type ControllerEntry struct {
+        controller controller.Controller
+        cancelFunc context.CancelFunc
+        ctx        context.Context
+}
+
+// WatchManager manages dynamic watches.
+type WatchManager struct {
+        refCounts        map[schema.GroupVersionKind]int
+        watchedResources map[schema.GroupVersionKind]ControllerEntry
+        templates        map[string]map[schema.GroupVersionKind]struct{}
+        mu               sync.Mutex
+        cache            cache.Cache
+        client           client.Client
+        scheme           *runtime.Scheme
+        mgr              manager.Manager
+        K8sClient        K8sClient
+}
+
+var wm *WatchManager
+
+// NewWatchManager creates a new WatchManager instance.
+func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager <span class="cov0" title="0">{
+        watchManager := &amp;WatchManager{
+                watchedResources: make(map[schema.GroupVersionKind]ControllerEntry),
+                refCounts:        make(map[schema.GroupVersionKind]int),
+                templates:        make(map[string]map[schema.GroupVersionKind]struct{}),
+                cache:            mgr.GetCache(),
+                scheme:           mgr.GetScheme(),
+                mgr:              mgr,
+                K8sClient:        k8sClient,
+                client:           mgr.GetClient(),
+        }
+        wm = watchManager
+        return watchManager
+}</span>
+
+// GetWatchManager returns the singleton instance of WatchManager.
+func GetWatchManager() *WatchManager <span class="cov0" title="0">{
+        return wm
+}</span>
+
+// AddWatch adds a watch for the specified template and GVKs.
+func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersionKind) error <span class="cov0" title="0">{
+        if _, exists := wm.templates[templateName]; !exists </span><span class="cov0" title="0">{
+                wm.templates[templateName] = make(map[schema.GroupVersionKind]struct{})
+        }</span>
+
+        <span class="cov0" title="0">for _, gvk := range gvks </span><span class="cov0" title="0">{
+                if _, exists := wm.templates[templateName][gvk]; exists </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">wm.templates[templateName][gvk] = struct{}{}
+                if wm.refCounts[gvk] == 0 </span><span class="cov0" title="0">{
+                        err := deleteTableFromDataBase(gvk)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov0" title="0">if err := wm.startWatching(gvk); err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                }
+                <span class="cov0" title="0">wm.refCounts[gvk]++
+                log.Log.Info("Incremented watch reference count", "gvk", gvk, "count", wm.refCounts[gvk])</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// UpdateWatch updates the watch for the specified template with new GVKs.
+func (wm *WatchManager) UpdateWatch(templateName string, newGVKs []schema.GroupVersionKind) error <span class="cov0" title="0">{
+        wm.mu.Lock()
+        defer wm.mu.Unlock()
+
+        if _, exists := wm.templates[templateName]; !exists </span><span class="cov0" title="0">{
+                log.Log.Info("Resource template not found", "templateName", templateName)
+                return wm.AddWatch(templateName, newGVKs)
+        }</span>
+
+        <span class="cov0" title="0">oldGVKs := wm.templates[templateName]
+        removedGVKs := make(map[schema.GroupVersionKind]struct{})
+        addedGVKs := make(map[schema.GroupVersionKind]struct{})
+
+        for gvk := range oldGVKs </span><span class="cov0" title="0">{
+                removedGVKs[gvk] = struct{}{}
+        }</span>
+        <span class="cov0" title="0">for _, gvk := range newGVKs </span><span class="cov0" title="0">{
+                if _, exists := removedGVKs[gvk]; exists </span><span class="cov0" title="0">{
+                        delete(removedGVKs, gvk)
+                }</span> else<span class="cov0" title="0"> {
+                        addedGVKs[gvk] = struct{}{}
+                }</span>
+        }
+
+        <span class="cov0" title="0">for gvk := range removedGVKs </span><span class="cov0" title="0">{
+                wm.removeWatchForGVK(templateName, gvk)
+        }</span>
+
+        <span class="cov0" title="0">for gvk := range addedGVKs </span><span class="cov0" title="0">{
+                if err := wm.addWatchForGVK(templateName, gvk); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// RemoveWatch removes the watch for the specified template.
+func (wm *WatchManager) RemoveWatch(templateName string) <span class="cov0" title="0">{
+        wm.mu.Lock()
+        defer wm.mu.Unlock()
+        log.Log.Info("Removing watch", "templateName", templateName)
+
+        if watchedGVKs, exists := wm.templates[templateName]; exists </span><span class="cov0" title="0">{
+                for gvk := range watchedGVKs </span><span class="cov0" title="0">{
+                        wm.refCounts[gvk]--
+                        if wm.refCounts[gvk] &lt;= 0 </span><span class="cov0" title="0">{
+                                wm.stopWatching(gvk)
+                                delete(wm.refCounts, gvk)
+                        }</span>
+                }
+                <span class="cov0" title="0">delete(wm.templates, templateName)</span>
+        }
+        <span class="cov0" title="0">for gvk, count := range wm.refCounts </span><span class="cov0" title="0">{
+                log.Log.Info("Reference count", "gvk", gvk, "count", count)
+        }</span>
+
+        <span class="cov0" title="0">wm.logActiveControllers()</span>
+}
+
+// addWatchForGVK adds a watch for a specific GVK.
+func (wm *WatchManager) addWatchForGVK(templateName string, gvk schema.GroupVersionKind) error <span class="cov0" title="0">{
+        wm.templates[templateName][gvk] = struct{}{}
+        if wm.refCounts[gvk] == 0 </span><span class="cov0" title="0">{
+                if err := wm.startWatching(gvk); err != nil </span><span class="cov0" title="0">{
+                        log.Log.Error(err, "unable to start watching", "gvk", gvk)
+                        return err
+                }</span>
+        }
+        <span class="cov0" title="0">wm.refCounts[gvk]++
+        log.Log.Info("Incremented watch reference count", "gvk", gvk, "count", wm.refCounts[gvk])
+        return nil</span>
+}
+
+// removeWatchForGVK removes a watch for a specific GVK.
+func (wm *WatchManager) removeWatchForGVK(templateName string, gvk schema.GroupVersionKind) <span class="cov0" title="0">{
+        wm.refCounts[gvk]--
+        if wm.refCounts[gvk] &lt;= 0 </span><span class="cov0" title="0">{
+                wm.stopWatching(gvk)
+                delete(wm.refCounts, gvk)
+        }</span>
+        <span class="cov0" title="0">delete(wm.templates[templateName], gvk)
+        log.Log.Info("Decremented watch reference count", "gvk", gvk, "count", wm.refCounts[gvk])</span>
+}
+
+// startWatching starts watching a specific GVK.
+func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error <span class="cov0" title="0">{
+        log.Log.Info("Starting watch", "gvk", gvk)
+        obj := &amp;unstructured.Unstructured{}
+        obj.SetGroupVersionKind(gvk)
+
+        dynamicReconciler := &amp;DynamicReconciler{
+                Client:    wm.client,
+                GVK:       gvk,
+                K8sClient: wm.K8sClient, // Pass the K8sClient here
+
+        }
+
+        ctx, cancelFunc := context.WithCancel(context.Background())
+
+        c, err := controller.NewUnmanaged("dynamic-controller-"+gvk.Kind, wm.mgr, controller.Options{
+                Reconciler: dynamicReconciler,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                cancelFunc()
+                return err
+        }</span>
+
+        <span class="cov0" title="0">kindSource := source.Kind(wm.mgr.GetCache(), obj, &amp;unstructuredEventHandler{})
+        err = c.Watch(kindSource)
+        if err != nil </span><span class="cov0" title="0">{
+                cancelFunc()
+                return err
+        }</span>
+
+        <span class="cov0" title="0">wm.watchedResources[gvk] = ControllerEntry{controller: c, cancelFunc: cancelFunc, ctx: ctx}
+        go func() </span><span class="cov0" title="0">{
+                if err := c.Start(ctx); err != nil &amp;&amp; err != context.Canceled </span><span class="cov0" title="0">{
+                        log.Log.Error(err, "unable to start controller", "gvk", gvk)
+                }</span>
+        }()
+        <span class="cov0" title="0">return nil</span>
+}
+
+// stopWatching stops watching a specific GVK.
+func (wm *WatchManager) stopWatching(gvk schema.GroupVersionKind) <span class="cov0" title="0">{
+        log.Log.Info("Stopping watch", "gvk", gvk)
+        if entry, exists := wm.watchedResources[gvk]; exists </span><span class="cov0" title="0">{
+                entry.cancelFunc()
+                &lt;-entry.ctx.Done()
+                delete(wm.watchedResources, gvk)
+        }</span>
+}
+
+// logs all active controllers.
+func (wm *WatchManager) logActiveControllers() <span class="cov0" title="0">{
+        log.Log.Info("Listing all active controllers:")
+        for gvk, entry := range wm.watchedResources </span><span class="cov0" title="0">{
+                log.Log.Info("Active controller", "gvk", gvk, "context", entry.ctx)
+        }</span>
+}
+
+// DeleteRecord deletes a record from the specified table.
+func DeleteRecord(table, namespace, name string) error <span class="cov0" title="0">{
+        re, err := GetSqliteRepository()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Log.Error(err, "unable to create repository")
+                return err
+        }</span>
+        <span class="cov0" title="0">_, err = re.Db.Exec( /* sql */ `DELETE FROM "`+table+`" WHERE namespace = ? AND name = ?`, namespace, name)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Log.Error(err, "unable to delete record")
+                return err
+        }</span>
+        <span class="cov0" title="0">log.Log.Info("Record deleted", "table", table, "namespace", namespace, "name", name)
+        return nil</span>
+}
+
+// deleteTableFromDataBase deletes a table from the database.
+func deleteTableFromDataBase(gvk schema.GroupVersionKind) error <span class="cov0" title="0">{
+        re, err := GetSqliteRepository()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Log.Error(err, "unable to create repository")
+                return err
+        }</span>
+        <span class="cov0" title="0">tableName := gvk.Kind + "." + gvk.Group
+
+        err = re.DropTable(tableName)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Log.Error(err, "unable to drop table")
+                return err
+        }</span>
+        <span class="cov0" title="0">log.Log.Info("Table dropped", "tableName", tableName)
+        return nil</span>
+}
+
+// DynamicReconciler reconciles dynamic resources.
+type DynamicReconciler struct {
+        client.Client
+        GVK       schema.GroupVersionKind
+        K8sClient K8sClient
+}
+
+func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) <span class="cov0" title="0">{
+        log := log.FromContext(ctx)
+        log.Info("Reconciling dynamic resource", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
+
+        resource, err := r.fetchResource(ctx, req)
+        if err != nil </span><span class="cov0" title="0">{
+                return reconcile.Result{}, err
+        }</span>
+
+        <span class="cov0" title="0">if resource == nil </span><span class="cov0" title="0">{
+                log.Info("Resource deleted", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
+                // delete record from database
+                // TODO: checking the return code and returning an error causes the E2E tests to fail during delete template
+                DeleteRecord(r.GVK.Kind+"."+r.GVK.Group, req.Namespace, req.Name) // nolint:errcheck
+                // if err != nil {
+                //         return reconcile.Result{}, fmt.Errorf("error deleting record: %w", err)
+                // }
+
+                r.reconcileTemplates(ctx) // nolint:errcheck
+                // if err != nil {
+                //         return reconcile.Result{}, fmt.Errorf("error reconciling templates: %w", err)
+                // }
+
+                return reconcile.Result{}, nil
+
+        }</span>
+
+        <span class="cov0" title="0">if err := r.processResource(ctx, resource); err != nil </span><span class="cov0" title="0">{
+                return reconcile.Result{}, err
+        }</span>
+
+        <span class="cov0" title="0">return reconcile.Result{}, nil</span>
+}
+
+// processResource processes the fetched resource.
+func (r *DynamicReconciler) processResource(ctx context.Context, resource *unstructured.Unstructured) error <span class="cov0" title="0">{
+        log := log.FromContext(ctx)
+        log.Info("Processing dynamic resource", "GVK", r.GVK, "resource", resource)
+
+        makedResource, err := repository.MakeResource(resource.Object)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("error creating resource: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">re, err := GetSqliteRepository()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to create repository")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if exists, err := re.CheckIfResourceExists(makedResource); err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to check if resource exists")
+                return err
+        }</span> else<span class="cov0" title="0"> if exists </span><span class="cov0" title="0">{
+                log.Info("Resource already exists in database",
+                        "GVK", r.GVK,
+                        "name", resource.GetName(),
+                        "namespace", resource.GetNamespace())
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">if err := re.Upsert(makedResource); err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to upsert resource")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return r.reconcileTemplates(ctx)</span>
+}
+
+// reconcileTemplates reconciles the templates associated with the resource.
+func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error <span class="cov0" title="0">{
+        log := log.FromContext(ctx)
+        var templates []string
+
+        for templateName, gvks := range wm.templates </span><span class="cov0" title="0">{
+                if _, exists := gvks[r.GVK]; exists </span><span class="cov0" title="0">{
+                        log.Info("Reconciling template", "templateName", templateName)
+                        templates = append(templates, templateName)
+                }</span>
+        }
+
+        <span class="cov0" title="0">for _, templateName := range templates </span><span class="cov0" title="0">{
+                if err := r.processTemplate(ctx, templateName); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// processTemplate processes a single template.
+func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName string) error <span class="cov0" title="0">{
+        log := log.FromContext(ctx)
+
+        k8sClient := r.K8sClient
+        if k8sClient == nil </span><span class="cov0" title="0">{
+                err := fmt.Errorf("K8sClient is not initialized")
+                log.Error(err, "K8sClient is not initialized")
+                return err
+        }</span>
+        <span class="cov0" title="0">template, err := k8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to get template", "templateName", templateName)
+                return err
+        }</span>
+
+        <span class="cov0" title="0">templateObj := &amp;kumquatv1beta1.Template{}
+        if err := runtime.DefaultUnstructuredConverter.FromUnstructured(template.Object, templateObj); err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to convert unstructured to template")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">re, err := GetSqliteRepository()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(err, "unable to create repository")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return r.evaluateTemplate(ctx, template, re)</span>
+}
+
+// fetchResource fetches the resource from the cluster.
+func (r *DynamicReconciler) fetchResource(
+        ctx context.Context,
+        req reconcile.Request,
+) (*unstructured.Unstructured, error) <span class="cov0" title="0">{
+        resource := &amp;unstructured.Unstructured{}
+        resource.SetGroupVersionKind(r.GVK)
+        err := r.Client.Get(ctx, req.NamespacedName, resource)
+        if err != nil </span><span class="cov0" title="0">{
+                if client.IgnoreNotFound(err) != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">return nil, nil</span>
+        }
+        <span class="cov0" title="0">return resource, nil</span>
+}
+
+// evaluateTemplate evaluates the template with the given data.
+func (r *DynamicReconciler) evaluateTemplate(
+        ctx context.Context,
+        template *unstructured.Unstructured,
+        re *repository.SQLiteRepository,
+) error <span class="cov0" title="0">{
+        templateObj := &amp;kumquatv1beta1.Template{}
+        err := runtime.DefaultUnstructuredConverter.FromUnstructured(template.Object, templateObj)
+        if err != nil </span><span class="cov0" title="0">{
+                log := log.FromContext(ctx)
+                log.Error(err, "unable to convert unstructured to template")
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return processTemplateResources(templateObj, re, log.FromContext(ctx), r.K8sClient)</span>
+}
+
+// unstructuredEventHandler handles events for unstructured resources.
+type unstructuredEventHandler struct{}
+
+func (h *unstructuredEventHandler) Create(
+        ctx context.Context,
+        evt event.TypedCreateEvent[*unstructured.Unstructured],
+        q workqueue.RateLimitingInterface,
+) <span class="cov0" title="0">{
+        q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
+}</span>
+
+func (h *unstructuredEventHandler) Update(
+        ctx context.Context,
+        evt event.TypedUpdateEvent[*unstructured.Unstructured],
+        q workqueue.RateLimitingInterface,
+) <span class="cov0" title="0">{
+        q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.ObjectNew)})
+}</span>
+
+func (h *unstructuredEventHandler) Delete(
+        ctx context.Context,
+        evt event.TypedDeleteEvent[*unstructured.Unstructured],
+        q workqueue.RateLimitingInterface,
+) <span class="cov0" title="0">{
+        q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
+}</span>
+
+func (h *unstructuredEventHandler) Generic(
+        ctx context.Context,
+        evt event.TypedGenericEvent[*unstructured.Unstructured],
+        q workqueue.RateLimitingInterface,
+) <span class="cov0" title="0">{
+        q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package main
+
+import (
+        "flag"
+        "fmt"
+        "kumquat/repository"
+        "kumquat/store"
+        "kumquat/template"
+        "log/slog"
+        "os"
+)
+
+func main() <span class="cov0" title="0">{
+        var repo repository.Repository
+        repo, err := repository.NewSQLiteRepository()
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Unable to create repository", "err", err)
+                panic(err)</span>
+        }
+        <span class="cov0" title="0">defer repo.Close() //nolint:errcheck
+
+        inDir := flag.String("in", "sampledata", "directory path to read Kubernetes resources")
+        flag.Parse()
+
+        err = repository.LoadYAMLFromDirectoryTree(os.DirFS("."), *inDir, repo)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Unable to load directory tree", "err", err)
+                panic(err)</span>
+        }
+
+        <span class="cov0" title="0">tplrs, err := repo.Query(
+                /* sql */ `SELECT template.data AS tpl FROM "` + template.TemplateResourceType + `" AS template`,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Unable to find template", "err", err)
+                panic(err)</span>
+        }
+
+        // Process every Template
+        <span class="cov0" title="0">templates := make([]*template.Template, 0, len(tplrs.Results))
+
+        for _, tplrs := range tplrs.Results </span><span class="cov0" title="0">{
+                tplres := tplrs["tpl"]
+                t, err := template.NewTemplate(tplres)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        fmt.Printf("%v\n", err)
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">templates = append(templates, t)
+                fmt.Printf("Loaded Template %s\n", t.Name())</span>
+        }
+
+        <span class="cov0" title="0">for _, t := range templates </span><span class="cov0" title="0">{
+                o, err := t.Evaluate(repo)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        fmt.Printf("%v\n", err)
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">generateOutput(o)</span>
+        }
+}
+
+func generateOutput(o *template.TemplateOutput) <span class="cov0" title="0">{
+        // for loop over data
+        for i := 0; i &lt; o.Output.ResourceCount(); i++ </span><span class="cov0" title="0">{
+                out, err := o.Output.ResultString(i)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)</span>
+                }
+
+                <span class="cov0" title="0">fileName := o.FileNames[i]
+
+                // use WriteFile function in store package to write the output to a file
+                err = store.WriteToFile(fileName, "", out)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)</span>
+                }
+        }
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package cue
+
+import (
+        "fmt"
+        "kumquat/renderer"
+        "strings"
+
+        cuelang "cuelang.org/go/cue"
+        "cuelang.org/go/cue/cuecontext"
+        cue_errors "cuelang.org/go/cue/errors"
+        "gopkg.in/yaml.v3"
+)
+
+func init() <span class="cov3" title="2">{
+        err := renderer.Register("cue", func(template, source string) (renderer.Renderer, error) </span><span class="cov0" title="0">{
+                return NewCUERenderer(template, source)
+        }</span>)
+        <span class="cov3" title="2">if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+}
+
+type CUERenderer struct {
+        config string
+        source string
+}
+
+func NewCUERenderer(template string, source string) (*CUERenderer, error) <span class="cov9" title="12">{
+        tpl := CUERenderer{
+                config: template,
+                source: source,
+        }
+
+        return &amp;tpl, nil
+}</span>
+
+func (r *CUERenderer) Render(results any, output *renderer.Output) error <span class="cov10" title="16">{
+        err := r.evaluate(results, output)
+
+        if err != nil </span><span class="cov8" title="9">{
+                return fmt.Errorf("error evaluating CUE template '%s': %w", r.source, err)
+        }</span>
+
+        <span class="cov7" title="7">return nil</span>
+}
+
+func (t *CUERenderer) evaluate(r any, o *renderer.Output) error <span class="cov10" title="16">{
+        c := cuecontext.New()
+        v2 := c.Encode(r)
+        resultsObj, err := v2.Eval().MarshalJSON()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("error converting results to CUE: %w", err)
+        }</span>
+
+        <span class="cov10" title="16">suffix := "\n\ndata: " + string(resultsObj) + "\n"
+        v := c.CompileString(t.config + suffix).Eval()
+        if v.Err() != nil </span><span class="cov4" title="3">{
+                return newRendererError(v.Err(), 0)
+        }</span>
+
+        <span class="cov9" title="13">return appendOutput(o, v)</span>
+}
+
+func appendOutput(o *renderer.Output, v cuelang.Value) error <span class="cov9" title="13">{
+        oPath := cuelang.ParsePath("out")
+
+        switch t := v.LookupPath(oPath).Kind(); t </span>{
+        case cuelang.ListKind:<span class="cov6" title="5">
+                var output []map[string]any
+
+                err := v.LookupPath(oPath).Decode(&amp;output)
+                if err != nil </span><span class="cov3" title="2">{
+                        return fmt.Errorf("error decoding 'out': %w", err)
+                }</span>
+
+                <span class="cov4" title="3">var outputs []string
+                for i := 0; i &lt; len(output); i++ </span><span class="cov6" title="6">{
+                        outputByteArray, err := yaml.Marshal(output[i])
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("error decoding 'out': %w", err)
+                        }</span>
+
+                        <span class="cov6" title="6">outputs = append(outputs, string(outputByteArray))</span>
+                }
+
+                <span class="cov4" title="3">o.Append(strings.Join(outputs, "---\n"))</span>
+
+        case cuelang.StructKind:<span class="cov5" title="4">
+                var output map[string]any
+                err := v.LookupPath(oPath).Decode(&amp;output)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("error decoding 'out': %w", err)
+                }</span>
+
+                // convert output to string
+                <span class="cov5" title="4">outputByteArray, err := yaml.Marshal(output)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("error decoding 'out': %w", err)
+                }</span>
+
+                <span class="cov5" title="4">o.Append(string(outputByteArray))</span>
+
+        case cuelang.BottomKind:<span class="cov3" title="2">
+                return fmt.Errorf("'out' is not set to anything concrete")</span>
+        default:<span class="cov3" title="2">
+                return fmt.Errorf("'out' has unsupported output type '%v'", t)</span>
+        }
+
+        <span class="cov7" title="7">return nil</span>
+}
+
+func newRendererError(err error, prefixLength int) *renderer.Error <span class="cov4" title="3">{
+        pos := cue_errors.Positions(err)
+
+        if len(pos) &gt; 0 </span><span class="cov4" title="3">{
+                return renderer.NewError(err, pos[0].Line()-prefixLength, pos[0].Column())
+        }</span>
+
+        <span class="cov0" title="0">return renderer.NewError(err, 0, 0)</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package renderer
+
+import "fmt"
+
+type LookupError struct {
+        rendererName string
+}
+
+func (e *LookupError) Error() string <span class="cov7" title="10">{
+        return fmt.Sprintf("unknown renderer '%s'", e.rendererName)
+}</span>
+
+type Error struct {
+        err    error
+        line   int
+        column int
+}
+
+func NewError(err error, line, column int) *Error <span class="cov9" title="22">{
+        if line == 0 </span><span class="cov4" title="3">{
+                column = 0
+        }</span>
+
+        <span class="cov9" title="22">return &amp;Error{err, line, column}</span>
+}
+
+// Error returns the error message.
+func (e *Error) Error() string <span class="cov10" title="27">{
+        if e.line == 0 </span><span class="cov1" title="1">{
+                return fmt.Sprintf("[line ?, column ?] %s", e.err.Error())
+        }</span>
+
+        <span class="cov9" title="26">if e.column == 0 </span><span class="cov6" title="8">{
+                return fmt.Sprintf("[line %d, column ?] %s", e.line, e.err.Error())
+        }</span>
+
+        <span class="cov8" title="18">return fmt.Sprintf("[line %d, column %d] %s", e.line, e.column, e.err.Error())</span>
+}
+
+// Unwrap returns the wrapped error.
+func (e *Error) Unwrap() error <span class="cov1" title="1">{
+        return e.err
+}</span>
+
+// Line returns the line number where the error occurred; 0 if unknown.
+func (e *Error) Line() int <span class="cov7" title="11">{
+        return e.line
+}</span>
+
+// Column returns the column number where the error occurred; 0 if unknown.
+func (e *Error) Column() int <span class="cov7" title="10">{
+        return e.column
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package gotemplate
+
+import (
+        "bytes"
+        "errors"
+        "fmt"
+        "kumquat/renderer"
+        "regexp"
+        "strconv"
+
+        "text/template"
+)
+
+func init() <span class="cov3" title="3">{
+        err := renderer.Register("gotemplate", func(template, source string) (renderer.Renderer, error) </span><span class="cov7" title="15">{
+                return NewGoRenderer(template, source)
+        }</span>)
+        <span class="cov3" title="3">if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+}
+
+type GoRenderer struct {
+        template *template.Template
+        source   string
+}
+
+func (r *GoRenderer) Render(results any, output *renderer.Output) error <span class="cov7" title="17">{
+        var buffer bytes.Buffer
+        err := r.template.Execute(&amp;buffer, results)
+
+        if err != nil </span><span class="cov4" title="4">{
+                return fmt.Errorf("error executing Go template: %w", newRendererError(err, r.source))
+        }</span>
+
+        <span class="cov7" title="13">output.Append(buffer.String())
+
+        return nil</span>
+}
+
+func NewGoRenderer(tmpl string, source string) (*GoRenderer, error) <span class="cov10" title="41">{
+        t, err := template.New(source).Option("missingkey=zero").Parse(tmpl)
+        if err != nil </span><span class="cov4" title="5">{
+                return nil, fmt.Errorf("error parsing Go template: %w", newRendererError(err, source))
+        }</span>
+
+        <span class="cov9" title="36">return &amp;GoRenderer{template: t, source: source}, nil</span>
+}
+
+var lineRE = regexp.MustCompile(`^template: .*?:(\d+)(:(\d+))?: (.*)`)
+
+func newRendererError(err error, source string) *renderer.Error <span class="cov6" title="9">{
+        s := err.Error()
+
+        // parse the line number from the error message
+        var line, column int
+        matches := lineRE.FindStringSubmatch(s)
+
+        if matches != nil </span><span class="cov6" title="9">{
+                // parse error returns 0; same as line unknown
+                line, _ = strconv.Atoi(matches[1])
+
+                // parse error returns 0; same as column unknown
+                column, _ = strconv.Atoi(matches[3])
+
+                s = matches[4]
+        }</span>
+
+        // replace "sourcefile:line#" with "line line#" in the remainder of the error message
+        <span class="cov6" title="9">re := regexp.MustCompile(source + `:(\d+)`)
+        s = re.ReplaceAllString(s, "line $1")
+
+        return renderer.NewError(errors.New(s), line, column)</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package jsonnet
+
+import (
+        "encoding/json"
+        "errors"
+        "fmt"
+        "kumquat/renderer"
+        "reflect"
+
+        js "github.com/google/go-jsonnet"
+        "github.com/google/go-jsonnet/ast"
+)
+
+func init() <span class="cov1" title="1">{
+        err := renderer.Register("jsonnet", func(template, source string) (renderer.Renderer, error) </span><span class="cov0" title="0">{
+                return NewJsonnetRenderer(template, source)
+        }</span>)
+        <span class="cov1" title="1">if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+}
+
+type JsonnetRenderer struct {
+        vm       *js.VM
+        template ast.Node
+}
+
+func NewJsonnetRenderer(template string, source string) (*JsonnetRenderer, error) <span class="cov10" title="9">{
+        parsed, err := js.SnippetToAST(source, template)
+
+        if err != nil </span><span class="cov3" title="2">{
+                return nil, fmt.Errorf("error parsing Jsonnet: %w", newRendererError(err))
+        }</span>
+
+        <span class="cov8" title="7">return &amp;JsonnetRenderer{template: parsed, vm: js.MakeVM()}, nil</span>
+}
+
+func newRendererError(err error) *renderer.Error <span class="cov5" title="3">{
+        re, ok := err.(js.RuntimeError)
+
+        if ok </span><span class="cov1" title="1">{
+                for _, frame := range re.StackTrace </span><span class="cov5" title="3">{
+                        if frame.Loc.Begin.Line &gt; 0 </span><span class="cov1" title="1">{
+                                return renderer.NewError(err, frame.Loc.Begin.Line, frame.Loc.Begin.Column)
+                        }</span>
+                }
+        } else<span class="cov3" title="2"> {
+                // Not a RuntimeError, maybe we can find a StaticError
+                for e := err; e != nil; e = errors.Unwrap(err) </span><span class="cov3" title="2">{
+                        ev := reflect.ValueOf(e)
+                        mv := ev.MethodByName("Loc") // StaticError has method Loc() returning LocationRange
+
+                        if mv != reflect.ValueOf(nil) </span><span class="cov3" title="2">{
+                                rvs := mv.Call(nil)               // Call Loc() to get LocationRange
+                                bv := rvs[0].FieldByName("Begin") // LocationRange has a Begin field of type Location
+                                lv := bv.FieldByName("Line")      // Location has Line
+                                cv := bv.FieldByName("Column")    // Location has Column
+
+                                return renderer.NewError(err, int(lv.Int()), int(cv.Int()))
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">return renderer.NewError(err, 0, 0)</span>
+}
+
+func (r *JsonnetRenderer) Render(results any, output *renderer.Output) error <span class="cov8" title="7">{
+        b, err := json.Marshal(results)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("error converting results to Jsonnet: %w", err)
+        }</span>
+
+        <span class="cov8" title="7">code := string(b)
+
+        r.vm.ExtCode("data", code)
+        js, err := r.vm.Evaluate(r.template)
+
+        if err != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("error rendering Jsonnet: %w", newRendererError(err))
+        }</span>
+
+        <span class="cov8" title="6">output.Append(js)
+
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package renderer
+
+import (
+        "fmt"
+        "kumquat/repository"
+)
+
+type Renderer interface {
+        // Render the results and add the output to the provided output object. The results may be a single result
+        // of type `map[string]any` or a slice of such results (i.e. `[]map[string]any`).
+        Render(results any, output *Output) error
+}
+
+// Render the results using the provided renderer. If batchMode is true, the renderer will be called once
+// with all the results; otherwise, the renderer will be called once for each result.
+func Render(renderer Renderer, results []map[string]repository.Resource, batchMode bool) (*Output, error) <span class="cov10" title="41">{
+        var o *Output
+        resultsWithoutResources := StripResourcesFromResults(results)
+
+        if batchMode </span><span class="cov8" title="19">{
+                o = NewOutput(1)
+                err := renderer.Render(resultsWithoutResources, o)
+                if err != nil </span><span class="cov5" title="6">{
+                        return nil, err
+                }</span>
+        } else<span class="cov8" title="22"> {
+                o = NewOutput(len(results))
+
+                for _, r := range resultsWithoutResources </span><span class="cov8" title="24">{
+                        err := renderer.Render(r, o)
+                        if err != nil </span><span class="cov6" title="8">{
+                                return nil, err
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="27">return o, nil</span>
+}
+
+type RendererMaker func(string, string) (Renderer, error)
+
+var rendererRegistry map[string]RendererMaker
+
+func Register(name string, f RendererMaker) error <span class="cov6" title="8">{
+        if rendererRegistry == nil </span><span class="cov5" title="6">{
+                rendererRegistry = make(map[string]RendererMaker)
+        }</span>
+
+        <span class="cov6" title="8">if rendererRegistry[name] != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("renderer '%s' already registered", name)
+        }</span>
+
+        <span class="cov5" title="7">fmt.Printf("Renderer '%s' registered.\n", name)
+        rendererRegistry[name] = f
+
+        return nil</span>
+}
+
+func MakeRenderer(name, template, source string) (Renderer, error) <span class="cov7" title="17">{
+        f, ok := rendererRegistry[name]
+        if !ok </span><span class="cov2" title="2">{
+                return nil, &amp;LookupError{rendererName: name}
+        }</span>
+
+        <span class="cov7" title="15">return f(template, source)</span>
+}
+
+type Output struct {
+        output []string
+}
+
+func NewOutput(expectedSize int) *Output <span class="cov10" title="41">{
+        return &amp;Output{output: make([]string, 0, expectedSize)}
+}</span>
+
+func NewOutputFromSlice(output []string) *Output <span class="cov4" title="4">{
+        return &amp;Output{output: output}
+}</span>
+
+func (o *Output) Append(result string) <span class="cov9" title="29">{
+        o.output = append(o.output, result)
+}</span>
+
+func (o *Output) ResourceCount() int <span class="cov9" title="35">{
+        return len(o.output)
+}</span>
+
+func (o *Output) ResultString(resource int) (string, error) <span class="cov9" title="34">{
+        if resource &lt; 0 || resource &gt;= len(o.output) </span><span class="cov4" title="5">{
+                return "", fmt.Errorf("resource index out of range")
+        }</span>
+        <span class="cov9" title="29">return o.output[resource], nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package renderer
+
+import (
+        "kumquat/repository"
+)
+
+// stripResourcesFromResults removes the Resource objects from the results, replacing them with the underlying content.
+func StripResourcesFromResults(results []map[string]repository.Resource) []map[string]any <span class="cov10" title="41">{
+        strippedResults := make([]map[string]any, len(results))
+        for i, result := range results </span><span class="cov10" title="41">{
+                stripped := make(map[string]any)
+                for k, v := range result </span><span class="cov10" title="41">{
+                        stripped[k] = v.Content()
+                }</span>
+                <span class="cov10" title="41">strippedResults[i] = stripped</span>
+        }
+
+        <span class="cov10" title="41">return strippedResults</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package repository
+
+import (
+        "fmt"
+        "io/fs"
+        "strings"
+
+        "gopkg.in/yaml.v3"
+)
+
+type Resource struct {
+        group     string
+        version   string
+        kind      string
+        namespace string
+        name      string
+        content   map[string]any
+}
+
+// Group returns the API group of the resource.
+func (r Resource) Group() string <span class="cov3" title="4">{
+        return r.group
+}</span>
+
+// Version returns the API version of the resource.
+func (r Resource) Version() string <span class="cov1" title="1">{
+        return r.version
+}</span>
+
+// Kind returns the kind of the resource.
+func (r Resource) Kind() string <span class="cov3" title="4">{
+        return r.kind
+}</span>
+
+// Namespace returns the namespace of the resource.
+func (r Resource) Namespace() string <span class="cov4" title="8">{
+        return r.namespace
+}</span>
+
+// Name returns the name of the resource.
+func (r Resource) Name() string <span class="cov4" title="7">{
+        return r.name
+}</span>
+
+// Content returns the content of the resource.
+// Do not alter the returned map or the resource could become inconsistent.
+func (r Resource) Content() map[string]any <span class="cov10" title="134">{
+        return r.content
+}</span>
+
+// MakeResource creates a new Resource from a map of the resource's content.
+func MakeResource(content map[string]any) (Resource, error) <span class="cov8" title="69">{
+        apiVersionRaw, ok := content["apiVersion"]
+
+        if !ok </span><span class="cov3" title="3">{
+                return Resource{}, fmt.Errorf("missing apiVersion")
+        }</span>
+
+        <span class="cov8" title="66">apiVersion, ok := apiVersionRaw.(string)
+
+        if !ok </span><span class="cov1" title="1">{
+                return Resource{}, fmt.Errorf("apiVersion '%#v' must be a string but it is %T", apiVersionRaw, apiVersionRaw)
+        }</span>
+
+        <span class="cov8" title="65">var group, version string
+
+        if apiVersion == "v1" </span><span class="cov4" title="8">{
+                group = "core"
+                version = "v1"
+        }</span> else<span class="cov8" title="57"> {
+                var found bool
+                group, version, found = strings.Cut(apiVersion, "/")
+
+                if !found </span><span class="cov1" title="1">{
+                        return Resource{}, fmt.Errorf("missing '/' separator in apiVersion'%s'", apiVersion)
+                }</span>
+                <span class="cov8" title="56">if len(group) == 0 </span><span class="cov1" title="1">{
+                        return Resource{}, fmt.Errorf("missing group in apiVersion '%s'", apiVersion)
+                }</span>
+                <span class="cov8" title="55">if len(version) == 0 </span><span class="cov1" title="1">{
+                        return Resource{}, fmt.Errorf("missing version in apiVersion '%s'", apiVersion)
+                }</span>
+        }
+
+        <span class="cov8" title="62">kindRaw, ok := content["kind"]
+
+        if !ok </span><span class="cov1" title="1">{
+                return Resource{}, fmt.Errorf("missing kind")
+        }</span>
+
+        <span class="cov8" title="61">kind, ok := kindRaw.(string)
+
+        if !ok </span><span class="cov1" title="1">{
+                return Resource{}, fmt.Errorf("kind '%#v' must be a string but it is %T", kindRaw, kindRaw)
+        }</span>
+
+        <span class="cov8" title="60">metadataRaw, ok := content["metadata"]
+
+        if !ok </span><span class="cov1" title="1">{
+                return Resource{}, fmt.Errorf("missing metadata")
+        }</span>
+
+        <span class="cov8" title="59">metadata, ok := metadataRaw.(map[string]any)
+
+        if !ok </span><span class="cov1" title="1">{
+                return Resource{}, fmt.Errorf("metadata '%#v' must be a map but it is %T", metadataRaw, metadataRaw)
+        }</span>
+
+        <span class="cov8" title="58">namespaceRaw, ok := metadata["namespace"]
+
+        if !ok </span><span class="cov3" title="4">{
+                namespaceRaw = ""
+        }</span>
+
+        <span class="cov8" title="58">namespace, ok := namespaceRaw.(string)
+
+        if !ok </span><span class="cov1" title="1">{
+                return Resource{}, fmt.Errorf("metadata.namespace '%#v' must be a string but it is %T", namespaceRaw, namespaceRaw)
+        }</span>
+
+        <span class="cov8" title="57">nameRaw, ok := metadata["name"]
+
+        if !ok </span><span class="cov1" title="1">{
+                return Resource{}, fmt.Errorf("missing name")
+        }</span>
+
+        <span class="cov8" title="56">name, ok := nameRaw.(string)
+
+        if !ok </span><span class="cov1" title="1">{
+                return Resource{}, fmt.Errorf("metadata.name '%#v' must be a string but it is %T", nameRaw, nameRaw)
+        }</span>
+
+        <span class="cov8" title="55">res := Resource{
+                group:     group,
+                version:   version,
+                kind:      kind,
+                namespace: namespace,
+                name:      name,
+                content:   content,
+        }
+
+        return res, nil</span>
+}
+
+type Repository interface {
+        Query(query string) (ResultSet, error)
+        Close() error
+        Upsert(resource Resource) error
+}
+
+type ResultSet struct {
+        Names   []string
+        Results []map[string]Resource
+}
+
+// LoadYAMLFromDirectoryTree loads all YAML files from a directory tree into a repository.
+func LoadYAMLFromDirectoryTree(filesystem fs.FS, directory string, repo Repository) error <span class="cov3" title="4">{
+        return fs.WalkDir(filesystem, directory, func(path string, d fs.DirEntry, pathErr error) error </span><span class="cov5" title="9">{
+                if pathErr != nil </span><span class="cov1" title="1">{
+                        return pathErr
+                }</span>
+
+                <span class="cov4" title="8">if d.IsDir() </span><span class="cov3" title="3">{
+                        return nil
+                }</span>
+
+                <span class="cov3" title="5">data, err := fs.ReadFile(filesystem, path)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("file '%s': %w", path, err)
+                }</span>
+
+                <span class="cov3" title="5">parsed := make(map[string]any)
+
+                err = yaml.Unmarshal(data, &amp;parsed)
+                if err != nil </span><span class="cov1" title="1">{
+                        return fmt.Errorf("file '%s': %w", path, err)
+                }</span>
+
+                <span class="cov3" title="4">res, err := MakeResource(parsed)
+                if err != nil </span><span class="cov1" title="1">{
+                        return fmt.Errorf("file '%s': %w", path, err)
+                }</span>
+
+                <span class="cov3" title="3">return repo.Upsert(res)</span>
+        })
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package repository
+
+import (
+        "database/sql"
+        "encoding/json"
+        "fmt"
+        "log/slog"
+        "regexp"
+        "strings"
+        "sync"
+
+        _ "github.com/mattn/go-sqlite3"
+        "sigs.k8s.io/controller-runtime/pkg/log"
+)
+
+type SQLiteRepository struct {
+        Db          *sql.DB
+        StoredKinds map[string]bool
+        mu          sync.Mutex
+}
+
+type GroupKind struct {
+        Group string
+        Kind  string
+}
+
+var tableErrorRegexp = regexp.MustCompile(`^no such table: (.*)$`)
+
+func (r *SQLiteRepository) Query(query string) (ResultSet, error) <span class="cov7" title="9">{
+        r.mu.Lock()
+        defer r.mu.Unlock()
+
+        slog.Debug("Running query", "query", query)
+
+        var rows *sql.Rows
+        var err error
+
+        for rows, err = r.Db.Query(query); err != nil; rows, err = r.Db.Query(query) </span><span class="cov1" title="1">{
+                m := tableErrorRegexp.FindStringSubmatch(err.Error())
+                // print m to see the table name
+                log.Log.Info("Error running qsdsduery", "error", err.Error(), "table", m)
+
+                if m != nil </span><span class="cov1" title="1">{
+                        fmt.Println("Table not found, creating table", "table", m[1])
+                        missingTable := m[1]
+                        err := r.createTable(missingTable)
+
+                        if err != nil </span><span class="cov0" title="0">{
+                                return ResultSet{}, fmt.Errorf("unable to create empty table to run query: %w", err)
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        return ResultSet{}, fmt.Errorf("error running query: %w", err)
+                }</span>
+        }
+
+        <span class="cov7" title="9">defer rows.Close() //nolint:errcheck
+
+        /*
+         * Process Columns
+         */
+        columnNames, err := rows.Columns()
+        if err != nil </span><span class="cov0" title="0">{
+                return ResultSet{}, fmt.Errorf("error getting query result column information: %w", err)
+        }</span>
+
+        /*
+         * Allocate temporary storage to Scan() into
+         */
+        <span class="cov7" title="9">columnValues := make([]any, len(columnNames))
+        columnValuePtrs := make([]any, len(columnNames))
+
+        for i := 0; i &lt; len(columnNames); i++ </span><span class="cov7" title="8">{
+                columnValuePtrs[i] = &amp;columnValues[i]
+        }</span>
+
+        /*
+         * Process Rows
+         */
+        <span class="cov7" title="9">var results = make([]map[string]Resource, 0)
+
+        for rows.Next() </span><span class="cov7" title="7">{
+                err = rows.Scan(columnValuePtrs...)
+                if err != nil </span><span class="cov0" title="0">{
+                        return ResultSet{}, fmt.Errorf("error while scanning query result: %w", err)
+                }</span>
+
+                <span class="cov7" title="7">var result = make(map[string]Resource)
+
+                for i, columnName := range columnNames </span><span class="cov7" title="7">{
+                        var parsed any
+
+                        err = json.Unmarshal([]byte(columnValues[i].(string)), &amp;parsed)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return ResultSet{}, fmt.Errorf("error while unmarshaling column '%s' to JSON: %w",
+                                        strings.Trim(columnName, "'"), err)
+                        }</span>
+
+                        <span class="cov7" title="7">switch v := parsed.(type) </span>{
+                        case map[string]any:<span class="cov5" title="4">
+                                res, err := MakeResource(v)
+                                if err != nil </span><span class="cov1" title="1">{
+                                        return ResultSet{}, fmt.Errorf("error retrieving resource from column '%s': %w",
+                                                strings.Trim(columnName, "'"), err)
+                                }</span>
+                                <span class="cov4" title="3">result[columnName] = res</span>
+                        default:<span class="cov4" title="3">
+                                return ResultSet{}, fmt.Errorf("expected JSON object in column '%s' but got %T",
+                                        strings.Trim(columnName, "'"), v)</span>
+                        }
+                }
+
+                <span class="cov4" title="3">results = append(results, result)</span>
+        }
+
+        <span class="cov6" title="5">err = rows.Err()
+        if err != nil </span><span class="cov0" title="0">{
+                return ResultSet{}, fmt.Errorf("error while iterating query result: %w", err)
+        }</span>
+
+        <span class="cov6" title="5">resultset := ResultSet{
+                Names:   columnNames,
+                Results: results,
+        }
+        return resultset, nil</span>
+}
+
+func (r *SQLiteRepository) Close() error <span class="cov9" title="15">{
+        return r.Db.Close()
+}</span>
+
+func (r *SQLiteRepository) createTable(table string) error <span class="cov6" title="6">{
+        if r.StoredKinds[table] </span><span class="cov1" title="1">{
+                return fmt.Errorf("table already exists: %s", table)
+        }</span>
+
+        <span class="cov6" title="5">_, err := r.Db.Exec( /* sql */ `CREATE TABLE "` + table +
+                `" (namespace TEXT NOT NULL, name TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY (namespace, name)) STRICT`)
+
+        if err != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("unable to create table: %w", err)
+        }</span>
+
+        <span class="cov5" title="4">r.StoredKinds[table] = true
+
+        return nil</span>
+}
+
+func (r *SQLiteRepository) Upsert(resource Resource) error <span class="cov5" title="4">{
+        r.mu.Lock()
+        defer r.mu.Unlock()
+        byteJSON, err := json.Marshal(resource.Content())
+
+        if err != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("unable to encode resource as JSON: %w", err)
+        }</span>
+
+        <span class="cov4" title="3">table := resource.Kind() + "." + resource.Group()
+        slog.Debug("Upserting resource", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
+        contentJSON := string(byteJSON)
+
+        if !r.StoredKinds[table] </span><span class="cov3" title="2">{
+                err := r.createTable(table)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov4" title="3">_, err = r.Db.Exec( /* sql */ `INSERT INTO "`+table+`" (namespace, name, data) VALUES (?,?,?)
+                ON CONFLICT(namespace, name) DO UPDATE SET data=excluded.data`,
+                resource.Namespace(), resource.Name(), contentJSON)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("unable to upsert resource: %w", err)
+        }</span>
+
+        <span class="cov4" title="3">return nil</span>
+}
+
+// a function that builds data columns from the resource and check if a row with the same value for data column exists
+func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error) <span class="cov0" title="0">{
+        r.mu.Lock()
+        defer r.mu.Unlock()
+        byteJSON, err := json.Marshal(resource.Content())
+
+        if err != nil </span><span class="cov0" title="0">{
+                return false, fmt.Errorf("unable to encode resource as JSON: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">table := resource.Kind() + "." + resource.Group()
+        fmt.Println("Checking if resource with same data already exists",
+                "table", table, "namespace", resource.Namespace(), "name", resource.Name())
+        contentJSON := string(byteJSON)
+        log.Log.Info("Checking if resource exists", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
+
+        if !r.StoredKinds[table] </span><span class="cov0" title="0">{
+                err := r.createTable(table)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        return false, err
+                }</span>
+        }
+
+        <span class="cov0" title="0">var count int
+        err = r.Db.QueryRow( /* sql */ `SELECT COUNT(*) FROM "`+table+`" WHERE data = ?`, contentJSON).Scan(&amp;count)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return false, fmt.Errorf("unable to check if resource exists: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return count &gt; 0, nil</span>
+}
+
+func (r *SQLiteRepository) ExtractTableNamesFromQuery(query string) []string <span class="cov7" title="7">{
+        // Extract table names from query
+        tableNames := make([]string, 0)
+        tableNameSet := make(map[string]struct{})
+
+        // Find all table names in the query, including subqueries and quoted table names
+        tableNameRegexp := regexp.MustCompile(`(?i)(?:FROM|JOIN|CROSS JOIN)\s+["]?(\w+(\.\w+)*|[\w.]+)["]?`)
+        tableNameMatches := tableNameRegexp.FindAllStringSubmatch(query, -1)
+
+        // Extract table names from the matches and add to set to avoid duplicates
+        for _, match := range tableNameMatches </span><span class="cov10" title="17">{
+                tableName := match[1]
+                if _, exists := tableNameSet[tableName]; !exists </span><span class="cov9" title="15">{
+                        tableNames = append(tableNames, tableName)
+                        tableNameSet[tableName] = struct{}{}
+                }</span>
+        }
+
+        <span class="cov7" title="7">return tableNames</span>
+}
+
+func (r *SQLiteRepository) DropTable(table string) error <span class="cov0" title="0">{
+        if !r.StoredKinds[table] </span><span class="cov0" title="0">{
+                return fmt.Errorf("table does not exist: %s", table)
+        }</span>
+        <span class="cov0" title="0">_, err := r.Db.Exec( /* sql */ `DROP TABLE "` + table + `"`)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("unable to drop table: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">delete(r.StoredKinds, table)
+        log.Log.Info("Table dropped", "tableName", table)
+
+        return nil</span>
+}
+
+func NewSQLiteRepository() (*SQLiteRepository, error) <span class="cov9" title="15">{
+        db, err := sql.Open("sqlite3", ":memory:")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov9" title="15">repo := &amp;SQLiteRepository{
+                Db:          db,
+                StoredKinds: make(map[string]bool),
+                mu:          sync.Mutex{},
+        }
+
+        return repo, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package store
+
+import (
+        "os"
+        "path/filepath"
+)
+
+// writeFile takes a file name, file path, and a string content, then writes the content to the specified file.
+func WriteToFile(fileName, filePath, content string) error <span class="cov8" title="1">{
+        // Combine the file path and file name to get the full file path
+        fullPath := filepath.Join(filePath, fileName)
+        // Create the directory path if it doesn't exist
+        if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Convert the string content to a byte slice, as WriteFile expects []byte
+        <span class="cov8" title="1">byteContent := []byte(content)
+
+        // Write the content to the file
+        err := os.WriteFile(fullPath, byteContent, 0644)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package template
+
+import (
+        "fmt"
+        "strings"
+)
+
+type FieldValidationError struct {
+        template string
+        field    string
+        err      error
+}
+
+func (e *FieldValidationError) Error() string <span class="cov9" title="79">{
+        return fmt.Sprintf("'%s'.%s: %v", e.template, e.field, e.Unwrap())
+}</span>
+
+func (e *FieldValidationError) Unwrap() error <span class="cov9" title="79">{
+        return e.err
+}</span>
+
+type ValidationErrors struct {
+        template string
+        errors   []error
+}
+
+func NewValidationErrors(template string) *ValidationErrors <span class="cov2" title="2">{
+        return &amp;ValidationErrors{template: template}
+}</span>
+
+func (e *ValidationErrors) Error() string <span class="cov8" title="43">{
+        if !e.HasErrors() </span><span class="cov1" title="1">{
+                return fmt.Sprintf("Template '%s': unspecified validation error", e.template)
+        }</span>
+
+        <span class="cov8" title="42">var errs []string = make([]string, len(e.errors)+1)
+        errs[0] = fmt.Sprintf("Invalid %s '%s':", TemplateKind, e.template)
+        for i, err := range e.errors </span><span class="cov10" title="81">{
+                errs[i+1] = err.Error()
+        }</span>
+        <span class="cov8" title="42">return strings.Join(errs, "\n")</span>
+}
+
+func (e *ValidationErrors) Unwrap() []error <span class="cov3" title="3">{
+        return e.errors
+}</span>
+
+func (e *ValidationErrors) Append(err error) <span class="cov7" title="23">{
+        if err != nil </span><span class="cov7" title="23">{
+                if e.errors == nil </span><span class="cov6" title="16">{
+                        e.errors = make([]error, 0, 1)
+                }</span>
+
+                <span class="cov7" title="23">e.errors = append(e.errors, err)</span>
+        }
+}
+
+func (e *ValidationErrors) HasErrors() bool <span class="cov9" title="65">{
+        return len(e.errors) &gt; 0
+}</span>
+
+func (e *ValidationErrors) Template() string <span class="cov3" title="4">{
+        return e.template
+}</span>
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package template
+
+import (
+        "errors"
+        "fmt"
+        "kumquat/renderer"
+        "kumquat/renderer/gotemplate"
+        "kumquat/repository"
+        "strings"
+)
+
+const TemplateAPIGroup = "kumquat.guidewire.com"
+const TemplateKind = "Template"
+const TemplateResourceType = TemplateKind + "." + TemplateAPIGroup
+
+type Template struct {
+        name             string
+        query            string
+        fileNameTemplate renderer.Renderer
+        renderer         renderer.Renderer
+        batchMode        bool
+}
+
+type TemplateOutput struct {
+        Output    *renderer.Output
+        FileNames []string
+}
+
+func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" title="21">{
+        // name is guaranteed to be present since it comes from a Resource
+        name := r.Content()["metadata"].(map[string]any)["name"].(string)
+        var validationError = &amp;ValidationErrors{template: name}
+
+        // apiVersion is guaranteed to be a string with a "/" in it because it comes from a Resource
+        apiVersion := r.Content()["apiVersion"].(string)
+        s := strings.SplitN(apiVersion, "/", 2)
+
+        if len(s) != 2 || s[0] != TemplateAPIGroup </span><span class="cov3" title="2">{
+                validationError.Append(&amp;FieldValidationError{
+                        template: name,
+                        field:    "apiVersion",
+                        err:      fmt.Errorf("'%s' should be '%s'", s[0], TemplateAPIGroup),
+                })
+        }</span>
+
+        <span class="cov10" title="21">if s[1] != "v1beta1" </span><span class="cov3" title="2">{
+                validationError.Append(&amp;FieldValidationError{
+                        template: name,
+                        field:    "apiVersion",
+                        err:      fmt.Errorf("'%s' unsupported; supported versions are: 'v1beta1'", s[1]),
+                })
+        }</span>
+
+        // kind is guaranteed to be a string because it comes from a Resource
+        <span class="cov10" title="21">kind := r.Content()["kind"].(string)
+
+        if kind != TemplateKind </span><span class="cov3" title="2">{
+                validationError.Append(&amp;FieldValidationError{
+                        template: name,
+                        field:    "kind",
+                        err:      fmt.Errorf("'%s' should be '%s'", kind, TemplateKind),
+                })
+        }</span>
+
+        <span class="cov10" title="21">spec, ok := r.Content()["spec"].(map[string]any)
+        if !ok </span><span class="cov1" title="1">{
+                validationError.Append(&amp;FieldValidationError{
+                        template: name,
+                        field:    "spec",
+                        err:      errors.New("missing or not a map"),
+                })
+        }</span>
+
+        <span class="cov10" title="21">var query string
+        var template map[string]any
+
+        if len(spec) &gt; 0 </span><span class="cov9" title="20">{
+                query, _ = spec["query"].(string)
+                if query == "" </span><span class="cov4" title="3">{
+                        validationError.Append(&amp;FieldValidationError{
+                                template: name,
+                                field:    "spec.query",
+                                err:      errors.New("missing or not a string"),
+                        })
+                }</span>
+
+                <span class="cov9" title="20">template, _ = spec["template"].(map[string]any)
+                if len(template) == 0 </span><span class="cov3" title="2">{
+                        validationError.Append(&amp;FieldValidationError{
+                                template: name,
+                                field:    "spec.template",
+                                err:      errors.New("missing or not a map"),
+                        })
+                }</span>
+        }
+
+        <span class="cov10" title="21">var lang, data, fileNameTemplate string
+
+        if len(template) &gt; 0 </span><span class="cov9" title="18">{
+                data, _ = template["data"].(string)
+                if data == "" </span><span class="cov3" title="2">{
+                        validationError.Append(&amp;FieldValidationError{
+                                template: name,
+                                field:    "spec.template.data",
+                                err:      errors.New("missing or not a string"),
+                        })
+                }</span>
+
+                <span class="cov9" title="18">lang, _ = template["language"].(string)
+                if lang == "" </span><span class="cov1" title="1">{
+                        validationError.Append(&amp;FieldValidationError{
+                                template: name,
+                                field:    "spec.template.language",
+                                err:      errors.New("missing or not a string"),
+                        })
+                }</span>
+
+                <span class="cov9" title="18">fileNameTemplate, _ = template["fileName"].(string)
+                if fileNameTemplate == "" </span><span class="cov1" title="1">{
+                        validationError.Append(&amp;FieldValidationError{
+                                template: name,
+                                field:    "spec.template.fileName",
+                                err:      errors.New("missing or not a string"),
+                        })
+                }</span>
+        }
+
+        // batchModeProcessing false unless explicitly set to true in template
+        <span class="cov10" title="21">batchModeProcessing := false
+        if val, ok := template["batchModeProcessing"].(bool); ok </span><span class="cov3" title="2">{
+                batchModeProcessing = val
+        }</span>
+
+        <span class="cov10" title="21">t := &amp;Template{
+                name:      name,
+                query:     query,
+                batchMode: batchModeProcessing,
+        }
+
+        var err error
+
+        if lang != "" </span><span class="cov9" title="17">{
+                t.renderer, err = renderer.MakeRenderer(lang, data, name)
+        }</span>
+
+        <span class="cov10" title="21">if err != nil </span><span class="cov4" title="3">{
+                if _, ok := err.(*renderer.LookupError); ok </span><span class="cov3" title="2">{
+                        validationError.Append(&amp;FieldValidationError{
+                                template: name,
+                                field:    "spec.template.language",
+                                err:      err,
+                        })
+                }</span> else<span class="cov1" title="1"> {
+                        fmt.Printf("Error making renderer: %#v\n", err)
+                        validationError.Append(&amp;FieldValidationError{
+                                template: name,
+                                field:    "spec.template.data",
+                                err:      err,
+                        })
+                }</span>
+        }
+
+        <span class="cov10" title="21">err = nil
+        if fileNameTemplate != "" </span><span class="cov9" title="17">{
+                t.fileNameTemplate, err = gotemplate.NewGoRenderer(fileNameTemplate, name)
+        }</span>
+
+        <span class="cov10" title="21">if err != nil </span><span class="cov3" title="2">{
+                validationError.Append(&amp;FieldValidationError{
+                        template: name,
+                        field:    "spec.template.fileName",
+                        err:      err,
+                })
+        }</span>
+
+        <span class="cov10" title="21">if validationError.HasErrors() </span><span class="cov9" title="15">{
+                return nil, validationError
+        }</span>
+
+        <span class="cov6" title="6">return t, nil</span>
+}
+
+// Evaluate runs the query and renders the results using the template.
+func (t *Template) Evaluate(repo repository.Repository) (*TemplateOutput, error) <span class="cov6" title="6">{
+        resultset, err := repo.Query(t.query)
+        if err != nil </span><span class="cov3" title="2">{
+                return nil, fmt.Errorf("query failed in Template '%s': %w", t.name, err)
+        }</span>
+
+        <span class="cov5" title="4">output, err := renderer.Render(t.renderer, resultset.Results, t.batchMode)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("error rendering Template '%s': %w", t.name, err)
+        }</span>
+
+        <span class="cov4" title="3">fileNamesOutput, err := renderer.Render(t.fileNameTemplate, resultset.Results, t.batchMode)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("error rendering fileName in Template '%s': %w", t.name, err)
+        }</span>
+
+        // TODO revisit this when we start outputting resources to Kubernetes directly
+        // When putting results in files, these invariants should hold:
+        <span class="cov3" title="2">if t.batchMode </span><span class="cov1" title="1">{
+                if fileNamesOutput.ResourceCount() != 1 </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("expected one file name in batch mode; got %d", fileNamesOutput.ResourceCount())
+                }</span>
+
+                <span class="cov1" title="1">if output.ResourceCount() != 1 </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("expected one rendered resource in batch mode; got %d", output.ResourceCount())
+                }</span>
+        } else<span class="cov1" title="1"> {
+                if fileNamesOutput.ResourceCount() != len(resultset.Results) </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("expected %d file names; got %d", len(resultset.Results), fileNamesOutput.ResourceCount())
+                }</span>
+
+                <span class="cov1" title="1">if output.ResourceCount() != len(resultset.Results) </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("expected %d rendered resources; got %d", len(resultset.Results), output.ResourceCount())
+                }</span>
+        }
+
+        <span class="cov3" title="2">fileNames := make([]string, fileNamesOutput.ResourceCount())
+        for i := 0; i &lt; fileNamesOutput.ResourceCount(); i++ </span><span class="cov4" title="3">{
+                fileName, err := fileNamesOutput.ResultString(i)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("error getting filename: %w", err)
+                }</span>
+                <span class="cov4" title="3">fileNames[i] = strings.TrimSpace(fileName)</span>
+        }
+
+        <span class="cov3" title="2">return &amp;TemplateOutput{Output: output, FileNames: fileNames}, nil</span>
+}
+
+func (t *Template) BatchMode() bool <span class="cov3" title="2">{
+        return t.batchMode
+}</span>
+
+func (t *Template) Name() string <span class="cov0" title="0">{
+        return t.name
+}</span>
+</pre>
+		
+		<pre class="file" id="file18" style="display: none">/*
+Copyright 2024.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package utils
+
+import (
+        "fmt"
+        "os"
+        "os/exec"
+        "strings"
+
+        . "github.com/onsi/ginkgo/v2" //nolint:golint,revive
+)
+
+const (
+        prometheusOperatorVersion = "v0.72.0"
+        prometheusOperatorURL     = "https://github.com/prometheus-operator/prometheus-operator/" +
+                "releases/download/%s/bundle.yaml"
+
+        certmanagerVersion = "v1.14.4"
+        certmanagerURLTmpl = "https://github.com/jetstack/cert-manager/releases/download/%s/cert-manager.yaml"
+)
+
+func warnError(err error) <span class="cov0" title="0">{
+        _, _ = fmt.Fprintf(GinkgoWriter, "warning: %v\n", err)
+}</span>
+
+// InstallPrometheusOperator installs the prometheus Operator to be used to export the enabled metrics.
+func InstallPrometheusOperator() error <span class="cov0" title="0">{
+        url := fmt.Sprintf(prometheusOperatorURL, prometheusOperatorVersion)
+        cmd := exec.Command("kubectl", "create", "-f", url)
+        _, err := Run(cmd)
+        return err
+}</span>
+
+// Run executes the provided command within this context
+func Run(cmd *exec.Cmd) ([]byte, error) <span class="cov0" title="0">{
+        dir, _ := GetProjectDir()
+        cmd.Dir = dir
+
+        if err := os.Chdir(cmd.Dir); err != nil </span><span class="cov0" title="0">{
+                _, _ = fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", err)
+        }</span>
+
+        <span class="cov0" title="0">cmd.Env = append(os.Environ(), "GO111MODULE=on")
+        command := strings.Join(cmd.Args, " ")
+        _, _ = fmt.Fprintf(GinkgoWriter, "running: %s\n", command)
+        output, err := cmd.CombinedOutput()
+        if err != nil </span><span class="cov0" title="0">{
+                return output, fmt.Errorf("%s failed with error: (%v) %s", command, err, string(output))
+        }</span>
+
+        <span class="cov0" title="0">return output, nil</span>
+}
+
+// UninstallPrometheusOperator uninstalls the prometheus
+func UninstallPrometheusOperator() <span class="cov0" title="0">{
+        url := fmt.Sprintf(prometheusOperatorURL, prometheusOperatorVersion)
+        cmd := exec.Command("kubectl", "delete", "-f", url)
+        if _, err := Run(cmd); err != nil </span><span class="cov0" title="0">{
+                warnError(err)
+        }</span>
+}
+
+// UninstallCertManager uninstalls the cert manager
+func UninstallCertManager() <span class="cov0" title="0">{
+        url := fmt.Sprintf(certmanagerURLTmpl, certmanagerVersion)
+        cmd := exec.Command("kubectl", "delete", "-f", url)
+        if _, err := Run(cmd); err != nil </span><span class="cov0" title="0">{
+                warnError(err)
+        }</span>
+}
+
+// InstallCertManager installs the cert manager bundle.
+func InstallCertManager() error <span class="cov0" title="0">{
+        url := fmt.Sprintf(certmanagerURLTmpl, certmanagerVersion)
+        cmd := exec.Command("kubectl", "apply", "-f", url)
+        if _, err := Run(cmd); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        // Wait for cert-manager-webhook to be ready, which can take time if cert-manager
+        // was re-installed after uninstalling on a cluster.
+        <span class="cov0" title="0">cmd = exec.Command("kubectl", "wait", "deployment.apps/cert-manager-webhook",
+                "--for", "condition=Available",
+                "--namespace", "cert-manager",
+                "--timeout", "5m",
+        )
+
+        _, err := Run(cmd)
+        return err</span>
+}
+
+// LoadImageToKindClusterWithName loads a local docker image to the kind cluster
+func LoadImageToKindClusterWithName(name string) error <span class="cov0" title="0">{
+        cluster := "kind"
+        if v, ok := os.LookupEnv("KIND_CLUSTER"); ok </span><span class="cov0" title="0">{
+                cluster = v
+        }</span>
+        <span class="cov0" title="0">kindOptions := []string{"load", "docker-image", name, "--name", cluster}
+        cmd := exec.Command("kind", kindOptions...)
+        _, err := Run(cmd)
+        return err</span>
+}
+
+// GetNonEmptyLines converts given command output string into individual objects
+// according to line breakers, and ignores the empty elements in it.
+func GetNonEmptyLines(output string) []string <span class="cov0" title="0">{
+        var res []string
+        elements := strings.Split(output, "\n")
+        for _, element := range elements </span><span class="cov0" title="0">{
+                if element != "" </span><span class="cov0" title="0">{
+                        res = append(res, element)
+                }</span>
+        }
+
+        <span class="cov0" title="0">return res</span>
+}
+
+// GetProjectDir will return the directory where the project is
+func GetProjectDir() (string, error) <span class="cov0" title="0">{
+        wd, err := os.Getwd()
+        if err != nil </span><span class="cov0" title="0">{
+                return wd, err
+        }</span>
+        <span class="cov0" title="0">wd = strings.Replace(wd, "/test/e2e", "", -1)
+        return wd, nil</span>
+}
+
+// GetSubDirs returns a slice of subdirectory names under the given directory path.
+func GetSubDirs(dir string) ([]string, error) <span class="cov0" title="0">{
+        var subDirs []string
+
+        // Read the contents of the directory
+        entries, err := os.ReadDir(dir)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("error reading directory %q: %w", dir, err)
+        }</span>
+
+        // Loop through the entries and collect directory names
+        <span class="cov0" title="0">for _, entry := range entries </span><span class="cov0" title="0">{
+                if entry.IsDir() </span><span class="cov0" title="0">{
+                        subDirs = append(subDirs, entry.Name())
+                }</span>
+        }
+        <span class="cov0" title="0">return subDirs, nil</span>
+}
+func GetFiles(dir string) ([]string, error) <span class="cov0" title="0">{
+        var files []string
+
+        // Read the contents of the directory
+        entries, err := os.ReadDir(dir)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("error reading directory %q: %w", dir, err)
+        }</span>
+
+        // Loop through the entries and collect directory names
+        <span class="cov0" title="0">for _, entry := range entries </span><span class="cov0" title="0">{
+                if !entry.IsDir() </span><span class="cov0" title="0">{
+                        files = append(files, entry.Name())
+                }</span>
+        }
+        <span class="cov0" title="0">return files, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
