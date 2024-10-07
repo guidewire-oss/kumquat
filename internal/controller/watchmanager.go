@@ -272,7 +272,7 @@ func deleteTableFromDataBase(gvk schema.GroupVersionKind) error {
 
 	err = re.DropTable(tableName)
 	if err != nil {
-		//if the table does not exist, return nil
+		// if the table does not exist, return nil
 		if err.Error() == "table does not exist: "+tableName {
 			return nil
 		}
@@ -301,7 +301,7 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 
 	if resource == nil {
 		log.Info("Resource deleted", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
-		//set gvk group to v1 if it is empty
+		// set group to core if it is empty
 		group := r.GVK.Group
 		if r.GVK.Group == "" {
 			group = "core"

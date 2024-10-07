@@ -395,7 +395,6 @@ func processTemplateResources(
 	log logr.Logger,
 	k8sClient K8sClient,
 ) error {
-	// Evaluate the template
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 	if err != nil {
 		log.Error(err, "failed to convert template to unstructured map")
@@ -474,11 +473,7 @@ func processTemplateResources(
 		key := resourceKeyFromRI(ri)
 		existingResources[key] = ri
 	}
-	fmt.Println("Existing resourcessss", "resources", existingResources)
-	//print desired resources
-	fmt.Println("Desired resourcessss", "resources", desiredResources)
 
-	// Identify resources to delete
 	var resourcesToDelete []ResourceIdentifier
 	for key, ri := range existingResources {
 
