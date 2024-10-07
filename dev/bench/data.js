@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728332105550,
+  "lastUpdate": 1728334222975,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -282,6 +282,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1423302064,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "678b5a7a920068830ecc0153406ce4aff32e6019",
+          "message": "👷 Run lint faster",
+          "timestamp": "2024-10-07T17:48:57-03:00",
+          "tree_id": "024e9292ef012efb0b3454a5218d71588d6d6e13",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/678b5a7a920068830ecc0153406ce4aff32e6019"
+        },
+        "date": 1728334222638,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29873,
+            "unit": "ns/op",
+            "extra": "404583 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29726,
+            "unit": "ns/op",
+            "extra": "400814 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25850,
+            "unit": "ns/op",
+            "extra": "456492 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1414068067,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
