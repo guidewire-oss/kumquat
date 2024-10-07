@@ -255,7 +255,6 @@ func DeleteRecord(table, namespace, name string) error {
 	_, err = re.Db.Exec( /* sql */ `DELETE FROM "`+table+`" WHERE namespace = ? AND name = ?`, namespace, name)
 	if err != nil {
 		log.Log.Error(err, "unable to delete record")
-		log.Log.Info("Record not found", "table", table, "namespace", namespace, "name", name)
 		return err
 	}
 	log.Log.Info("Record deleted", "table", table, "namespace", namespace, "name", name)
@@ -366,9 +365,6 @@ func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error {
 	var templates []string
 
 	for templateName, gvks := range wm.templates {
-		fmt.Println("Template Name: ", templateName)
-		fmt.Println("GVKssss: ", gvks)
-		fmt.Println("GVKkkkkk: ", r.GVK)
 		if _, exists := gvks[r.GVK]; exists {
 			log.Info("Reconciling template", "templateName", templateName)
 			templates = append(templates, templateName)
