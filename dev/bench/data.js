@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728330050027,
+  "lastUpdate": 1728332105550,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -234,6 +234,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1433099382,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "7a4668f734afed737c296ffac250dea35a34d9b5",
+          "message": "👷 Run integration tests from CI",
+          "timestamp": "2024-10-07T17:13:43-03:00",
+          "tree_id": "8cbf643539acf1c902dec850b8451c94d6a88429",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/7a4668f734afed737c296ffac250dea35a34d9b5"
+        },
+        "date": 1728332104958,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30343,
+            "unit": "ns/op",
+            "extra": "396595 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29817,
+            "unit": "ns/op",
+            "extra": "394113 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25972,
+            "unit": "ns/op",
+            "extra": "468151 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1423302064,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
