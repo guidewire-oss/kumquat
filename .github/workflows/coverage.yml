@@ -84,7 +84,7 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git commit -m "Update coverage report for commit ${{ github.sha }}" || true
         git push origin gh-pages
-        git switch ${{ github.ref }}
+        git checkout ${{ github.ref }}
         git stash pop || true
 
     - name: Fail on low coverage
