@@ -9,23 +9,30 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/devcontainers/go:1-1.23-bullseye
     permissions:
       # Allow write access to update notes
       contents: write
       issues: write
       pull-requests: write
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout 🛎️
+      uses: actions/checkout@v4
       with:
         # default fetch-depth is insufficent to find previous coverage notes
         fetch-depth: 10
 
-    - run: git config --system --add safe.directory /__w/kumquat/kumquat
-      working-directory: /__w/kumquat/kumquat
+    - name: Setup Go 📦
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
 
-    - uses: gwatts/go-coverage-action@v2
+    - name: Setup envtest for integration tests 🔧
+      run: |
+        make envtest
+        bin/setup-envtest use $(grep -E '^ENVTEST_K8S_VERSION[[:space:]]*=[[:space:]]*[[:digit:][:punct:]]*' Makefile | cut -d'=' -f2 | tr -d '[:space:]') --bin-dir bin
+
+    - name: Analyze coverage 🔎
+      uses: gwatts/go-coverage-action@v2
       id: coverage
       with:
         # Optional coverage threshold
@@ -43,9 +50,9 @@ jobs:
           zz_generated
 
         # Ignore E2E and integration tests for now
-        test-args: '["-skip", "^(TestE2E|TestControllers)$"]'
+        test-args: '["-skip", "^(TestE2E)$"]'
 
-    - name: Update coverage badge
+    - name: Update coverage badge 🎗️
       uses: schneegans/dynamic-badges-action@v1.7.0
       if: github.ref_name == 'main'
       with:
@@ -56,17 +63,19 @@ jobs:
         message: ${{ steps.coverage.outputs.coverage-pct-1dp }}%
         color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
 
-    - uses: actions/upload-artifact@v4
+    - name: Publish coverage 📦
+      uses: actions/upload-artifact@v4
       with:
         name: code-coverage-cov
         path: ${{ steps.coverage.outputs.gocov-agg-pathname }}
 
-    - uses: actions/upload-artifact@v4
+    - name: Publish coverage report 📝
+      uses: actions/upload-artifact@v4
       with:
         name: code-coverage-report
         path: ${{ steps.coverage.outputs.report-pathname }}
 
-    - name: Update coverage report on gh-pages
+    - name: Update coverage report on gh-pages 📰
       if: github.ref_name == 'main' 
       shell: bash
       run: |
@@ -87,7 +96,7 @@ jobs:
         git checkout ${{ github.ref }}
         git stash pop || true
 
-    - name: Fail on low coverage
+    - name: Fail on low coverage ❌
       if: steps.coverage.outputs.meets-threshold == 'false'
       run: exit 1
   
