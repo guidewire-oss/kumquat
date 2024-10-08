@@ -68,7 +68,7 @@ jobs:
 
       - name: Update coverage badge 🎗️
         if: github.ref_name == 'main'
-        run: echo "{\"label\":"Go Coverage\",\"message\":\"${{ steps.coverage.outputs.coverage-pct-1dp }}%\",\"schemaVersion\":1,\"color\":\"${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}\"}" > /tmp/kumquat-coverage.json
+        run: echo "{\"label\":\"Go Coverage\",\"message\":\"${{ steps.coverage.outputs.coverage-pct-1dp }}%\",\"schemaVersion\":1,\"color\":\"${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}\"}" > /tmp/kumquat-coverage.json
 
       - name: Update coverage report on gh-pages 📰
         if: github.ref_name == 'main'
