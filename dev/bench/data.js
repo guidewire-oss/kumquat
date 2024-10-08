@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728348887922,
+  "lastUpdate": 1728351686440,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -380,6 +380,54 @@ window.BENCHMARK_DATA = {
             "value": 1435218458,
             "unit": "ns/op",
             "extra": "7 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "69ed1819637faa4d82a1274d0bbc07969bd88ca7",
+          "message": "👷 Publish ADRs to GitHub Pages",
+          "timestamp": "2024-10-07T22:40:08-03:00",
+          "tree_id": "e57450f09f0b7e4b54ac918df94fb06779623184",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/69ed1819637faa4d82a1274d0bbc07969bd88ca7"
+        },
+        "date": 1728351686086,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30237,
+            "unit": "ns/op",
+            "extra": "398116 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 30214,
+            "unit": "ns/op",
+            "extra": "392419 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 26054,
+            "unit": "ns/op",
+            "extra": "464565 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1433099208,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
           }
         ]
       }
