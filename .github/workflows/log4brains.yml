@@ -27,7 +27,7 @@ jobs:
       - name: Build ADR site 🏗
         run: |
           mkdir -p /tmp/adr-site
-          log4brains build --out /tmp/adr-site
+          log4brains build --out /tmp/adr-site --basePath /${GITHUB_REPOSITORY#*/}/adrs
 
       - name: Update ADR site on gh-pages 📰
         shell: bash
