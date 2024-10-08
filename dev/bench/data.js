@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728416897972,
+  "lastUpdate": 1728417081528,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -618,6 +618,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1437100702,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "2ec990fcfcf9bef8006f44410a5ed45d3101d372",
+          "message": "💚 Add coverage badge JSON to GitHub pages site",
+          "timestamp": "2024-10-08T19:49:53Z",
+          "tree_id": "a8357c07e28de67a02ea20156d7c41ee6d1a0f85",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/2ec990fcfcf9bef8006f44410a5ed45d3101d372"
+        },
+        "date": 1728417081090,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30366,
+            "unit": "ns/op",
+            "extra": "402963 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 30018,
+            "unit": "ns/op",
+            "extra": "394840 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25972,
+            "unit": "ns/op",
+            "extra": "458592 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1427440805,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
