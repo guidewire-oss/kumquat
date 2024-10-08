@@ -3,7 +3,7 @@
 {
 	"name": "Go",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/go:1-1.22-bullseye",
+	"image": "mcr.microsoft.com/devcontainers/go:1-1.23-bullseye",
 	"features": {
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
 			"minikube": "none"
@@ -19,17 +19,16 @@
 			"version": "v0.16.0"
 		}
 	},
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-	// Configure tool-specific properties.
-	// "customizations": {},
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+
+	// Install GoNB and its dependencies
+	"onCreateCommand": "go install github.com/janpfeifer/gonb@latest && go install golang.org/x/tools/cmd/goimports@latest && gonb --install",
 	"remoteEnv": {
 		"GOFLAGS": "-buildvcs=false"
 	},
+	// When files change, get the latest tools and re-run envtest setup to get the latest
+	// Kubernetes version. The version is extracted from the "ENVTEST_K8S_VERSION = x.y.z"
+	// line in the Makefile.
+	"updateContentCommand": "make envtest && bin/setup-envtest use $(grep -E '^ENVTEST_K8S_VERSION[[:space:]]*=[[:space:]]*[[:digit:][:punct:]]*' Makefile | cut -d'=' -f2 | tr -d '[:space:]') --bin-dir /workspaces/kumquat/bin",
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -39,7 +38,9 @@
 				"ruschaaf.extended-embedded-languages",
 				"asdine.cue",
 				"redhat.vscode-yaml",
-				"eamodio.gitlens"
+				"eamodio.gitlens",
+				"ms-toolsai.jupyter",
+				"github.vscode-github-actions"
 			]
 		}
 	}
