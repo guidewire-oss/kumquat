@@ -78,7 +78,7 @@ jobs:
           path: ${{ steps.coverage.outputs.report-pathname }}
 
       - name: Update coverage report on gh-pages 📰
-        if: github.ref_name == 'main' 
+        if: github.ref_name == 'main'
         shell: bash
         run: |
           echo "Coverage report: ${{ steps.coverage.outputs.report-pathname }}"
@@ -101,4 +101,3 @@ jobs:
       - name: Fail on low coverage ❌
         if: steps.coverage.outputs.meets-threshold == 'false'
         run: exit 1
-    
