@@ -54,17 +54,6 @@ jobs:
           # Ignore E2E and integration tests for now
           test-args: '["-skip", "^(TestE2E)$"]'
 
-      - name: Update coverage badge 🎗️
-        uses: schneegans/dynamic-badges-action@v1.7.0
-        if: github.ref_name == 'main'
-        with:
-          auth: ${{ secrets.GIST_BADGE_SECRET }}
-          gistID: cb14f8ad568d175cf0ba9f7ac6d0a6ca
-          filename: kumquat-coverage.json
-          label: Go Coverage
-          message: ${{ steps.coverage.outputs.coverage-pct-1dp }}%
-          color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
-
       - name: Publish coverage 📦
         uses: actions/upload-artifact@v4
         with:
@@ -76,6 +65,10 @@ jobs:
         with:
           name: code-coverage-report
           path: ${{ steps.coverage.outputs.report-pathname }}
+
+      - name: Update coverage badge 🎗️
+        if: github.ref_name == 'main'
+        run: echo "{\"label\":"Go Coverage\",\"message\":\"${{ steps.coverage.outputs.coverage-pct-1dp }}%\",\"schemaVersion\":1,\"color\":\"${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}\"}" > /tmp/kumquat-coverage.json
 
       - name: Update coverage report on gh-pages 📰
         if: github.ref_name == 'main'
@@ -90,6 +83,7 @@ jobs:
           git pull origin gh-pages
           mkdir -p ./dev/coverage
           cp -r /tmp/coverage-report/* ./dev/coverage
+          cp /tmp/kumquat-coverage.json .
           git add ./dev/coverage
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
