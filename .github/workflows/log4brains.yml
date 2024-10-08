@@ -3,12 +3,13 @@ name: Publish Log4brains Site
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      # Allow write access to gh-pages branch
+      contents: write
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
