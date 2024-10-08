@@ -437,7 +437,7 @@ type unstructuredEventHandler struct{}
 func (h *unstructuredEventHandler) Create(
 	ctx context.Context,
 	evt event.TypedCreateEvent[*unstructured.Unstructured],
-	q workqueue.RateLimitingInterface,
+	q workqueue.TypedRateLimitingInterface[ctrl.Request],
 ) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }
@@ -445,7 +445,7 @@ func (h *unstructuredEventHandler) Create(
 func (h *unstructuredEventHandler) Update(
 	ctx context.Context,
 	evt event.TypedUpdateEvent[*unstructured.Unstructured],
-	q workqueue.RateLimitingInterface,
+	q workqueue.TypedRateLimitingInterface[ctrl.Request],
 ) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.ObjectNew)})
 }
@@ -453,7 +453,7 @@ func (h *unstructuredEventHandler) Update(
 func (h *unstructuredEventHandler) Delete(
 	ctx context.Context,
 	evt event.TypedDeleteEvent[*unstructured.Unstructured],
-	q workqueue.RateLimitingInterface,
+	q workqueue.TypedRateLimitingInterface[ctrl.Request],
 ) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }
@@ -461,7 +461,7 @@ func (h *unstructuredEventHandler) Delete(
 func (h *unstructuredEventHandler) Generic(
 	ctx context.Context,
 	evt event.TypedGenericEvent[*unstructured.Unstructured],
-	q workqueue.RateLimitingInterface,
+	q workqueue.TypedRateLimitingInterface[ctrl.Request],
 ) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }
