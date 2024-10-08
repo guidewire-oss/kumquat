@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728351686440,
+  "lastUpdate": 1728351897505,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -426,6 +426,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1433099208,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "c6b107b79d8e3e0374e2d9a595aad7b693c17663",
+          "message": "👷 Assign publishing permissions to Log4brains workflow",
+          "timestamp": "2024-10-08T01:43:27Z",
+          "tree_id": "a23c1a2932e73728f277dada0e67b09c3beb502d",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/c6b107b79d8e3e0374e2d9a595aad7b693c17663"
+        },
+        "date": 1728351896961,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29964,
+            "unit": "ns/op",
+            "extra": "403876 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29951,
+            "unit": "ns/op",
+            "extra": "391968 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25978,
+            "unit": "ns/op",
+            "extra": "467504 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1416871885,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
