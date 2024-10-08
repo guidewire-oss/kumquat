@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728334222975,
+  "lastUpdate": 1728348887922,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -332,6 +332,54 @@ window.BENCHMARK_DATA = {
             "value": 1414068067,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "b3eaa9a6ba4b3aae9d6b34ff434190502d8d1ab7",
+          "message": "👷 Fix permissions to allow coverage publishing",
+          "timestamp": "2024-10-08T00:53:14Z",
+          "tree_id": "d9bee752a101458cfdd35bb84db9530fe67754af",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/b3eaa9a6ba4b3aae9d6b34ff434190502d8d1ab7"
+        },
+        "date": 1728348887017,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30487,
+            "unit": "ns/op",
+            "extra": "402652 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 30143,
+            "unit": "ns/op",
+            "extra": "397993 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 26035,
+            "unit": "ns/op",
+            "extra": "454442 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1435218458,
+            "unit": "ns/op",
+            "extra": "7 times\n4 procs"
           }
         ]
       }
