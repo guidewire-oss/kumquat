@@ -30,6 +30,8 @@ jobs:
         run: |
           make envtest
           bin/setup-envtest use $(grep -E '^ENVTEST_K8S_VERSION[[:space:]]*=[[:space:]]*[[:digit:][:punct:]]*' Makefile | cut -d'=' -f2 | tr -d '[:space:]') --bin-dir bin
+          # Ensure the downloaded binaries are writeable so that "git stash push --all" can work
+          chmod -R 755 bin/k8s
 
       - name: Analyze coverage 🔎
         uses: gwatts/go-coverage-action@v2
