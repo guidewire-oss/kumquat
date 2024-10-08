@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728351897505,
+  "lastUpdate": 1728394903962,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -474,6 +474,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1416871885,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "b16a8d76845899c51029fc6159f5444e0a28b376",
+          "message": "👷 Set up base URL path for ADR site",
+          "timestamp": "2024-10-08T13:40:19Z",
+          "tree_id": "c2b15faf23143a74ef08526e2a3a329fb34a3d7f",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/b16a8d76845899c51029fc6159f5444e0a28b376"
+        },
+        "date": 1728394903522,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30177,
+            "unit": "ns/op",
+            "extra": "397723 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 30006,
+            "unit": "ns/op",
+            "extra": "401588 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25955,
+            "unit": "ns/op",
+            "extra": "448214 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1402965526,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
