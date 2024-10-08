@@ -84,7 +84,7 @@ jobs:
           mkdir -p ./dev/coverage
           cp -r /tmp/coverage-report/* ./dev/coverage
           cp /tmp/kumquat-coverage.json .
-          git add ./dev/coverage
+          git add ./dev/coverage kumquat-coverage.json
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git commit -m "Update coverage report for commit ${{ github.sha }}" || true
