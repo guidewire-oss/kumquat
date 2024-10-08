@@ -2123,12 +2123,12 @@ import (
 // stripResourcesFromResults removes the Resource objects from the results, replacing them with the underlying content.
 func StripResourcesFromResults(results []map[string]repository.Resource) []map[string]any <span class="cov7" title="87">{
         strippedResults := make([]map[string]any, len(results))
-        for i, result := range results </span><span class="cov10" title="435">{
+        for i, result := range results </span><span class="cov10" title="417">{
                 stripped := make(map[string]any)
-                for k, v := range result </span><span class="cov10" title="435">{
+                for k, v := range result </span><span class="cov10" title="417">{
                         stripped[k] = v.Content()
                 }</span>
-                <span class="cov10" title="435">strippedResults[i] = stripped</span>
+                <span class="cov10" title="417">strippedResults[i] = stripped</span>
         }
 
         <span class="cov7" title="87">return strippedResults</span>
@@ -2181,93 +2181,93 @@ func (r Resource) Name() string <span class="cov8" title="233">{
 
 // Content returns the content of the resource.
 // Do not alter the returned map or the resource could become inconsistent.
-func (r Resource) Content() map[string]any <span class="cov10" title="733">{
+func (r Resource) Content() map[string]any <span class="cov10" title="715">{
         return r.content
 }</span>
 
 // MakeResource creates a new Resource from a map of the resource's content.
-func MakeResource(content map[string]any) (Resource, error) <span class="cov9" title="461">{
+func MakeResource(content map[string]any) (Resource, error) <span class="cov9" title="452">{
         apiVersionRaw, ok := content["apiVersion"]
 
         if !ok </span><span class="cov2" title="3">{
                 return Resource{}, fmt.Errorf("missing apiVersion")
         }</span>
 
-        <span class="cov9" title="458">apiVersion, ok := apiVersionRaw.(string)
+        <span class="cov9" title="449">apiVersion, ok := apiVersionRaw.(string)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("apiVersion '%#v' must be a string but it is %T", apiVersionRaw, apiVersionRaw)
         }</span>
 
-        <span class="cov9" title="457">var group, version string
+        <span class="cov9" title="448">var group, version string
 
         if apiVersion == "v1" </span><span class="cov6" title="60">{
                 group = "core"
                 version = "v1"
-        }</span> else<span class="cov9" title="397"> {
+        }</span> else<span class="cov9" title="388"> {
                 var found bool
                 group, version, found = strings.Cut(apiVersion, "/")
 
                 if !found </span><span class="cov1" title="1">{
                         return Resource{}, fmt.Errorf("missing '/' separator in apiVersion'%s'", apiVersion)
                 }</span>
-                <span class="cov9" title="396">if len(group) == 0 </span><span class="cov1" title="1">{
+                <span class="cov9" title="387">if len(group) == 0 </span><span class="cov1" title="1">{
                         return Resource{}, fmt.Errorf("missing group in apiVersion '%s'", apiVersion)
                 }</span>
-                <span class="cov9" title="395">if len(version) == 0 </span><span class="cov1" title="1">{
+                <span class="cov9" title="386">if len(version) == 0 </span><span class="cov1" title="1">{
                         return Resource{}, fmt.Errorf("missing version in apiVersion '%s'", apiVersion)
                 }</span>
         }
 
-        <span class="cov9" title="454">kindRaw, ok := content["kind"]
+        <span class="cov9" title="445">kindRaw, ok := content["kind"]
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("missing kind")
         }</span>
 
-        <span class="cov9" title="453">kind, ok := kindRaw.(string)
+        <span class="cov9" title="444">kind, ok := kindRaw.(string)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("kind '%#v' must be a string but it is %T", kindRaw, kindRaw)
         }</span>
 
-        <span class="cov9" title="452">metadataRaw, ok := content["metadata"]
+        <span class="cov9" title="443">metadataRaw, ok := content["metadata"]
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("missing metadata")
         }</span>
 
-        <span class="cov9" title="451">metadata, ok := metadataRaw.(map[string]any)
+        <span class="cov9" title="442">metadata, ok := metadataRaw.(map[string]any)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("metadata '%#v' must be a map but it is %T", metadataRaw, metadataRaw)
         }</span>
 
-        <span class="cov9" title="450">namespaceRaw, ok := metadata["namespace"]
+        <span class="cov9" title="441">namespaceRaw, ok := metadata["namespace"]
 
-        if !ok </span><span class="cov8" title="321">{
+        if !ok </span><span class="cov8" title="312">{
                 namespaceRaw = ""
         }</span>
 
-        <span class="cov9" title="450">namespace, ok := namespaceRaw.(string)
+        <span class="cov9" title="441">namespace, ok := namespaceRaw.(string)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("metadata.namespace '%#v' must be a string but it is %T", namespaceRaw, namespaceRaw)
         }</span>
 
-        <span class="cov9" title="449">nameRaw, ok := metadata["name"]
+        <span class="cov9" title="440">nameRaw, ok := metadata["name"]
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("missing name")
         }</span>
 
-        <span class="cov9" title="448">name, ok := nameRaw.(string)
+        <span class="cov9" title="439">name, ok := nameRaw.(string)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("metadata.name '%#v' must be a string but it is %T", nameRaw, nameRaw)
         }</span>
 
-        <span class="cov9" title="447">res := Resource{
+        <span class="cov9" title="438">res := Resource{
                 group:     group,
                 version:   version,
                 kind:      kind,
@@ -2292,7 +2292,7 @@ type ResultSet struct {
 
 // LoadYAMLFromDirectoryTree loads all YAML files from a directory tree into a repository.
 func LoadYAMLFromDirectoryTree(filesystem fs.FS, directory string, repo Repository) error <span class="cov2" title="4">{
-        return fs.WalkDir(filesystem, directory, func(path string, d fs.DirEntry, pathErr error) error </span><span class="cov3" title="9">{
+        return fs.WalkDir(filesystem, directory, func(path string, d fs.DirEntry, pathErr error) error </span><span class="cov4" title="9">{
                 if pathErr != nil </span><span class="cov1" title="1">{
                         return pathErr
                 }</span>
@@ -2403,15 +2403,15 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) <span class="c
          */
         <span class="cov6" title="40">var results = make([]map[string]Resource, 0)
 
-        for rows.Next() </span><span class="cov10" title="268">{
+        for rows.Next() </span><span class="cov10" title="259">{
                 err = rows.Scan(columnValuePtrs...)
                 if err != nil </span><span class="cov0" title="0">{
                         return ResultSet{}, fmt.Errorf("error while scanning query result: %w", err)
                 }</span>
 
-                <span class="cov10" title="268">var result = make(map[string]Resource)
+                <span class="cov10" title="259">var result = make(map[string]Resource)
 
-                for i, columnName := range columnNames </span><span class="cov10" title="268">{
+                for i, columnName := range columnNames </span><span class="cov10" title="259">{
                         var parsed any
 
                         err = json.Unmarshal([]byte(columnValues[i].(string)), &amp;parsed)
@@ -2420,21 +2420,21 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) <span class="c
                                         strings.Trim(columnName, "'"), err)
                         }</span>
 
-                        <span class="cov10" title="268">switch v := parsed.(type) </span>{
-                        case map[string]any:<span class="cov9" title="265">
+                        <span class="cov10" title="259">switch v := parsed.(type) </span>{
+                        case map[string]any:<span class="cov9" title="256">
                                 res, err := MakeResource(v)
                                 if err != nil </span><span class="cov1" title="1">{
                                         return ResultSet{}, fmt.Errorf("error retrieving resource from column '%s': %w",
                                                 strings.Trim(columnName, "'"), err)
                                 }</span>
-                                <span class="cov9" title="264">result[columnName] = res</span>
+                                <span class="cov9" title="255">result[columnName] = res</span>
                         default:<span class="cov2" title="3">
                                 return ResultSet{}, fmt.Errorf("expected JSON object in column '%s' but got %T",
                                         strings.Trim(columnName, "'"), v)</span>
                         }
                 }
 
-                <span class="cov9" title="264">results = append(results, result)</span>
+                <span class="cov9" title="255">results = append(results, result)</span>
         }
 
         <span class="cov6" title="36">err = rows.Err()
