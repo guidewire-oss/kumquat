@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728416675038,
+  "lastUpdate": 1728416897972,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -570,6 +570,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1424987092,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "7b8312e9ca470c82a1da9693b40798df4cfa5166",
+          "message": "💚 Fixed typo in coverage badge",
+          "timestamp": "2024-10-08T19:46:48Z",
+          "tree_id": "debd14c0cb37a1d8653bfbe446b46df29dc3c440",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/7b8312e9ca470c82a1da9693b40798df4cfa5166"
+        },
+        "date": 1728416897524,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30073,
+            "unit": "ns/op",
+            "extra": "404113 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29752,
+            "unit": "ns/op",
+            "extra": "400435 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25831,
+            "unit": "ns/op",
+            "extra": "468997 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1437100702,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
