@@ -1,0 +1,47 @@
+name: Publish Log4brains Site
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # required by Log4brains to work correctly (needs the whole Git history)
+
+      - name: Install node 📦
+        uses: actions/setup-node@v4
+        with:
+          node-version: "16"
+
+      - name: Install Log4brains 📦
+        run: npm install -g log4brains
+
+      - name: Build ADR site 🏗
+        run: |
+          mkdir -p /tmp/adr-site
+          log4brains build --out /tmp/adr-site
+
+      - name: Update ADR site on gh-pages 📰
+        shell: bash
+        if: github.ref_name == 'main'
+        run: |
+          git stash push --all
+          git fetch origin gh-pages:gh-pages
+          git switch gh-pages
+          git pull origin gh-pages
+          mkdir -p ./adrs
+          cp -r /tmp/adr-site/* ./adrs
+          git add ./adrs
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git commit -m "Update ADRs for commit ${{ github.sha }}" || true
+          git push origin gh-pages
+          git checkout ${{ github.ref }}
+          git stash pop || true

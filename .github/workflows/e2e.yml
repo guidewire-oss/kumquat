@@ -20,6 +20,6 @@ jobs:
 
       - name: Install kind 📦
         run: go install sigs.k8s.io/kind@v0.24.0
-      
+
       - name: Run the E2E tests 🧪
         run: make test-e2e
