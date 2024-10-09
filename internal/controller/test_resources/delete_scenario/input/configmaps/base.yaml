@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth-base
+  namespace: kube-system
+  annotations:
+      aggregate: aws-auth
+data:
+    mapRoles: |
+        - rolearn: arn:aws:iam::111122223333:role/admin-role
+          username: admin-role
+          groups:
+            - system:masters
