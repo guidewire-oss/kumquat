@@ -7,6 +7,8 @@ import (
 	"kumquat/repository"
 	"sync"
 
+	mapset "github.com/deckarep/golang-set/v2"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -36,6 +38,10 @@ type ResourceIdentifier struct {
 	Name      string
 }
 
+func (r *ResourceIdentifier) ToString() string {
+	return r.Group + "/" + r.Kind + "/" + r.Namespace + "/" + r.Name
+}
+
 // WatchManager manages dynamic watches.
 type WatchManager struct {
 	refCounts          map[schema.GroupVersionKind]int
@@ -47,7 +53,7 @@ type WatchManager struct {
 	scheme             *runtime.Scheme
 	mgr                manager.Manager
 	K8sClient          K8sClient
-	generatedResources map[string][]ResourceIdentifier
+	generatedResources map[string]mapset.Set[ResourceIdentifier]
 }
 
 var wm *WatchManager
@@ -58,7 +64,7 @@ func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
 		watchedResources:   make(map[schema.GroupVersionKind]ControllerEntry),
 		refCounts:          make(map[schema.GroupVersionKind]int),
 		templates:          make(map[string]map[schema.GroupVersionKind]struct{}),
-		generatedResources: make(map[string][]ResourceIdentifier),
+		generatedResources: make(map[string]mapset.Set[ResourceIdentifier]),
 		cache:              mgr.GetCache(),
 		scheme:             mgr.GetScheme(),
 		mgr:                mgr,
@@ -100,7 +106,7 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 
 	return nil
 }
-func (wm *WatchManager) UpdateGeneratedResources(templateName string, resources []ResourceIdentifier) {
+func (wm *WatchManager) UpdateGeneratedResources(templateName string, resources mapset.Set[ResourceIdentifier]) {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 	wm.generatedResources[templateName] = resources
