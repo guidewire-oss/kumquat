@@ -1,0 +1,32 @@
+apiVersion: kumquat.guidewire.com/v1beta1
+kind: Template
+metadata:
+  name: aws-auth
+  namespace: templates
+spec:
+  query: | #sql
+    SELECT cm.data AS cm
+    FROM "ConfigMap.core" AS cm
+    WHERE cm.namespace = 'kube-system' AND
+    json_extract(cm.data, '$.metadata.annotations.aggregate') = 'aws-auth'
+  template:
+    language: cue
+    batchModeProcessing: false
+    fileName: |
+      ./output/out.yaml
+    data: | #cue
+      let DATA = data
+      out: {
+            apiVersion: "v1"
+            kind: "ConfigMap"
+            metadata: {
+              name: "test-\(DATA.cm.metadata.name)"
+              namespace: "kube-system"
+            }
+            data: {
+              "mapRoles": DATA.cm.data.mapRoles
+            }
+      }
+
+
+
