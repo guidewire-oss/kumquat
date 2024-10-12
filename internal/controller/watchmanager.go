@@ -31,7 +31,6 @@ type ControllerEntry struct {
 
 type ResourceIdentifier struct {
 	Group     string
-	Version   string
 	Kind      string
 	Namespace string
 	Name      string
@@ -59,7 +58,7 @@ func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
 		watchedResources:   make(map[schema.GroupVersionKind]ControllerEntry),
 		refCounts:          make(map[schema.GroupVersionKind]int),
 		templates:          make(map[string]map[schema.GroupVersionKind]struct{}),
-		generatedResources: make(map[string][]ResourceIdentifier), // Initialize here
+		generatedResources: make(map[string][]ResourceIdentifier),
 		cache:              mgr.GetCache(),
 		scheme:             mgr.GetScheme(),
 		mgr:                mgr,
@@ -100,6 +99,11 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 	}
 
 	return nil
+}
+func (wm *WatchManager) UpdateGeneratedResources(templateName string, resources []ResourceIdentifier) {
+	wm.mu.Lock()
+	defer wm.mu.Unlock()
+	wm.generatedResources[templateName] = resources
 }
 
 // UpdateWatch updates the watch for the specified template with new GVKs.
