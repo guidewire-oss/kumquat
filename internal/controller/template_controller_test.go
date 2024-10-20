@@ -36,7 +36,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 	BeforeEach(func() {
 		ctx = context.Background()
 
-		By("ensuring the namespace exists")
+		By("ensuring the templates namespace exists")
 		namespace := &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: namespaceName,
@@ -59,11 +59,10 @@ var _ = Describe("Template Controller Integration Test", func() {
 			fmt.Printf("Namespace: %s, Phase: %s\n", namespace.Name, namespace.Status.Phase)
 			return fmt.Errorf("namespace not active yet")
 		}, 10*time.Second, 2*time.Second).Should(Succeed())
-
 	})
 
 	AfterEach(func() {
-		By("deleting all applied resources")
+		By("deleting all test resources")
 		exampleFolderPath := path.Join("../", "../", "examples")
 		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
 		Expect(err).NotTo(HaveOccurred())
@@ -91,7 +90,8 @@ var _ = Describe("Template Controller Integration Test", func() {
 		}
 
 	})
-	It("repeate apply and verify examples to check some race conditions", func() {
+
+	It("repeat apply and verify examples to check some race conditions", func() {
 
 		exampleFolderPath := path.Join("../", "../", "examples")
 		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
@@ -107,7 +107,6 @@ var _ = Describe("Template Controller Integration Test", func() {
 			exampleFolderPath := path.Join("..", "..", "examples", exampleFolder)
 			verifyExampleOutput(exampleFolderPath, "out.yaml")
 		}
-
 	})
 	It("should make sure that if the result of a query is changes,the resource that was created should be updated", func() { //nolint:errcheck
 		applyExampleResources(ctx, path.Join("test_resources", "delete_scenario"))
