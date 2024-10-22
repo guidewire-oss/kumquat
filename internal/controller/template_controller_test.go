@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	sigyaml "sigs.k8s.io/yaml"
@@ -59,87 +58,131 @@ var _ = Describe("Template Controller Integration Test", func() {
 			fmt.Printf("Namespace: %s, Phase: %s\n", namespace.Name, namespace.Status.Phase)
 			return fmt.Errorf("namespace not active yet")
 		}, 10*time.Second, 2*time.Second).Should(Succeed())
+
+		By("creating input resources")
+		exampleFolderPath := path.Join("../", "../", "examples")
+		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
+		Expect(err).NotTo(HaveOccurred())
+		for _, exampleFolder := range exampleFolders {
+			inputFolder := path.Join(exampleFolderPath, exampleFolder, "input")
+			applyYAMLFilesFromDirectory(ctx, inputFolder)
+		}
 	})
 
 	AfterEach(func() {
-		By("deleting all test resources")
+		By("deleting input resources and templates")
 		exampleFolderPath := path.Join("../", "../", "examples")
 		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
 		Expect(err).NotTo(HaveOccurred())
 		for _, exampleFolder := range exampleFolders {
-			deleteExampleResources(ctx, path.Join(exampleFolderPath, exampleFolder, "input"))
+			inputFolder := path.Join(exampleFolderPath, exampleFolder, "input")
+			deleteYAMLFilesFromDirectory(ctx, inputFolder)
+			templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
+			deleteYAMLFilesFromDirectory(ctx, templateFolder)
 		}
-
 	})
 
-	It("should apply and verify examples", func() {
+	Context("When Template is applied", func() {
+		It("creates expected managed resources", func() {
+			exampleFolderPath := path.Join("../", "../", "examples")
+			exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
+			Expect(err).NotTo(HaveOccurred())
 
-		exampleFolderPath := path.Join("../", "../", "examples")
-		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
-		Expect(err).NotTo(HaveOccurred())
-		for _, exampleFolder := range exampleFolders {
-			By(fmt.Sprintf("Running example %s", exampleFolder))
-			applyExampleResources(ctx, path.Join(exampleFolderPath, exampleFolder))
-		}
+			for _, exampleFolder := range exampleFolders {
+				By(fmt.Sprintf("Running example %s", exampleFolder))
 
-		// another eventuallly block to check if the output.yaml file has been created
-		By("verifying that the output.yaml file has been created")
-		for _, exampleFolder := range exampleFolders {
-			exampleFolderPath := path.Join("..", "..", "examples", exampleFolder)
-			verifyExampleOutput(exampleFolderPath, "out.yaml")
-		}
+				By("applying example templates")
+				templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
+				applyYAMLFilesFromDirectory(ctx, templateFolder)
 
+				By("verifying that the output.yaml file has been created")
+				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
+			}
+		})
+
+		It("creates expected managed resources again to test for race conditions", func() {
+			exampleFolderPath := path.Join("../", "../", "examples")
+			exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
+			Expect(err).NotTo(HaveOccurred())
+
+			for _, exampleFolder := range exampleFolders {
+				By(fmt.Sprintf("Running example %s", exampleFolder))
+
+				By("applying example templates")
+				templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
+				applyYAMLFilesFromDirectory(ctx, templateFolder)
+
+				By("verifying that the output.yaml file has been created")
+				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
+			}
+		})
 	})
 
-	It("repeat apply and verify examples to check some race conditions", func() {
+	Context("When Template is deleted", func() {
+		JustBeforeEach(func() {
+			By("applying example templates")
+			exampleFolderPath := path.Join("../", "../", "examples")
+			exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
+			Expect(err).NotTo(HaveOccurred())
+			for _, exampleFolder := range exampleFolders {
+				templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
+				applyYAMLFilesFromDirectory(ctx, templateFolder)
+			}
+		})
 
-		exampleFolderPath := path.Join("../", "../", "examples")
-		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
-		Expect(err).NotTo(HaveOccurred())
-		for _, exampleFolder := range exampleFolders {
-			By(fmt.Sprintf("Running example %s", exampleFolder))
-			applyExampleResources(ctx, path.Join(exampleFolderPath, exampleFolder))
-		}
+		It("deletes managed resources", func() {
+			exampleFolderPath := path.Join("../", "../", "examples")
+			exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
+			Expect(err).NotTo(HaveOccurred())
 
-		// another eventuallly block to check if the output.yaml file has been created
-		By("verifying that the output.yaml file has been created")
-		for _, exampleFolder := range exampleFolders {
-			exampleFolderPath := path.Join("..", "..", "examples", exampleFolder)
-			verifyExampleOutput(exampleFolderPath, "out.yaml")
-		}
+			for _, exampleFolder := range exampleFolders {
+				By("deleting example template")
+				templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
+				deleteYAMLFilesFromDirectory(ctx, templateFolder)
+
+				By("verifying expected managed resources got deleted")
+				expectedOutputPath := path.Join(exampleFolderPath, exampleFolder, "expected", "out.yaml")
+				expectedOutputResource, err := getK8sClientObject(expectedOutputPath)
+				Expect(err).NotTo(HaveOccurred())
+				waitForDeletion(ctx, expectedOutputResource, 10*time.Second, 5*time.Millisecond)
+			}
+		})
 	})
 })
 
-// Function to apply resources from an example
-func applyExampleResources(ctx context.Context, examplePath string) {
-	inputPath := filepath.Join(examplePath, "input")
-	// get all folders in the input directory
-	folders, err := utils.GetSubDirs(inputPath)
+// Get Kubernetes object defined by the YAML in the given path, filePath
+func getK8sClientObject(path string) (*unstructured.Unstructured, error) {
+	fileInfo, err := os.Stat(path)
 	Expect(err).NotTo(HaveOccurred())
-	for _, folder := range folders {
-		applyYAMLFilesFromDirectory(ctx, path.Join(inputPath, folder))
+
+	if fileInfo.IsDir() || (filepath.Ext(fileInfo.Name()) != ".yaml" && filepath.Ext(fileInfo.Name()) != ".yml") {
+		return nil, fmt.Errorf("Invalid path: %s should be a YAML file", path)
 	}
+
+	content, err := os.ReadFile(path)
+	Expect(err).NotTo(HaveOccurred())
+
+	decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+	obj := &unstructured.Unstructured{}
+	_, _, err = decoder.Decode(content, nil, obj)
+	Expect(err).NotTo(HaveOccurred())
+
+	// Remove resourceVersion if set
+	obj.SetResourceVersion("")
+
+	return obj, nil
 }
 
-// Function to apply all YAML files from a directory
+// Apply all YAML files defined in the given directory, dir, as well as all sub-directories
 func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
-	files, err := os.ReadDir(dir)
-	Expect(err).NotTo(HaveOccurred())
+	err := filepath.WalkDir(dir, func(path string, entry os.DirEntry, err error) error {
+		Expect(err).NotTo(HaveOccurred())
 
-	for _, file := range files {
-		if !file.IsDir() && (strings.HasSuffix(file.Name(), ".yaml") || strings.HasSuffix(file.Name(), ".yml")) {
-			filePath := filepath.Join(dir, file.Name())
-
-			content, err := os.ReadFile(filePath)
+		// Entry is a YAML file - Apply manifest
+		if !entry.IsDir() && (filepath.Ext(entry.Name()) == ".yaml" || filepath.Ext(entry.Name()) == ".yml") {
+			// Get K8s resource from YAML file
+			obj, err := getK8sClientObject(path)
 			Expect(err).NotTo(HaveOccurred())
-
-			decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-			obj := &unstructured.Unstructured{}
-			_, _, err = decoder.Decode(content, nil, obj)
-			Expect(err).NotTo(HaveOccurred())
-
-			// Remove resourceVersion if set
-			obj.SetResourceVersion("")
 
 			// Apply the resource to the cluster
 			err = k8sClient.Create(ctx, obj)
@@ -148,44 +191,57 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
 			}
 			Expect(err).NotTo(HaveOccurred())
 		}
-	}
+
+		// Entry is a directory - Continue traversal
+		return nil
+	})
+	Expect(err).NotTo(HaveOccurred())
 }
 
+// Waits until the given K8s Client resource is deleted, or times out
+func waitForDeletion(ctx context.Context, obj *unstructured.Unstructured, timeout time.Duration, interval time.Duration) {
+	fmt.Printf("Waiting for deletion of resource %s/%s\n", obj.GetKind(), obj.GetName())
+	Eventually(func() error {
+		err := k8sClient.Get(ctx, client.ObjectKeyFromObject(obj), obj)
+		if errors.IsNotFound(err) {
+			fmt.Printf("Resource %s/%s deleted done\n", obj.GetKind(), obj.GetName())
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Resource %s/%s not deleted yet\n", obj.GetKind(), obj.GetName())
+		return fmt.Errorf("Resource %s/%s still exists", obj.GetKind(), obj.GetName())
+	}, timeout, interval).Should(Succeed())
+}
+
+// Delete all YAML files defined in the given directory, dir, as well as all sub-directories
 func deleteYAMLFilesFromDirectory(ctx context.Context, dir string) {
-	files, err := os.ReadDir(dir)
-	Expect(err).NotTo(HaveOccurred())
+	err := filepath.WalkDir(dir, func(path string, entry os.DirEntry, err error) error {
+		Expect(err).NotTo(HaveOccurred())
 
-	for _, file := range files {
-		if !file.IsDir() && (strings.HasSuffix(file.Name(), ".yaml") || strings.HasSuffix(file.Name(), ".yml")) {
-			filePath := filepath.Join(dir, file.Name())
-			fileData, err := os.ReadFile(filePath)
-			Expect(err).NotTo(HaveOccurred())
-			decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-			obj := &unstructured.Unstructured{}
-			_, _, err = decoder.Decode(fileData, nil, obj)
+		// Entry is a YAML file - Delete manifest
+		if !entry.IsDir() && (filepath.Ext(entry.Name()) == ".yaml" || filepath.Ext(entry.Name()) == ".yml") {
+			// Get K8s resource from YAML file
+			obj, err := getK8sClientObject(path)
 			Expect(err).NotTo(HaveOccurred())
 
+			fmt.Printf("Deleting %s/%s\n", obj.GetKind(), obj.GetName())
 			err = k8sClient.Delete(ctx, obj)
 			if errors.IsNotFound(err) {
-				continue
+				return nil
 			}
 			Expect(err).NotTo(HaveOccurred())
-			fmt.Printf("Deleting %s/%s\n", obj.GetKind(), obj.GetName())
+
 			// Wait for the resource to be deleted
-			Eventually(func() error {
-				err = k8sClient.Get(ctx, client.ObjectKeyFromObject(obj), obj)
-				if errors.IsNotFound(err) {
-					fmt.Printf("Resource %s/%s deleted done\n", obj.GetKind(), obj.GetName())
-					return nil
-				}
-				if err != nil {
-					return err
-				}
-				fmt.Printf("Resource %s/%s not deleted yet\n", obj.GetKind(), obj.GetName())
-				return fmt.Errorf("resource still exists")
-			}, 10*time.Second, 5*time.Millisecond).Should(Succeed())
+			waitForDeletion(ctx, obj, 10*time.Second, 5*time.Millisecond)
 		}
-	}
+
+		// Entry is a directory - Continue traversal
+		return nil
+	})
+	Expect(err).NotTo(HaveOccurred())
 }
 
 func verifyExampleOutput(exampleFolder string, exampleFile string) {
@@ -264,13 +320,4 @@ func verifyExampleOutput(exampleFolder string, exampleFile string) {
 
 		return nil
 	}, 10*time.Second, 2*time.Second).Should(Succeed())
-
-}
-
-func deleteExampleResources(ctx context.Context, inputPath string) {
-	folders, err := utils.GetSubDirs(inputPath)
-	Expect(err).NotTo(HaveOccurred())
-	for _, folder := range folders {
-		deleteYAMLFilesFromDirectory(ctx, path.Join(inputPath, folder))
-	}
 }
