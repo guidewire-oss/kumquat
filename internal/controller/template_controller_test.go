@@ -183,12 +183,17 @@ var _ = Describe("Template Controller Integration Test", func() {
 	})
 })
 
-// Get Kubernetes object defined by the YAML in the given path, filePath
-func getK8sClientObject(path string) (*unstructured.Unstructured, error) {
+// Returns True if the given path refers to a YAML file
+func isYAMLFile(path string) bool {
 	fileInfo, err := os.Stat(path)
 	Expect(err).NotTo(HaveOccurred())
 
-	if fileInfo.IsDir() || (filepath.Ext(fileInfo.Name()) != ".yaml" && filepath.Ext(fileInfo.Name()) != ".yml") {
+	return !fileInfo.IsDir() && (filepath.Ext(fileInfo.Name()) == ".yaml" || filepath.Ext(fileInfo.Name()) == ".yml")
+}
+
+// Get Kubernetes object defined by the YAML in the given path
+func getK8sClientObject(path string) (*unstructured.Unstructured, error) {
+	if isValidPath := isYAMLFile(path); !isValidPath {
 		return nil, fmt.Errorf("Invalid path: %s should be a YAML file", path)
 	}
 
@@ -212,7 +217,7 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Entry is a YAML file - Apply manifest
-		if !entry.IsDir() && (filepath.Ext(entry.Name()) == ".yaml" || filepath.Ext(entry.Name()) == ".yml") {
+		if isYAMLFile(path) {
 			// Get K8s resource from YAML file
 			obj, err := getK8sClientObject(path)
 			Expect(err).NotTo(HaveOccurred())
@@ -232,7 +237,7 @@ func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
 }
 
 // Waits until the given K8s Client resource is deleted, or times out
-func waitForDeletion(ctx context.Context, obj *unstructured.Unstructured, timeout time.Duration, interval time.Duration) {
+func waitForDeletion(ctx context.Context, obj *unstructured.Unstructured, timeout, interval time.Duration) {
 	fmt.Printf("Waiting for deletion of resource %s/%s\n", obj.GetKind(), obj.GetName())
 	Eventually(func() error {
 		err := k8sClient.Get(ctx, client.ObjectKeyFromObject(obj), obj)
@@ -255,7 +260,7 @@ func deleteYAMLFilesFromDirectory(ctx context.Context, dir string) {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Entry is a YAML file - Delete manifest
-		if !entry.IsDir() && (filepath.Ext(entry.Name()) == ".yaml" || filepath.Ext(entry.Name()) == ".yml") {
+		if isYAMLFile(path) {
 			// Get K8s resource from YAML file
 			obj, err := getK8sClientObject(path)
 			Expect(err).NotTo(HaveOccurred())
