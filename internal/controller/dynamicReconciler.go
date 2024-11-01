@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	kumquatv1beta1 "kumquat/api/v1beta1"
 	"kumquat/repository"
 
@@ -18,6 +17,14 @@ type DynamicReconciler struct {
 	client.Client
 	GVK       schema.GroupVersionKind
 	K8sClient K8sClient
+}
+
+func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient) *DynamicReconciler {
+	return &DynamicReconciler{
+		Client:    client,
+		GVK:       gvk,
+		K8sClient: k8sClient,
+	}
 }
 
 func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
@@ -36,77 +43,32 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 		if r.GVK.Group == "" {
 			group = "core"
 		}
-		// delete record from database
-		// TODO: checking the return code and returning an error causes the E2E tests to fail during delete template
-
-		DeleteRecord(r.GVK.Kind+"."+group, req.Namespace, req.Name) // nolint:errcheck
-
-		r.reconcileTemplates(ctx) // nolint:errcheck
+		err = DeleteResourceFromDatabaseByNameAndNameSpace(r.GVK.Kind, group, req.Namespace, req.Name) // nolint:errcheck
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		r.findAndReProcessAffectedTemplates(ctx) // nolint:errcheck
 
 		return reconcile.Result{}, nil
 
 	}
 
-	if err := r.processResource(ctx, resource); err != nil {
+	err = UpsertResourceToDatabase(resource, ctx) // nolint:errcheck
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	err = r.findAndReProcessAffectedTemplates(ctx) // nolint:errcheck
+
+	if err != nil {
 		return reconcile.Result{}, err
 	}
 
 	return reconcile.Result{}, nil
 }
 
-// DeleteRecord deletes a record from the specified table.
-func DeleteRecord(table, namespace, name string) error {
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Log.Error(err, "unable to create repository")
-		return err
-	}
-	_, err = re.Db.Exec( /* sql */ `DELETE FROM "`+table+`" WHERE namespace = ? AND name = ?`, namespace, name)
-	if err != nil {
-		log.Log.Error(err, "unable to delete record")
-		return err
-	}
-	log.Log.Info("Record deleted", "table", table, "namespace", namespace, "name", name)
-	return nil
-}
-
-// processResource processes the fetched resource.
-func (r *DynamicReconciler) processResource(ctx context.Context, resource *unstructured.Unstructured) error {
-	log := log.FromContext(ctx)
-	log.Info("Processing dynamic resource", "GVK", r.GVK, "resource", resource)
-
-	makedResource, err := repository.MakeResource(resource.Object)
-	if err != nil {
-		return fmt.Errorf("error creating resource: %w", err)
-	}
-
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Error(err, "unable to create repository")
-		return err
-	}
-
-	if exists, err := re.CheckIfResourceExists(makedResource); err != nil {
-		log.Error(err, "unable to check if resource exists")
-		return err
-	} else if exists {
-		log.Info("Resource already exists in database",
-			"GVK", r.GVK,
-			"name", resource.GetName(),
-			"namespace", resource.GetNamespace())
-		return nil
-	}
-
-	if err := re.Upsert(makedResource); err != nil {
-		log.Error(err, "unable to upsert resource")
-		return err
-	}
-
-	return r.reconcileTemplates(ctx)
-}
-
 // reconcileTemplates reconciles the templates associated with the resource.
-func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error {
+func (r *DynamicReconciler) findAndReProcessAffectedTemplates(ctx context.Context) error {
 	log := log.FromContext(ctx)
 	var templates []string
 
@@ -126,17 +88,13 @@ func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error {
 	return nil
 }
 
+// DeleteRecord deletes a record from the specified table.
+
 // processTemplate processes a single template.
 func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName string) error {
 	log := log.FromContext(ctx)
 
-	k8sClient := r.K8sClient
-	if k8sClient == nil {
-		err := fmt.Errorf("K8sClient is not initialized")
-		log.Error(err, "K8sClient is not initialized")
-		return err
-	}
-	template, err := k8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
+	template, err := r.K8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
 	if err != nil {
 		log.Error(err, "unable to get template", "templateName", templateName)
 		return err

@@ -199,13 +199,7 @@ func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error {
 	log.Log.Info("Starting watch", "gvk", gvk)
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
-
-	dynamicReconciler := &DynamicReconciler{
-		Client:    wm.client,
-		GVK:       gvk,
-		K8sClient: wm.K8sClient, // Pass the K8sClient here
-
-	}
+	dynamicReconciler := NewDynamicReconciler(wm.client, gvk, wm.K8sClient)
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 
@@ -272,8 +266,6 @@ func deleteTableFromDataBase(gvk schema.GroupVersionKind) error {
 	log.Log.Info("Table dropped", "tableName", tableName)
 	return nil
 }
-
-// DynamicReconciler reconciles dynamic resources.
 
 // unstructuredEventHandler handles events for unstructured resources.
 type unstructuredEventHandler struct{}
