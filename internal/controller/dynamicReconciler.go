@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	kumquatv1beta1 "kumquat/api/v1beta1"
-	"kumquat/repository"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,7 +30,10 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 	log := log.FromContext(ctx)
 	log.Info("Reconciling dynamic resource", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
 
-	resource, err := r.fetchResource(ctx, req)
+	resource := &unstructured.Unstructured{}
+	resource.SetGroupVersionKind(r.GVK)
+	resource, err := r.K8sClient.Get(ctx, r.GVK.Group, r.GVK.Kind, req.Namespace, req.Name)
+
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -88,8 +90,6 @@ func (r *DynamicReconciler) findAndReProcessAffectedTemplates(ctx context.Contex
 	return nil
 }
 
-// DeleteRecord deletes a record from the specified table.
-
 // processTemplate processes a single template.
 func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName string) error {
 	log := log.FromContext(ctx)
@@ -106,45 +106,12 @@ func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName st
 		return err
 	}
 
-	re, err := GetSqliteRepository()
+	sr, err := GetSqliteRepository()
 	if err != nil {
 		log.Error(err, "unable to create repository")
 		return err
 	}
 
-	return r.evaluateTemplate(ctx, template, re)
-}
+	return processTemplateResources(templateObj, sr, log, r.K8sClient)
 
-// fetchResource fetches the resource from the cluster.
-func (r *DynamicReconciler) fetchResource(
-	ctx context.Context,
-	req reconcile.Request,
-) (*unstructured.Unstructured, error) {
-	resource := &unstructured.Unstructured{}
-	resource.SetGroupVersionKind(r.GVK)
-	err := r.Client.Get(ctx, req.NamespacedName, resource)
-	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			return nil, err
-		}
-		return nil, nil
-	}
-	return resource, nil
-}
-
-// evaluateTemplate evaluates the template with the given data.
-func (r *DynamicReconciler) evaluateTemplate(
-	ctx context.Context,
-	template *unstructured.Unstructured,
-	re *repository.SQLiteRepository,
-) error {
-	templateObj := &kumquatv1beta1.Template{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(template.Object, templateObj)
-	if err != nil {
-		log := log.FromContext(ctx)
-		log.Error(err, "unable to convert unstructured to template")
-		return err
-	}
-
-	return processTemplateResources(templateObj, re, log.FromContext(ctx), r.K8sClient)
 }
