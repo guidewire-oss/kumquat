@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"time"
 
 	sigyaml "sigs.k8s.io/yaml"
@@ -65,7 +66,8 @@ var _ = Describe("Template Controller Integration Test", func() {
 		Expect(err).NotTo(HaveOccurred())
 		for _, exampleFolder := range exampleFolders {
 			inputFolder := path.Join(exampleFolderPath, exampleFolder, "input")
-			applyYAMLFilesFromDirectory(ctx, inputFolder)
+			templateFolder := path.Join(inputFolder, "templates")
+			applyYAMLFilesFromDirectory(ctx, inputFolder, []string{templateFolder})
 		}
 	})
 
@@ -77,8 +79,6 @@ var _ = Describe("Template Controller Integration Test", func() {
 		for _, exampleFolder := range exampleFolders {
 			inputFolder := path.Join(exampleFolderPath, exampleFolder, "input")
 			deleteYAMLFilesFromDirectory(ctx, inputFolder)
-			templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
-			deleteYAMLFilesFromDirectory(ctx, templateFolder)
 		}
 	})
 
@@ -92,8 +92,8 @@ var _ = Describe("Template Controller Integration Test", func() {
 				By(fmt.Sprintf("Running example %s", exampleFolder))
 
 				By("applying example templates")
-				templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
-				applyYAMLFilesFromDirectory(ctx, templateFolder)
+				templateFolder := path.Join(exampleFolderPath, exampleFolder, "input", "templates")
+				applyYAMLFilesFromDirectory(ctx, templateFolder, nil)
 
 				By("verifying that the output.yaml file has been created")
 				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
@@ -109,8 +109,8 @@ var _ = Describe("Template Controller Integration Test", func() {
 				By(fmt.Sprintf("Running example %s", exampleFolder))
 
 				By("applying example templates")
-				templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
-				applyYAMLFilesFromDirectory(ctx, templateFolder)
+				templateFolder := path.Join(exampleFolderPath, exampleFolder, "input", "templates")
+				applyYAMLFilesFromDirectory(ctx, templateFolder, nil)
 
 				By("verifying that the output.yaml file has been created")
 				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
@@ -125,8 +125,8 @@ var _ = Describe("Template Controller Integration Test", func() {
 			exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
 			Expect(err).NotTo(HaveOccurred())
 			for _, exampleFolder := range exampleFolders {
-				templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
-				applyYAMLFilesFromDirectory(ctx, templateFolder)
+				templateFolder := path.Join(exampleFolderPath, exampleFolder, "input", "templates")
+				applyYAMLFilesFromDirectory(ctx, templateFolder, nil)
 			}
 		})
 
@@ -137,7 +137,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 
 			for _, exampleFolder := range exampleFolders {
 				By("deleting example template")
-				templateFolder := path.Join(exampleFolderPath, exampleFolder, "templates")
+				templateFolder := path.Join(exampleFolderPath, exampleFolder, "input", "templates")
 				deleteYAMLFilesFromDirectory(ctx, templateFolder)
 
 				By("verifying expected managed resources got deleted")
@@ -212,9 +212,19 @@ func getK8sClientObject(path string) (*unstructured.Unstructured, error) {
 }
 
 // Apply all YAML files defined in the given directory, dir, as well as all sub-directories
-func applyYAMLFilesFromDirectory(ctx context.Context, dir string) {
+// Ignores paths specified in excludePaths
+func applyYAMLFilesFromDirectory(ctx context.Context, dir string, excludePaths []string) {
+	if excludePaths == nil {
+		excludePaths = []string{}
+	}
+
 	err := filepath.WalkDir(dir, func(path string, entry os.DirEntry, err error) error {
 		Expect(err).NotTo(HaveOccurred())
+
+		// Ignore paths specified in excludePaths
+		if slices.Contains(excludePaths, path) {
+			return filepath.SkipDir
+		}
 
 		// Entry is a YAML file - Apply manifest
 		if isYAMLFile(path) {
