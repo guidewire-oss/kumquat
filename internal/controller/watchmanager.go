@@ -242,7 +242,7 @@ func DeleteRecord(table, namespace, name string) error {
 		log.Log.Error(err, "unable to create repository")
 		return err
 	}
-	_, err = re.Db.Exec( /* sql */ `DELETE FROM "`+table+`" WHERE namespace = ? AND name = ?`, namespace, name)
+	err = re.Delete(namespace, name, table)
 	if err != nil {
 		log.Log.Error(err, "unable to delete record")
 		return err

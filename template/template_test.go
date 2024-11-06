@@ -331,6 +331,10 @@ func (m *MockRepository) Upsert(r repository.Resource) error {
 	return nil
 }
 
+func (m *MockRepository) Delete(namespace, name, table string) error {
+	return nil
+}
+
 func explodeOnErr[X any](x X, err error) X {
 	if err != nil {
 		panic(err)
