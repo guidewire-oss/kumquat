@@ -193,6 +193,9 @@ func (repo *MockRepo) Upsert(r repository.Resource) error {
 
 	return nil
 }
+func (m *MockRepo) Delete(namespace, name, table string) error {
+	return nil
+}
 
 func TestLoadYAMLResourcesFromDirectoryTreeWithErrors(t *testing.T) {
 	repo := &MockRepo{}
