@@ -136,7 +136,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 			err := k8sClient.Get(ctx, client.ObjectKey{Namespace: "kube-system", Name: "test-aws-auth-tenant-acme"}, configmap)
 			if err == nil {
 				fmt.Println("configmap test-aws-auth-tenant-acme still exists")
-				return err
+				return fmt.Errorf("configmap test-aws-auth-tenant-acme still exists")
 			}
 			return nil
 		}, 10*time.Second, 2*time.Second).Should(Succeed())
