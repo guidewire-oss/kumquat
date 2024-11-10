@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728417081528,
+  "lastUpdate": 1731260097528,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -666,6 +666,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1427440805,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "56201313+amirbavand@users.noreply.github.com",
+            "name": "Amir Bavand",
+            "username": "amirbavand"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6c8ee14641f5bd65776d16cb081bbc2fe3937781",
+          "message": "🐛 Fixed a bug during deletion of one dependent resource\n\n* added initial implementation to resolve the bug\r\n\r\n* fixed some bugs\r\n\r\n* addd required files to implement integration test for deletion scenario\r\n\r\n* addd required files to implement integration test for deletion scenario\r\n\r\n* added required integration test\r\n\r\n* added new line to file\r\n\r\n* reset the file\r\n\r\n* delete some of log statements\r\n\r\n* fixed some lint issues\r\n\r\n* fixed some more lint issues\r\n\r\n* addressed review comments\r\n\r\n* used map instead of list to delete the resources\r\n\r\n* fixed a return issue with test",
+          "timestamp": "2024-11-10T12:32:16-05:00",
+          "tree_id": "e2fd24d5fa42128d0b1cdcc59aeb38c0471f8463",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/6c8ee14641f5bd65776d16cb081bbc2fe3937781"
+        },
+        "date": 1731260096808,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29750,
+            "unit": "ns/op",
+            "extra": "400173 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29722,
+            "unit": "ns/op",
+            "extra": "405238 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25604,
+            "unit": "ns/op",
+            "extra": "464215 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1401368523,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
