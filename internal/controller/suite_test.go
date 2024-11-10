@@ -8,6 +8,8 @@ import (
 	"path/filepath" // Alias the standard library runtime package
 	"strings"
 
+	goruntime "runtime"
+
 	// Alias the standard library runtime package
 	"testing"
 
@@ -83,7 +85,7 @@ var _ = BeforeSuite(func() {
 		}
 		Expect(scanner.Err()).NotTo(HaveOccurred(), "Failed to read Makefile")
 
-		binaryDir = filepath.Join("..", "..", "bin", "k8s", fmt.Sprintf("%s-linux-amd64", envtestK8sVersion))
+		binaryDir = filepath.Join("..", "..", "bin", "k8s", fmt.Sprintf("%s-linux-%s", envtestK8sVersion, goruntime.GOARCH))
 	}
 
 	testEnv = &envtest.Environment{
