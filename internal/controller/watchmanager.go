@@ -7,6 +7,8 @@ import (
 	"kumquat/repository"
 	"sync"
 
+	mapset "github.com/deckarep/golang-set/v2"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -29,17 +31,25 @@ type ControllerEntry struct {
 	ctx        context.Context
 }
 
+type ResourceIdentifier struct {
+	Group     string
+	Kind      string
+	Namespace string
+	Name      string
+}
+
 // WatchManager manages dynamic watches.
 type WatchManager struct {
-	refCounts        map[schema.GroupVersionKind]int
-	watchedResources map[schema.GroupVersionKind]ControllerEntry
-	templates        map[string]map[schema.GroupVersionKind]struct{}
-	mu               sync.Mutex
-	cache            cache.Cache
-	client           client.Client
-	scheme           *runtime.Scheme
-	mgr              manager.Manager
-	K8sClient        K8sClient
+	refCounts          map[schema.GroupVersionKind]int
+	watchedResources   map[schema.GroupVersionKind]ControllerEntry
+	templates          map[string]map[schema.GroupVersionKind]struct{}
+	mu                 sync.Mutex
+	cache              cache.Cache
+	client             client.Client
+	scheme             *runtime.Scheme
+	mgr                manager.Manager
+	K8sClient          K8sClient
+	generatedResources map[string]mapset.Set[ResourceIdentifier]
 }
 
 var wm *WatchManager
@@ -47,14 +57,15 @@ var wm *WatchManager
 // NewWatchManager creates a new WatchManager instance.
 func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
 	watchManager := &WatchManager{
-		watchedResources: make(map[schema.GroupVersionKind]ControllerEntry),
-		refCounts:        make(map[schema.GroupVersionKind]int),
-		templates:        make(map[string]map[schema.GroupVersionKind]struct{}),
-		cache:            mgr.GetCache(),
-		scheme:           mgr.GetScheme(),
-		mgr:              mgr,
-		K8sClient:        k8sClient,
-		client:           mgr.GetClient(),
+		watchedResources:   make(map[schema.GroupVersionKind]ControllerEntry),
+		refCounts:          make(map[schema.GroupVersionKind]int),
+		templates:          make(map[string]map[schema.GroupVersionKind]struct{}),
+		generatedResources: make(map[string]mapset.Set[ResourceIdentifier]),
+		cache:              mgr.GetCache(),
+		scheme:             mgr.GetScheme(),
+		mgr:                mgr,
+		K8sClient:          k8sClient,
+		client:             mgr.GetClient(),
 	}
 	wm = watchManager
 	return watchManager
@@ -90,6 +101,11 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 	}
 
 	return nil
+}
+func (wm *WatchManager) UpdateGeneratedResources(templateName string, resources mapset.Set[ResourceIdentifier]) {
+	wm.mu.Lock()
+	defer wm.mu.Unlock()
+	wm.generatedResources[templateName] = resources
 }
 
 // UpdateWatch updates the watch for the specified template with new GVKs.
@@ -262,6 +278,10 @@ func deleteTableFromDataBase(gvk schema.GroupVersionKind) error {
 
 	err = re.DropTable(tableName)
 	if err != nil {
+		// if the table does not exist, return nil
+		if err.Error() == "table does not exist: "+tableName {
+			return nil
+		}
 		log.Log.Error(err, "unable to drop table")
 		return err
 	}
@@ -287,17 +307,17 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 
 	if resource == nil {
 		log.Info("Resource deleted", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
+		// set group to core if it is empty
+		group := r.GVK.Group
+		if r.GVK.Group == "" {
+			group = "core"
+		}
 		// delete record from database
 		// TODO: checking the return code and returning an error causes the E2E tests to fail during delete template
-		DeleteRecord(r.GVK.Kind+"."+r.GVK.Group, req.Namespace, req.Name) // nolint:errcheck
-		// if err != nil {
-		// 	return reconcile.Result{}, fmt.Errorf("error deleting record: %w", err)
-		// }
+
+		DeleteRecord(r.GVK.Kind+"."+group, req.Namespace, req.Name) // nolint:errcheck
 
 		r.reconcileTemplates(ctx) // nolint:errcheck
-		// if err != nil {
-		// 	return reconcile.Result{}, fmt.Errorf("error reconciling templates: %w", err)
-		// }
 
 		return reconcile.Result{}, nil
 

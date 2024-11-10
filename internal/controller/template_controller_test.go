@@ -109,6 +109,39 @@ var _ = Describe("Template Controller Integration Test", func() {
 		}
 
 	})
+	It("should make sure that if the result of a query is changes,the resource that was created should be updated", func() { //nolint:errcheck
+		applyExampleResources(ctx, path.Join("test_resources", "delete_scenario"))
+		configmaps := []string{"test-aws-auth-tenant-acme", "test-aws-auth-base", "test-aws-auth-tenant-umbrella"}
+		Eventually(func() error {
+
+			for _, configmapName := range configmaps {
+				configmap := &corev1.ConfigMap{}
+				err := k8sClient.Get(ctx, client.ObjectKey{Namespace: "kube-system", Name: configmapName}, configmap)
+				if err != nil {
+					return err
+				}
+
+			}
+			return nil
+		}, 10*time.Second, 2*time.Second).Should(Succeed())
+		// delete a configmap with nmame aws-auth-tenant-acme and
+		// expect that the configmap with name test-aws-auth-tenant-acme
+		// will be deleted as well but the other two will remain
+		configmap := &corev1.ConfigMap{}
+		err := k8sClient.Get(ctx, client.ObjectKey{Namespace: "kube-system", Name: "aws-auth-tenant-acme"}, configmap)
+		Expect(err).NotTo(HaveOccurred())
+		err = k8sClient.Delete(ctx, configmap)
+		Expect(err).NotTo(HaveOccurred())
+		Eventually(func() error {
+			err := k8sClient.Get(ctx, client.ObjectKey{Namespace: "kube-system", Name: "test-aws-auth-tenant-acme"}, configmap)
+			if err == nil {
+				fmt.Println("configmap test-aws-auth-tenant-acme still exists")
+				return fmt.Errorf("configmap test-aws-auth-tenant-acme still exists")
+			}
+			return nil
+		}, 10*time.Second, 2*time.Second).Should(Succeed())
+
+	})
 })
 
 // Function to apply resources from an example
