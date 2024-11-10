@@ -13,12 +13,23 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/devcontainers/go:1-1.23-bullseye
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
 
-    - name: Build
-      run: go build -buildvcs=false -v ./...
+      - name: Setup Go 📦
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
-    - name: Test
-      run: go test -skip '^(TestE2E|TestControllers)$' -v ./...
+      - name: Build 🏗️
+        run: go build -buildvcs=false -v ./...
+
+      - name: Setup envtest for integration tests 🔧
+        run: |
+          make envtest
+          bin/setup-envtest use $(grep -E '^ENVTEST_K8S_VERSION[[:space:]]*=[[:space:]]*[[:digit:][:punct:]]*' Makefile | cut -d'=' -f2 | tr -d '[:space:]') --bin-dir bin
+
+      - name: Test 🧪
+        run: |
+          go test -skip '^(TestE2E)$' -v ./...

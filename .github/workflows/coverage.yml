@@ -9,59 +9,89 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/devcontainers/go:1-1.23-bullseye
     permissions:
       # Allow write access to update notes
       contents: write
       issues: write
       pull-requests: write
     steps:
-    - uses: actions/checkout@v4
-      with:
-        # default fetch-depth is insufficent to find previous coverage notes
-        fetch-depth: 10
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+        with:
+          # default fetch-depth is insufficent to find previous coverage notes
+          fetch-depth: 10
 
-    - run: git config --system --add safe.directory /__w/kumquat/kumquat
-      working-directory: /__w/kumquat/kumquat
+      - name: Setup Go 📦
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
-    - uses: gwatts/go-coverage-action@v2
-      id: coverage
-      with:
-        # Optional coverage threshold
-        # use fail-coverage to determine what should happen below this threshold
-        coverage-threshold: 70
+      - name: Setup envtest for integration tests 🔧
+        run: |
+          make envtest
+          bin/setup-envtest use $(grep -E '^ENVTEST_K8S_VERSION[[:space:]]*=[[:space:]]*[[:digit:][:punct:]]*' Makefile | cut -d'=' -f2 | tr -d '[:space:]') --bin-dir bin
+          # Ensure the downloaded binaries are writeable so that "git stash push --all" can work
+          chmod -R 755 bin/k8s
 
-        # collect coverage for all packages beyond the one under test
-        cover-pkg: ./...
+      - name: Analyze coverage 🔎
+        uses: gwatts/go-coverage-action@v2
+        id: coverage
+        with:
+          # Optional coverage threshold
+          # use fail-coverage to determine what should happen below this threshold
+          coverage-threshold: 70
+          fail-coverage: never
 
-        # Ignore code-generated files when calculating coverage totals
-        ignore-pattern: |
-          \.pb\.go$
-          \_string\.go$
+          # collect coverage for all packages beyond the one under test
+          cover-pkg: ./...
 
-        # Ignore E2E and integration tests for now
-        test-args: '["-skip", "^(TestE2E|TestControllers)$"]'
+          # Ignore code-generated files when calculating coverage totals
+          ignore-pattern: |
+            \.pb\.go$
+            \_string\.go$
+            zz_generated
 
-    - name: Update coverage badge
-      uses: schneegans/dynamic-badges-action@v1.7.0
-      if: github.ref_name == 'main'
-      with:
-        auth: ${{ secrets.GIST_BADGE_SECRET }}
-        gistID: cb14f8ad568d175cf0ba9f7ac6d0a6ca
-        filename: kumquat-coverage.json
-        label: Go Coverage
-        message: ${{ steps.coverage.outputs.coverage-pct-1dp }}%
-        color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
+          # Ignore E2E and integration tests for now
+          test-args: '["-skip", "^(TestE2E)$"]'
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: code-coverage-cov
-        path: ${{ steps.coverage.outputs.gocov-agg-pathname }}
+      - name: Publish coverage 📦
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-cov
+          path: ${{ steps.coverage.outputs.gocov-agg-pathname }}
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: code-coverage-report
-        path: ${{ steps.coverage.outputs.report-pathname }}
-  
-  
+      - name: Publish coverage report 📝
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: ${{ steps.coverage.outputs.report-pathname }}
+
+      - name: Update coverage badge 🎗️
+        if: github.ref_name == 'main'
+        run: echo "{\"label\":\"Go Coverage\",\"message\":\"${{ steps.coverage.outputs.coverage-pct-1dp }}%\",\"schemaVersion\":1,\"color\":\"${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}\"}" > /tmp/kumquat-coverage.json
+
+      - name: Update coverage report on gh-pages 📰
+        if: github.ref_name == 'main'
+        shell: bash
+        run: |
+          echo "Coverage report: ${{ steps.coverage.outputs.report-pathname }}"
+          mkdir -p /tmp/coverage-report
+          cp -r ${{ steps.coverage.outputs.report-pathname }} /tmp/coverage-report
+          git stash push --all
+          git fetch origin gh-pages:gh-pages
+          git switch gh-pages
+          git pull origin gh-pages
+          mkdir -p ./dev/coverage
+          cp -r /tmp/coverage-report/* ./dev/coverage
+          cp /tmp/kumquat-coverage.json .
+          git add ./dev/coverage kumquat-coverage.json
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git commit -m "Update coverage report for commit ${{ github.sha }}" || true
+          git push origin gh-pages
+          git checkout ${{ github.ref }}
+          git stash pop || true
+
+      - name: Fail on low coverage ❌
+        if: steps.coverage.outputs.meets-threshold == 'false'
+        run: exit 1
