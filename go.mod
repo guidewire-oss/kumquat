@@ -4,6 +4,7 @@ go 1.23.1
 
 require (
 	cuelang.org/go v0.10.0
+	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/go-logr/logr v1.4.2
 	github.com/google/go-cmp v0.6.0
 	github.com/mattn/go-sqlite3 v1.14.24
