@@ -145,21 +145,20 @@ func (r *SQLiteRepository) createTable(table string) error {
 	return nil
 }
 func (r *SQLiteRepository) Delete(namespace, name, table string) error {
-    r.mu.Lock()
-    defer r.mu.Unlock()
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-    // Prepare the SQL statement to delete the record
-    query := `DELETE FROM "` + table + `" WHERE namespace = ? AND name = ?`
-    
-    // Execute the query
-    _, err := r.db.Exec(query, namespace, name)
-    if err != nil {
-        return fmt.Errorf("unable to delete record: %w", err)
-    }
+	// Prepare the SQL statement to delete the record
+	query := `DELETE FROM "` + table + `" WHERE namespace = ? AND name = ?`
 
-    return nil
+	// Execute the query
+	_, err := r.db.Exec(query, namespace, name)
+	if err != nil {
+		return fmt.Errorf("unable to delete record: %w", err)
+	}
+
+	return nil
 }
-
 
 func (r *SQLiteRepository) Upsert(resource Resource) error {
 	r.mu.Lock()
