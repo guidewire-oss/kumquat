@@ -16,7 +16,7 @@ spec:
       ./output/out.yaml
     data: | #cue
       let DATA = data
-      out: {
+      {
             apiVersion: "v1"
             kind: "ConfigMap"
             metadata: {
