@@ -78,8 +78,8 @@ spec:
     data: | #cue
       import "strings"
 
-      mapRoles: strings.Join([for result in data {result.cm.data.mapRoles}], "")
-      out: {
+      _mapRoles: strings.Join([for result in data {result.cm.data.mapRoles}], "")
+      {
         apiVersion: "v1"
         kind: "ConfigMap"
         metadata: {
@@ -87,7 +87,7 @@ spec:
           namespace: "kube-system"
         }
         data: {
-          "mapRoles": mapRoles
+          "mapRoles": _mapRoles
         }
       }
 ```
