@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1731337608864,
+  "lastUpdate": 1731339078304,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -1098,6 +1098,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1395665727,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "d21it185@charusat.edu.in",
+            "name": "D21IT185BapodraRajSatish",
+            "username": "D21IT185BapodraRajSatish"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "200f66713bce4aa1d57215cdf777df74f21193e4",
+          "message": "Refactor Delete method in SQLiteRepository for improved readability",
+          "timestamp": "2024-11-11T10:29:22-05:00",
+          "tree_id": "d2ad9e7b4164eecad7b104dfbf402f940e74f428",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/200f66713bce4aa1d57215cdf777df74f21193e4"
+        },
+        "date": 1731339077090,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30081,
+            "unit": "ns/op",
+            "extra": "396339 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29600,
+            "unit": "ns/op",
+            "extra": "395874 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25455,
+            "unit": "ns/op",
+            "extra": "469220 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1410525578,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
