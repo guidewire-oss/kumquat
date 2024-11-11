@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1731299898205,
+  "lastUpdate": 1731300478621,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -764,6 +764,54 @@ window.BENCHMARK_DATA = {
             "value": 1430332289,
             "unit": "ns/op",
             "extra": "7 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "da464f5aabab714701e35f1d5a0c7b4bb98cccdf",
+          "message": ":arrow_up: Bump sigs.k8s.io/e2e-framework from 0.4.0 to 0.5.0\n\nBumps [sigs.k8s.io/e2e-framework](https://github.com/kubernetes-sigs/e2e-framework) from 0.4.0 to 0.5.0.\n- [Release notes](https://github.com/kubernetes-sigs/e2e-framework/releases)\n- [Changelog](https://github.com/kubernetes-sigs/e2e-framework/blob/main/RELEASE.md)\n- [Commits](https://github.com/kubernetes-sigs/e2e-framework/compare/v0.4.0...v0.5.0)\n\n---\nupdated-dependencies:\n- dependency-name: sigs.k8s.io/e2e-framework\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-11-10T23:45:01-05:00",
+          "tree_id": "5eaa833eb4158d9d24c7ea1592708c8282ad0864",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/da464f5aabab714701e35f1d5a0c7b4bb98cccdf"
+        },
+        "date": 1731300478131,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29496,
+            "unit": "ns/op",
+            "extra": "399126 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29507,
+            "unit": "ns/op",
+            "extra": "407252 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25316,
+            "unit": "ns/op",
+            "extra": "473642 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1393948346,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
           }
         ]
       }
