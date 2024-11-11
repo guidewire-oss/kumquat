@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1731260097528,
+  "lastUpdate": 1731299898205,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -716,6 +716,54 @@ window.BENCHMARK_DATA = {
             "value": 1401368523,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "878cd32a3cf9b567de6553bd79e20f34c365e989",
+          "message": "Merge pull request #18 from guidewire-oss/chore/update-dependencies\n\n⬆️ Bump some Kubernetes dependencies",
+          "timestamp": "2024-11-10T23:35:17-05:00",
+          "tree_id": "03c4a5959302f81b0a03388140ffeca71adc4d60",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/878cd32a3cf9b567de6553bd79e20f34c365e989"
+        },
+        "date": 1731299897756,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30243,
+            "unit": "ns/op",
+            "extra": "398774 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 30243,
+            "unit": "ns/op",
+            "extra": "396112 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25730,
+            "unit": "ns/op",
+            "extra": "467788 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1430332289,
+            "unit": "ns/op",
+            "extra": "7 times\n4 procs"
           }
         ]
       }
