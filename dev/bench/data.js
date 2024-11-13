@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1731339078304,
+  "lastUpdate": 1731521737219,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -1146,6 +1146,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1410525578,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "4013642a3bca2980e0107ead94b986062e90888b",
+          "message": "✅  Determine architecture for TestController tests.",
+          "timestamp": "2024-11-13T13:13:57-05:00",
+          "tree_id": "50d3061e7c85e74869a2a9d5605a96287a4f493a",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/4013642a3bca2980e0107ead94b986062e90888b"
+        },
+        "date": 1731521736369,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29715,
+            "unit": "ns/op",
+            "extra": "403309 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29400,
+            "unit": "ns/op",
+            "extra": "402990 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25477,
+            "unit": "ns/op",
+            "extra": "464653 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1398228318,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
