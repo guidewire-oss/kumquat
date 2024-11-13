@@ -15,18 +15,12 @@ spec:
     fileName: |
       ./output/out.yaml
     data: | #cue
-      let DATA = data
-      {
-            apiVersion: "v1"
-            kind: "ConfigMap"
-            metadata: {
-              name: "test-\(DATA.cm.metadata.name)"
-              namespace: "kube-system"
-            }
-            data: {
-              "mapRoles": DATA.cm.data.mapRoles
-            }
+      apiVersion: "v1"
+      kind: "ConfigMap"
+      metadata: {
+        name: "test-\(DATA.cm.metadata.name)"
+        namespace: "kube-system"
       }
-
-
-
+      data: {
+        "mapRoles": DATA.cm.data.mapRoles
+      }
