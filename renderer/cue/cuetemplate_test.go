@@ -18,8 +18,8 @@ func TestNewCUERenderer(t *testing.T) {
 
 func TestRenderCUEWithEmptyResources(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
-	out: [
-        for result in data {
+	[
+        for result in DATA {
 			foo: "bar"
 		}
 	]`, t.Name())
@@ -36,9 +36,7 @@ func TestRenderCUEImportStrings(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
 	import "strings"
 
-	{
-		foo: strings.Join(["a", "b"], "-")
-	}`, t.Name())
+	foo: strings.Join(["a", "b"], "-")`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
@@ -66,7 +64,7 @@ func getTestResource(t *testing.T, name string) repository.Resource {
 
 func TestRenderCUEWithBatchModeProcessingOffWithSingleResourceOutput(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
-	foo: data.a.metadata.name
+	foo: DATA.a.metadata.name
 	`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
@@ -96,10 +94,10 @@ func TestRenderCUEWithBatchModeProcessingOffWithMultipleResourcesOutput(t *testi
 	tpl, err := cue.NewCUERenderer(`
 	[
 		{
-			foo: data.a.metadata.name
+			foo: DATA.a.metadata.name
 		},
 		{
-			bar: data.a.metadata.name
+			bar: DATA.a.metadata.name
 		}
 	]
 	`, t.Name())
@@ -130,8 +128,8 @@ func TestRenderCUEWithBatchModeProcessingOffWithMultipleResourcesOutput(t *testi
 func TestRenderCUEWithBatchModeProcessingOnWithMultipleResourcesOutput(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
 	[
-		for result in data {
-		foo: result.a.metadata.name
+		for result in DATA {
+			foo: result.a.metadata.name
 		}
 	]`, t.Name())
 	require.NoError(t, err)
@@ -156,13 +154,11 @@ func TestRenderCUEWithBatchModeProcessingOnWithMultipleResourcesOutput(t *testin
 
 func TestRenderCUEWithBatchModeProcessingOnWithSingleResourceOutput(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
-	{
-		foos: [
-			for result in data {
-				foo: result.a.metadata.name
-			}
-		]
-	}`, t.Name())
+	foos: [
+		for result in DATA {
+			foo: result.a.metadata.name
+		}
+	]`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 

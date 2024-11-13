@@ -47,7 +47,7 @@ func (r *CUERenderer) Render(results any, output *renderer.Output) error {
 }
 
 func (t *CUERenderer) evaluate(r any, o *renderer.Output) error {
-	data := t.ctx.Encode(map[string]any{"data": r})
+	data := t.ctx.Encode(map[string]any{"DATA": r})
 	compiled := t.ctx.CompileString(t.config, cuelang.Scope(data))
 	v := compiled.Eval()
 

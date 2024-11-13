@@ -78,7 +78,7 @@ spec:
     data: | #cue
       import "strings"
 
-      _mapRoles: strings.Join([for result in data {result.cm.data.mapRoles}], "")
+      _mapRoles: strings.Join([for result in DATA {result.cm.data.mapRoles}], "")
       {
         apiVersion: "v1"
         kind: "ConfigMap"

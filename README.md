@@ -50,7 +50,7 @@ spec:
     batchModeProcessing: true
     data: | #cue
       _unique_groups_map: {
-        for result in data {
+        for result in DATA {
           "\(result.crd.spec.group)": result.crd.spec.group
         }
       }
