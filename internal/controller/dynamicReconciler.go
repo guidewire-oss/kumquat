@@ -34,6 +34,10 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 	if err != nil {
 		return reconcile.Result{}, err
 	}
+	repository, err := GetSqliteRepository()
+	if err != nil {
+		return reconcile.Result{}, err
+	}
 
 	if resource == nil {
 		log.Info("Resource deleted", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
@@ -42,7 +46,8 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 		if r.GVK.Group == "" {
 			group = "core"
 		}
-		err = DeleteResourceFromDatabaseByNameAndNameSpace(r.GVK.Kind, group, req.Namespace, req.Name) // nolint:errcheck
+
+		err = DeleteResourceFromDatabaseByNameAndNameSpace(repository, r.GVK.Kind, group, req.Namespace, req.Name) // nolint:errcheck
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -52,7 +57,7 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 
 	}
 
-	err = UpsertResourceToDatabase(resource, ctx) // nolint:errcheck
+	err = UpsertResourceToDatabase(repository, resource, ctx) // nolint:errcheck
 	if err != nil {
 		return reconcile.Result{}, err
 	}

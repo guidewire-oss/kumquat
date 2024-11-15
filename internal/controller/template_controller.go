@@ -43,9 +43,9 @@ import (
 
 const templateFinalizer = "kumquat.guidewire.com/finalizer"
 
-var SqliteRepository *repository.SQLiteRepository // Initially nil
+var SqliteRepository repository.Repository // Changed from *SQLiteRepository to Repository interface
 
-func GetSqliteRepository() (*repository.SQLiteRepository, error) {
+func GetSqliteRepository() (repository.Repository, error) {
 	if SqliteRepository == nil {
 		rep, err := repository.NewSQLiteRepository()
 		if err != nil {
@@ -133,7 +133,7 @@ func (r *TemplateReconciler) handleDeletion(
 }
 func deleteAssociatedResources(
 	template *kumquatv1beta1.Template,
-	re *repository.SQLiteRepository,
+	re repository.Repository,
 	log logr.Logger,
 	k8sClient K8sClient,
 ) error {
@@ -283,7 +283,7 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 func extractGVKsFromQuery(
 	query string,
-	re *repository.SQLiteRepository,
+	re repository.Repository,
 	log logr.Logger,
 	k8sClient K8sClient,
 ) ([]schema.GroupVersionKind, error) {
@@ -387,13 +387,13 @@ func GetTemplateResourceFromCluster(kind string, group string, name string, log 
 
 // applyTemplateResources applies the resources generated from the template.
 func applyTemplateResources(
-	template *kumquatv1beta1.Template, re *repository.SQLiteRepository, log logr.Logger, k8sClient K8sClient) error {
+	template *kumquatv1beta1.Template, re repository.Repository, log logr.Logger, k8sClient K8sClient) error {
 	return processTemplateResources(template, re, log, k8sClient)
 }
 
 func processTemplateResources(
 	template *kumquatv1beta1.Template,
-	re *repository.SQLiteRepository,
+	re repository.Repository,
 	log logr.Logger,
 	k8sClient K8sClient,
 ) error {
