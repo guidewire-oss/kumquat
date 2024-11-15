@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -10,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/util/workqueue"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -201,22 +203,26 @@ func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error {
 	obj.SetGroupVersionKind(gvk)
 	dynamicReconciler := NewDynamicReconciler(wm.client, gvk, wm.K8sClient)
 
-	ctx, cancelFunc := context.WithCancel(context.Background())
-
 	c, err := controller.NewUnmanaged("dynamic-controller-"+gvk.Kind, wm.mgr, controller.Options{
 		Reconciler: dynamicReconciler,
+
+		// Skip the name check introduced in v0.19.0 of controller-runtime via
+		// https://github.com/kubernetes-sigs/controller-runtime/pull/2902; we managed the controller lifecycle
+		// ourselves and it is not necessary to have unique names.
+		SkipNameValidation: ptr.To(true),
 	})
 	if err != nil {
-		cancelFunc()
+		fmt.Printf("Error creating controller: %v\n", err)
 		return err
 	}
 
 	kindSource := source.Kind(wm.mgr.GetCache(), obj, &unstructuredEventHandler{})
 	err = c.Watch(kindSource)
 	if err != nil {
-		cancelFunc()
 		return err
 	}
+
+	ctx, cancelFunc := context.WithCancel(context.Background())
 
 	wm.watchedResources[gvk] = ControllerEntry{controller: c, cancelFunc: cancelFunc, ctx: ctx}
 	go func() {
@@ -243,6 +249,22 @@ func (wm *WatchManager) logActiveControllers() {
 	for gvk, entry := range wm.watchedResources {
 		log.Log.Info("Active controller", "gvk", gvk, "context", entry.ctx)
 	}
+}
+
+// DeleteRecord deletes a record from the specified table.
+func DeleteRecord(table, namespace, name string) error {
+	re, err := GetSqliteRepository()
+	if err != nil {
+		log.Log.Error(err, "unable to create repository")
+		return err
+	}
+	err = re.Delete(namespace, name, table)
+	if err != nil {
+		log.Log.Error(err, "unable to delete record")
+		return err
+	}
+	log.Log.Info("Record deleted", "table", table, "namespace", namespace, "name", name)
+	return nil
 }
 
 // deleteTableFromDataBase deletes a table from the database.
@@ -273,7 +295,7 @@ type unstructuredEventHandler struct{}
 func (h *unstructuredEventHandler) Create(
 	ctx context.Context,
 	evt event.TypedCreateEvent[*unstructured.Unstructured],
-	q workqueue.RateLimitingInterface,
+	q workqueue.TypedRateLimitingInterface[ctrl.Request],
 ) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }
@@ -281,7 +303,7 @@ func (h *unstructuredEventHandler) Create(
 func (h *unstructuredEventHandler) Update(
 	ctx context.Context,
 	evt event.TypedUpdateEvent[*unstructured.Unstructured],
-	q workqueue.RateLimitingInterface,
+	q workqueue.TypedRateLimitingInterface[ctrl.Request],
 ) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.ObjectNew)})
 }
@@ -289,7 +311,7 @@ func (h *unstructuredEventHandler) Update(
 func (h *unstructuredEventHandler) Delete(
 	ctx context.Context,
 	evt event.TypedDeleteEvent[*unstructured.Unstructured],
-	q workqueue.RateLimitingInterface,
+	q workqueue.TypedRateLimitingInterface[ctrl.Request],
 ) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }
@@ -297,7 +319,7 @@ func (h *unstructuredEventHandler) Delete(
 func (h *unstructuredEventHandler) Generic(
 	ctx context.Context,
 	evt event.TypedGenericEvent[*unstructured.Unstructured],
-	q workqueue.RateLimitingInterface,
+	q workqueue.TypedRateLimitingInterface[ctrl.Request],
 ) {
 	q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }

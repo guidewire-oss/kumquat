@@ -14,7 +14,7 @@ import (
 )
 
 type SQLiteRepository struct {
-	Db          *sql.DB
+	db          *sql.DB
 	StoredKinds map[string]bool
 	mu          sync.Mutex
 }
@@ -35,7 +35,7 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 	var rows *sql.Rows
 	var err error
 
-	for rows, err = r.Db.Query(query); err != nil; rows, err = r.Db.Query(query) {
+	for rows, err = r.db.Query(query); err != nil; rows, err = r.db.Query(query) {
 		m := tableErrorRegexp.FindStringSubmatch(err.Error())
 		// print m to see the table name
 		log.Log.Info("Error running qsdsduery", "error", err.Error(), "table", m)
@@ -125,7 +125,7 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) {
 }
 
 func (r *SQLiteRepository) Close() error {
-	return r.Db.Close()
+	return r.db.Close()
 }
 
 func (r *SQLiteRepository) createTable(table string) error {
@@ -133,7 +133,7 @@ func (r *SQLiteRepository) createTable(table string) error {
 		return fmt.Errorf("table already exists: %s", table)
 	}
 
-	_, err := r.Db.Exec( /* sql */ `CREATE TABLE "` + table +
+	_, err := r.db.Exec( /* sql */ `CREATE TABLE "` + table +
 		`" (namespace TEXT NOT NULL, name TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY (namespace, name)) STRICT`)
 
 	if err != nil {
@@ -141,6 +141,21 @@ func (r *SQLiteRepository) createTable(table string) error {
 	}
 
 	r.StoredKinds[table] = true
+
+	return nil
+}
+func (r *SQLiteRepository) Delete(namespace, name, table string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Prepare the SQL statement to delete the record
+	query := `DELETE FROM "` + table + `" WHERE namespace = ? AND name = ?`
+
+	// Execute the query
+	_, err := r.db.Exec(query, namespace, name)
+	if err != nil {
+		return fmt.Errorf("unable to delete record: %w", err)
+	}
 
 	return nil
 }
@@ -166,7 +181,7 @@ func (r *SQLiteRepository) Upsert(resource Resource) error {
 		}
 	}
 
-	_, err = r.Db.Exec( /* sql */ `INSERT INTO "`+table+`" (namespace, name, data) VALUES (?,?,?)
+	_, err = r.db.Exec( /* sql */ `INSERT INTO "`+table+`" (namespace, name, data) VALUES (?,?,?)
 		ON CONFLICT(namespace, name) DO UPDATE SET data=excluded.data`,
 		resource.Namespace(), resource.Name(), contentJSON)
 
@@ -175,6 +190,40 @@ func (r *SQLiteRepository) Upsert(resource Resource) error {
 	}
 
 	return nil
+}
+
+// a function that builds data columns from the resource and check if a row with the same value for data column exists
+func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	byteJSON, err := json.Marshal(resource.Content())
+
+	if err != nil {
+		return false, fmt.Errorf("unable to encode resource as JSON: %w", err)
+	}
+
+	table := resource.Kind() + "." + resource.Group()
+	fmt.Println("Checking if resource with same data already exists",
+		"table", table, "namespace", resource.Namespace(), "name", resource.Name())
+	contentJSON := string(byteJSON)
+	log.Log.Info("Checking if resource exists", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
+
+	if !r.StoredKinds[table] {
+		err := r.createTable(table)
+
+		if err != nil {
+			return false, err
+		}
+	}
+
+	var count int
+	err = r.db.QueryRow( /* sql */ `SELECT COUNT(*) FROM "`+table+`" WHERE data = ?`, contentJSON).Scan(&count)
+
+	if err != nil {
+		return false, fmt.Errorf("unable to check if resource exists: %w", err)
+	}
+
+	return count > 0, nil
 }
 
 func (r *SQLiteRepository) ExtractTableNamesFromQuery(query string) []string {
@@ -202,7 +251,7 @@ func (r *SQLiteRepository) DropTable(table string) error {
 	if !r.StoredKinds[table] {
 		return fmt.Errorf("table does not exist: %s", table)
 	}
-	_, err := r.Db.Exec( /* sql */ `DROP TABLE "` + table + `"`)
+	_, err := r.db.Exec( /* sql */ `DROP TABLE "` + table + `"`)
 
 	if err != nil {
 		return fmt.Errorf("unable to drop table: %w", err)
@@ -221,7 +270,7 @@ func NewSQLiteRepository() (*SQLiteRepository, error) {
 	}
 
 	repo := &SQLiteRepository{
-		Db:          db,
+		db:          db,
 		StoredKinds: make(map[string]bool),
 		mu:          sync.Mutex{},
 	}
