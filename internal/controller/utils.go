@@ -17,7 +17,7 @@ func DeleteResourceFromDatabaseByNameAndNameSpace(kind, group, namespace, name s
 		log.Log.Error(err, "unable to create repository")
 		return err
 	}
-	_, err = re.Db.Exec( /* sql */ `DELETE FROM "`+tableName+`" WHERE namespace = ? AND name = ?`, namespace, name)
+	err = re.Delete(namespace, name, tableName)
 	if err != nil {
 		log.Log.Error(err, "unable to delete record")
 		return err
