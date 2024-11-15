@@ -148,8 +148,9 @@ var _ = Describe("Template Controller Integration Test", func() {
 			}
 		})
 	})
-	It("should make sure that if the result of a query is changes,the resource that was created should be updated", func() { //nolint:errcheck
-		applyExampleResources(ctx, path.Join("test_resources", "delete_scenario"))
+
+	It("should update managed resources if the result of a query changes", func() {
+		applyResourcesFromYAMLInDir(ctx, path.Join("test_resources", "delete_scenario"), nil)
 		configmaps := []string{"test-aws-auth-tenant-acme", "test-aws-auth-base", "test-aws-auth-tenant-umbrella"}
 		Eventually(func() error {
 
@@ -179,7 +180,6 @@ var _ = Describe("Template Controller Integration Test", func() {
 			}
 			return nil
 		}, 10*time.Second, 2*time.Second).Should(Succeed())
-
 	})
 })
 
