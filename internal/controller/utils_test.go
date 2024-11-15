@@ -1,11 +1,34 @@
-package controller
+package controller_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"kumquat/repository"
 	"testing"
+
+	controller "kumquat/internal/controller"
+
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
+
+// TestSuite holds the shared state for the tests.
+type TestSuite struct {
+	mockRepo *MockRepository
+	ctx      context.Context
+}
+
+// Setup initializes the shared state before each test.
+func (s *TestSuite) Setup() {
+	s.ctx = context.Background()
+	s.mockRepo = &MockRepository{}
+}
+
+// Teardown cleans up the shared state after each test.
+func (s *TestSuite) Teardown() {
+	// If there are resources to clean up, do it here.
+	// For this example, we don't have any specific teardown steps.
+}
 
 // MockRepository is a mock implementation of repository.Repository
 type MockRepository struct {
@@ -29,7 +52,7 @@ func (m *MockRepository) Upsert(resource repository.Resource) error {
 	return nil
 }
 
-// Implement other methods of the Repository interface if needed
+// Implement other methods if required
 func (m *MockRepository) Query(query string) (repository.ResultSet, error) {
 	return repository.ResultSet{}, nil
 }
@@ -46,31 +69,32 @@ func (m *MockRepository) DropTable(table string) error {
 	return nil
 }
 
-// Save the original MakeResource function to restore after tests
-var originalMakeResource = repository.MakeResource
-
-// restoreMakeResource restores the original MakeResource function
+const (
+	kind = "TestKind"
+)
 
 // TestDeleteResourceFromDatabaseByNameAndNameSpace_Success tests the success case
 func TestDeleteResourceFromDatabaseByNameAndNameSpace_Success(t *testing.T) {
 	// Arrange
-	kind := "TestKind"
+	suite := &TestSuite{}
+	suite.Setup()
+	defer suite.Teardown()
+
+	kind := kind
 	group := "TestGroup"
 	namespace := "TestNamespace"
 	name := "TestName"
 	tableName := kind + "." + group
 
-	mockRepo := &MockRepository{
-		DeleteFunc: func(ns, n, tbl string) error {
-			if ns != namespace || n != name || tbl != tableName {
-				return fmt.Errorf("unexpected parameters")
-			}
-			return nil
-		},
+	suite.mockRepo.DeleteFunc = func(ns, n, tbl string) error {
+		if ns != namespace || n != name || tbl != tableName {
+			return fmt.Errorf("unexpected parameters")
+		}
+		return nil
 	}
 
 	// Act
-	err := DeleteResourceFromDatabaseByNameAndNameSpace(mockRepo, kind, group, namespace, name)
+	err := controller.DeleteResourceFromDatabaseByNameAndNameSpace(suite.mockRepo, kind, group, namespace, name)
 
 	// Assert
 	if err != nil {
@@ -81,24 +105,26 @@ func TestDeleteResourceFromDatabaseByNameAndNameSpace_Success(t *testing.T) {
 // TestDeleteResourceFromDatabaseByNameAndNameSpace_DeleteError tests the error case
 func TestDeleteResourceFromDatabaseByNameAndNameSpace_DeleteError(t *testing.T) {
 	// Arrange
-	kind := "TestKind"
+	suite := &TestSuite{}
+	suite.Setup()
+	defer suite.Teardown()
+
+	kind := kind
 	group := "TestGroup"
 	namespace := "TestNamespace"
 	name := "TestName"
 	tableName := kind + "." + group
 	expectedError := errors.New("delete error")
 
-	mockRepo := &MockRepository{
-		DeleteFunc: func(ns, n, tbl string) error {
-			if ns != namespace || n != name || tbl != tableName {
-				return fmt.Errorf("unexpected parameters")
-			}
-			return expectedError
-		},
+	suite.mockRepo.DeleteFunc = func(ns, n, tbl string) error {
+		if ns != namespace || n != name || tbl != tableName {
+			return fmt.Errorf("unexpected parameters")
+		}
+		return expectedError
 	}
 
 	// Act
-	err := DeleteResourceFromDatabaseByNameAndNameSpace(mockRepo, kind, group, namespace, name)
+	err := controller.DeleteResourceFromDatabaseByNameAndNameSpace(suite.mockRepo, kind, group, namespace, name)
 
 	// Assert
 	if err != expectedError {
@@ -107,91 +133,101 @@ func TestDeleteResourceFromDatabaseByNameAndNameSpace_DeleteError(t *testing.T) 
 }
 
 // TestUpsertResourceToDatabase_Success tests the success case
-// func TestUpsertResourceToDatabase_Success(t *testing.T) {
-// 	// Arrange
-// 	defer restoreMakeResource()
+func TestUpsertResourceToDatabase_Success(t *testing.T) {
+	// Arrange
+	suite := &TestSuite{}
+	suite.Setup()
+	defer suite.Teardown()
 
-// 	ctx := context.Background()
-// 	resource := &unstructured.Unstructured{
-// 		Object: map[string]interface{}{
-// 			"metadata": map[string]interface{}{
-// 				"name":      "test-resource",
-// 				"namespace": "test-namespace",
-// 			},
-// 			"kind":       "TestKind",
-// 			"apiVersion": "v1",
-// 		},
-// 	}
+	resource := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "v1",
+			"kind":       "TestKind",
+			"metadata": map[string]interface{}{
+				"name":      "test-resource",
+				"namespace": "test-namespace",
+			},
+		},
+	}
 
-// 	makedResource := repository.Resource{}
+	// In the success case, we provide a valid resource and expect no error
+	suite.mockRepo.UpsertFunc = func(res repository.Resource) error {
+		// Assert that the resource has the expected values
+		if res.Group() != "core" || res.Version() != "v1" || res.Kind() != "TestKind" {
+			return fmt.Errorf("unexpected resource details: %+v", res)
+		}
+		if res.Name() != "test-resource" || res.Namespace() != "test-namespace" {
+			return fmt.Errorf("unexpected resource metadata: name=%s, namespace=%s", res.Name(), res.Namespace())
+		}
+		return nil
+	}
 
-// 	mockMakeResource(makedResource, nil)
+	// Act
+	err := controller.UpsertResourceToDatabase(suite.mockRepo, resource, suite.ctx)
 
-// 	mockRepo := &MockRepository{
-// 		UpsertFunc: func(res repository.Resource) error {
-// 			if res != makedResource {
-// 				return fmt.Errorf("unexpected resource")
-// 			}
-// 			return nil
-// 		},
-// 	}
+	// Assert
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+}
 
-// 	// Act
-// 	err := UpsertResourceToDatabase(mockRepo, resource, ctx)
+// TestUpsertResourceToDatabase_MakeResourceError tests error handling when MakeResource fails
+func TestUpsertResourceToDatabase_MakeResourceError(t *testing.T) {
+	// Arrange
+	suite := &TestSuite{}
+	suite.Setup()
+	defer suite.Teardown()
 
-// 	// Assert
-// 	if err != nil {
-// 		t.Errorf("expected no error, got %v", err)
-// 	}
-// }
+	// Provide an invalid resource object that will cause MakeResource to fail
+	resource := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"kind": "TestKind",
+			// "apiVersion" is missing to induce an error
+			"metadata": map[string]interface{}{
+				"name":      "test-resource",
+				"namespace": "test-namespace",
+			},
+		},
+	}
 
-// TestUpsertResourceToDatabase_MakeResourceError tests the error case when MakeResource returns an error
-// func TestUpsertResourceToDatabase_MakeResourceError(t *testing.T) {
-// 	// Arrange
-// 	defer restoreMakeResource()
+	// Act
+	err := controller.UpsertResourceToDatabase(suite.mockRepo, resource, suite.ctx)
 
-// 	ctx := context.Background()
-// 	resource := &unstructured.Unstructured{}
-// 	expectedError := errors.New("make resource error")
+	// Assert
+	if err == nil || err.Error() != "error creating resource: missing apiVersion" {
+		t.Errorf("expected error about missing apiVersion, got %v", err)
+	}
+}
 
-// 	mockMakeResource(repository.Resource{}, expectedError)
+// TestUpsertResourceToDatabase_UpsertError tests error handling when Upsert returns an error
+func TestUpsertResourceToDatabase_UpsertError(t *testing.T) {
+	// Arrange
+	suite := &TestSuite{}
+	suite.Setup()
+	defer suite.Teardown()
 
-// 	// Act
-// 	err := UpsertResourceToDatabase(nil, resource, ctx)
+	resource := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "v1",
+			"kind":       "TestKind",
+			"metadata": map[string]interface{}{
+				"name":      "test-resource",
+				"namespace": "test-namespace",
+			},
+		},
+	}
 
-// 	// Assert
-// 	if err == nil || err.Error() != fmt.Sprintf("error creating resource: %v", expectedError) {
-// 		t.Errorf("expected error %v, got %v", expectedError, err)
-// 	}
-// }
+	expectedError := errors.New("upsert error")
 
-// // TestUpsertResourceToDatabase_UpsertError tests the error case when Upsert returns an error
-// func TestUpsertResourceToDatabase_UpsertError(t *testing.T) {
-// 	// Arrange
-// 	defer restoreMakeResource()
+	suite.mockRepo.UpsertFunc = func(res repository.Resource) error {
+		return expectedError
+	}
 
-// 	ctx := context.Background()
-// 	resource := &unstructured.Unstructured{}
+	// Act
+	err := controller.UpsertResourceToDatabase(suite.mockRepo, resource, suite.ctx)
 
-// 	makedResource := repository.Resource{}
-// 	expectedError := errors.New("upsert error")
-
-// 	mockMakeResource(makedResource, nil)
-
-// 	mockRepo := &MockRepository{
-// 		UpsertFunc: func(res repository.Resource) error {
-// 			if res != makedResource {
-// 				return fmt.Errorf("unexpected resource")
-// 			}
-// 			return expectedError
-// 		},
-// 	}
-
-// 	// Act
-// 	err := UpsertResourceToDatabase(mockRepo, resource, ctx)
-
-// 	// Assert
-// 	if err != expectedError {
-// 		t.Errorf("expected error %v, got %v", expectedError, err)
-// 	}
-// }
+	// Assert
+	if err != expectedError {
+		t.Errorf("expected error %v, got %v", expectedError, err)
+	}
+}
