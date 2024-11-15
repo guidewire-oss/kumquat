@@ -67,7 +67,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 		for _, exampleFolder := range exampleFolders {
 			inputFolder := path.Join(exampleFolderPath, exampleFolder, "input")
 			templateFolder := path.Join(inputFolder, "templates")
-			applyYAMLFilesFromDirectory(ctx, inputFolder, []string{templateFolder})
+			applyResourcesFromYAMLInDir(ctx, inputFolder, []string{templateFolder})
 		}
 	})
 
@@ -78,7 +78,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 		Expect(err).NotTo(HaveOccurred())
 		for _, exampleFolder := range exampleFolders {
 			inputFolder := path.Join(exampleFolderPath, exampleFolder, "input")
-			deleteYAMLFilesFromDirectory(ctx, inputFolder)
+			deleteResourcesFromYAMLInDir(ctx, inputFolder)
 		}
 	})
 
@@ -93,7 +93,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 
 				By("applying example templates")
 				templateFolder := path.Join(exampleFolderPath, exampleFolder, "input", "templates")
-				applyYAMLFilesFromDirectory(ctx, templateFolder, nil)
+				applyResourcesFromYAMLInDir(ctx, templateFolder, nil)
 
 				By("verifying that the output.yaml file has been created")
 				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
@@ -110,7 +110,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 
 				By("applying example templates")
 				templateFolder := path.Join(exampleFolderPath, exampleFolder, "input", "templates")
-				applyYAMLFilesFromDirectory(ctx, templateFolder, nil)
+				applyResourcesFromYAMLInDir(ctx, templateFolder, nil)
 
 				By("verifying that the output.yaml file has been created")
 				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
@@ -119,14 +119,14 @@ var _ = Describe("Template Controller Integration Test", func() {
 	})
 
 	Context("When Template is deleted", func() {
-		JustBeforeEach(func() {
+		BeforeEach(func() {
 			By("applying example templates")
 			exampleFolderPath := path.Join("../", "../", "examples")
 			exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
 			Expect(err).NotTo(HaveOccurred())
 			for _, exampleFolder := range exampleFolders {
 				templateFolder := path.Join(exampleFolderPath, exampleFolder, "input", "templates")
-				applyYAMLFilesFromDirectory(ctx, templateFolder, nil)
+				applyResourcesFromYAMLInDir(ctx, templateFolder, nil)
 			}
 		})
 
@@ -138,7 +138,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 			for _, exampleFolder := range exampleFolders {
 				By("deleting example template")
 				templateFolder := path.Join(exampleFolderPath, exampleFolder, "input", "templates")
-				deleteYAMLFilesFromDirectory(ctx, templateFolder)
+				deleteResourcesFromYAMLInDir(ctx, templateFolder)
 
 				By("verifying expected managed resources got deleted")
 				expectedOutputPath := path.Join(exampleFolderPath, exampleFolder, "expected", "out.yaml")
@@ -211,9 +211,9 @@ func getK8sClientObject(path string) (*unstructured.Unstructured, error) {
 	return obj, nil
 }
 
-// Apply all YAML files defined in the given directory, dir, as well as all sub-directories
+// Apply all resources specified by the YAML files in the given directory, dir, as well as all sub-directories
 // Ignores paths specified in excludePaths
-func applyYAMLFilesFromDirectory(ctx context.Context, dir string, excludePaths []string) {
+func applyResourcesFromYAMLInDir(ctx context.Context, dir string, excludePaths []string) {
 	if excludePaths == nil {
 		excludePaths = []string{}
 	}
@@ -264,8 +264,8 @@ func waitForDeletion(ctx context.Context, obj *unstructured.Unstructured, timeou
 	}, timeout, interval).Should(Succeed())
 }
 
-// Delete all YAML files defined in the given directory, dir, as well as all sub-directories
-func deleteYAMLFilesFromDirectory(ctx context.Context, dir string) {
+// Delete all resources specified by the YAML files in the given directory, dir, as well as all sub-directories
+func deleteResourcesFromYAMLInDir(ctx context.Context, dir string) {
 	err := filepath.WalkDir(dir, func(path string, entry os.DirEntry, err error) error {
 		Expect(err).NotTo(HaveOccurred())
 
