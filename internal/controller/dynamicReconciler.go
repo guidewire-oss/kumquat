@@ -30,10 +30,7 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 	log := log.FromContext(ctx)
 	log.Info("Reconciling dynamic resource", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
 
-	resource := &unstructured.Unstructured{}
-	resource.SetGroupVersionKind(r.GVK)
-	resource, err := r.K8sClient.Get(ctx, r.GVK.Group, r.GVK.Kind, req.Namespace, req.Name)
-
+	resource, err := r.fetchResource(ctx, req)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -88,6 +85,23 @@ func (r *DynamicReconciler) findAndReProcessAffectedTemplates(ctx context.Contex
 	}
 
 	return nil
+}
+
+// fetchResource fetches the resource from the cluster.
+func (r *DynamicReconciler) fetchResource(
+	ctx context.Context,
+	req reconcile.Request,
+) (*unstructured.Unstructured, error) {
+	resource := &unstructured.Unstructured{}
+	resource.SetGroupVersionKind(r.GVK)
+	err := r.Client.Get(ctx, req.NamespacedName, resource)
+	if err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+	return resource, nil
 }
 
 // processTemplate processes a single template.
