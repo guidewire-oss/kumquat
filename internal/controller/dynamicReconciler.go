@@ -14,15 +14,17 @@ import (
 
 type DynamicReconciler struct {
 	client.Client
-	GVK       schema.GroupVersionKind
-	K8sClient K8sClient
+	GVK          schema.GroupVersionKind
+	K8sClient    K8sClient
+	WatchManager *WatchManager
 }
 
-func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient) *DynamicReconciler {
+func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient, wm *WatchManager) *DynamicReconciler {
 	return &DynamicReconciler{
-		Client:    client,
-		GVK:       gvk,
-		K8sClient: k8sClient,
+		Client:       client,
+		GVK:          gvk,
+		K8sClient:    k8sClient,
+		WatchManager: wm,
 	}
 }
 
@@ -75,6 +77,7 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 func (r *DynamicReconciler) findAndReProcessAffectedTemplates(ctx context.Context) error {
 	log := log.FromContext(ctx)
 	var templates []string
+	wm := r.WatchManager // Use the injected WatchManager
 
 	for templateName, gvks := range wm.templates {
 		if _, exists := gvks[r.GVK]; exists {
@@ -131,6 +134,6 @@ func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName st
 		return err
 	}
 
-	return processTemplateResources(templateObj, sr, log, r.K8sClient)
+	return ProcessTemplateResources(templateObj, sr, log, r.K8sClient, r.WatchManager)
 
 }

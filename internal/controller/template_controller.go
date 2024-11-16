@@ -45,7 +45,7 @@ const templateFinalizer = "kumquat.guidewire.com/finalizer"
 
 var SqliteRepository repository.Repository // Changed from *SQLiteRepository to Repository interface
 
-func GetSqliteRepository() (repository.Repository, error) {
+var GetSqliteRepository = func() (repository.Repository, error) {
 	if SqliteRepository == nil {
 		rep, err := repository.NewSQLiteRepository()
 		if err != nil {
@@ -268,7 +268,7 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	fmt.Println(len(data.Results), "found in the database")
 
-	err = applyTemplateResources(template, re, log, r.K8sClient)
+	err = applyTemplateResources(template, re, log, r.K8sClient, r.WatchManager)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -385,10 +385,12 @@ func GetTemplateResourceFromCluster(kind string, group string, name string, log 
 
 }
 
+var ProcessTemplateResources = processTemplateResources
+
 // applyTemplateResources applies the resources generated from the template.
 func applyTemplateResources(
-	template *kumquatv1beta1.Template, re repository.Repository, log logr.Logger, k8sClient K8sClient) error {
-	return processTemplateResources(template, re, log, k8sClient)
+	template *kumquatv1beta1.Template, re repository.Repository, log logr.Logger, k8sClient K8sClient, wm *WatchManager) error {
+	return ProcessTemplateResources(template, re, log, k8sClient, wm)
 }
 
 func processTemplateResources(
@@ -396,6 +398,7 @@ func processTemplateResources(
 	re repository.Repository,
 	log logr.Logger,
 	k8sClient K8sClient,
+	wm *WatchManager,
 ) error {
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 	if err != nil {

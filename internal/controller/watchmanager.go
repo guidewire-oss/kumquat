@@ -54,8 +54,6 @@ type WatchManager struct {
 	generatedResources map[string]mapset.Set[ResourceIdentifier]
 }
 
-var wm *WatchManager
-
 // NewWatchManager creates a new WatchManager instance.
 func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
 	watchManager := &WatchManager{
@@ -69,13 +67,7 @@ func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
 		K8sClient:          k8sClient,
 		client:             mgr.GetClient(),
 	}
-	wm = watchManager
 	return watchManager
-}
-
-// GetWatchManager returns the singleton instance of WatchManager.
-func GetWatchManager() *WatchManager {
-	return wm
 }
 
 // AddWatch adds a watch for the specified template and GVKs.
@@ -201,7 +193,7 @@ func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error {
 	log.Log.Info("Starting watch", "gvk", gvk)
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
-	dynamicReconciler := NewDynamicReconciler(wm.client, gvk, wm.K8sClient)
+	dynamicReconciler := NewDynamicReconciler(wm.client, gvk, wm.K8sClient, wm)
 
 	c, err := controller.NewUnmanaged("dynamic-controller-"+gvk.Kind, wm.mgr, controller.Options{
 		Reconciler: dynamicReconciler,
