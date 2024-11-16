@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1731521737219,
+  "lastUpdate": 1731716937746,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -1194,6 +1194,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1398228318,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "89ce80478776c66b36a703e7b085cd7b09997ee3",
+          "message": "📝  Update example with realistic annotation using the '.' character.",
+          "timestamp": "2024-11-15T19:26:52-05:00",
+          "tree_id": "b3283faed79adbf1d5edb15a0ed6ce53620e1a17",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/89ce80478776c66b36a703e7b085cd7b09997ee3"
+        },
+        "date": 1731716937247,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30465,
+            "unit": "ns/op",
+            "extra": "392084 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 30105,
+            "unit": "ns/op",
+            "extra": "394956 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25594,
+            "unit": "ns/op",
+            "extra": "473449 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1426965514,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
