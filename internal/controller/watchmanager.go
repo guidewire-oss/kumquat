@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"kumquat/repository"
 	"sync"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -52,10 +53,11 @@ type WatchManager struct {
 	mgr                manager.Manager
 	K8sClient          K8sClient
 	generatedResources map[string]mapset.Set[ResourceIdentifier]
+	repository         repository.Repository
 }
 
 // NewWatchManager creates a new WatchManager instance.
-func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
+func NewWatchManager(mgr manager.Manager, k8sClient K8sClient, repo repository.Repository) *WatchManager {
 	watchManager := &WatchManager{
 		watchedResources:   make(map[schema.GroupVersionKind]ControllerEntry),
 		refCounts:          make(map[schema.GroupVersionKind]int),
@@ -66,6 +68,7 @@ func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
 		mgr:                mgr,
 		K8sClient:          k8sClient,
 		client:             mgr.GetClient(),
+		repository:         repo,
 	}
 	return watchManager
 }
@@ -82,8 +85,8 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 		}
 		wm.templates[templateName][gvk] = struct{}{}
 		if wm.refCounts[gvk] == 0 {
-			err := deleteTableFromDataBase(gvk)
-			if err != nil {
+			tableName := gvk.Kind + "." + gvk.Group
+			if err := deleteTableFromDataBase(wm.repository, tableName); err != nil {
 				return err
 			}
 			if err := wm.startWatching(gvk); err != nil {
@@ -193,7 +196,7 @@ func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error {
 	log.Log.Info("Starting watch", "gvk", gvk)
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
-	dynamicReconciler := NewDynamicReconciler(wm.client, gvk, wm.K8sClient, wm)
+	dynamicReconciler := NewDynamicReconciler(wm.client, gvk, wm.K8sClient, wm, wm.repository)
 
 	c, err := controller.NewUnmanaged("dynamic-controller-"+gvk.Kind, wm.mgr, controller.Options{
 		Reconciler: dynamicReconciler,
@@ -244,40 +247,13 @@ func (wm *WatchManager) logActiveControllers() {
 }
 
 // DeleteRecord deletes a record from the specified table.
-func DeleteRecord(table, namespace, name string) error {
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Log.Error(err, "unable to create repository")
-		return err
-	}
-	err = re.Delete(namespace, name, table)
+func DeleteRecord(table, namespace, name string, repo repository.Repository) error {
+	err := repo.Delete(namespace, name, table)
 	if err != nil {
 		log.Log.Error(err, "unable to delete record")
 		return err
 	}
 	log.Log.Info("Record deleted", "table", table, "namespace", namespace, "name", name)
-	return nil
-}
-
-// deleteTableFromDataBase deletes a table from the database.
-func deleteTableFromDataBase(gvk schema.GroupVersionKind) error {
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Log.Error(err, "unable to create repository")
-		return err
-	}
-	tableName := gvk.Kind + "." + gvk.Group
-
-	err = re.DropTable(tableName)
-	if err != nil {
-		// if the table does not exist, return nil
-		if err.Error() == "table does not exist: "+tableName {
-			return nil
-		}
-		log.Log.Error(err, "unable to drop table")
-		return err
-	}
-	log.Log.Info("Table dropped", "tableName", tableName)
 	return nil
 }
 

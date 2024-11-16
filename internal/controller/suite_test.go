@@ -29,6 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	kumquatv1beta1 "kumquat/api/v1beta1"
+	"kumquat/repository"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -118,11 +119,14 @@ var _ = BeforeSuite(func() {
 
 	dynamicK8sClient, err := NewDynamicK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
 	Expect(err).NotTo(HaveOccurred())
+	repository, err := repository.NewSQLiteRepository()
+	Expect(err).NotTo(HaveOccurred())
 
 	err = (&TemplateReconciler{
-		Client:    k8sManager.GetClient(),
-		Scheme:    scheme,
-		K8sClient: dynamicK8sClient,
+		Client:     k8sManager.GetClient(),
+		Scheme:     scheme,
+		K8sClient:  dynamicK8sClient,
+		Repository: repository,
 	}).SetupWithManager(k8sManager)
 	Expect(err).NotTo(HaveOccurred())
 

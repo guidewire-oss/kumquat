@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	kumquatv1beta1 "kumquat/api/v1beta1"
+	"kumquat/repository"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,14 +18,16 @@ type DynamicReconciler struct {
 	GVK          schema.GroupVersionKind
 	K8sClient    K8sClient
 	WatchManager *WatchManager
+	repository   repository.Repository
 }
 
-func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient, wm *WatchManager) *DynamicReconciler {
+func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient, wm *WatchManager, repo repository.Repository) *DynamicReconciler {
 	return &DynamicReconciler{
 		Client:       client,
 		GVK:          gvk,
 		K8sClient:    k8sClient,
 		WatchManager: wm,
+		repository:   repo,
 	}
 }
 
@@ -33,10 +36,6 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 	log.Info("Reconciling dynamic resource", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
 
 	resource, err := r.fetchResource(ctx, req)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-	repository, err := GetSqliteRepository()
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -49,7 +48,7 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 			group = "core"
 		}
 
-		err = DeleteResourceFromDatabaseByNameAndNameSpace(repository, r.GVK.Kind, group, req.Namespace, req.Name) // nolint:errcheck
+		err = DeleteResourceFromDatabaseByNameAndNameSpace(r.repository, r.GVK.Kind, group, req.Namespace, req.Name) // nolint:errcheck
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -59,7 +58,7 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 
 	}
 
-	err = UpsertResourceToDatabase(repository, resource, ctx) // nolint:errcheck
+	err = UpsertResourceToDatabase(r.repository, resource, ctx) // nolint:errcheck
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -127,13 +126,6 @@ func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName st
 		log.Error(err, "unable to convert unstructured to template")
 		return err
 	}
-
-	sr, err := GetSqliteRepository()
-	if err != nil {
-		log.Error(err, "unable to create repository")
-		return err
-	}
-
-	return ProcessTemplateResources(templateObj, sr, log, r.K8sClient, r.WatchManager)
+	return ProcessTemplateResources(templateObj, r.repository, log, r.K8sClient, r.WatchManager)
 
 }

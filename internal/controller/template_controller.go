@@ -43,19 +43,6 @@ import (
 
 const templateFinalizer = "kumquat.guidewire.com/finalizer"
 
-var SqliteRepository repository.Repository // Changed from *SQLiteRepository to Repository interface
-
-var GetSqliteRepository = func() (repository.Repository, error) {
-	if SqliteRepository == nil {
-		rep, err := repository.NewSQLiteRepository()
-		if err != nil {
-			return nil, err
-		}
-		SqliteRepository = rep
-	}
-	return SqliteRepository, nil
-}
-
 // containsString checks if a string is in a slice
 func containsString(slice []string, s string) bool {
 	for _, item := range slice {
@@ -101,6 +88,7 @@ type TemplateReconciler struct {
 	Scheme       *runtime.Scheme
 	WatchManager *WatchManager
 	K8sClient    K8sClient
+	Repository   repository.Repository
 }
 
 func (r *TemplateReconciler) handleDeletion(
@@ -111,13 +99,7 @@ func (r *TemplateReconciler) handleDeletion(
 	log.Info("template deleted", "name", template.Name)
 	r.WatchManager.RemoveWatch(template.Name)
 
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Error(err, "unable to get repository")
-		return ctrl.Result{}, err
-	}
-
-	err = deleteAssociatedResources(template, re, log, r.K8sClient)
+	err := deleteAssociatedResources(template, r.Repository, log, r.K8sClient)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -243,24 +225,18 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Error(err, "unable to get repository")
-		return ctrl.Result{}, err
-	}
-
-	gvkList, err := extractGVKsFromQuery(template.Spec.Query, re, log, r.K8sClient)
+	gvkList, err := extractGVKsFromQuery(template.Spec.Query, r.Repository, log, r.K8sClient)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	for _, gvk := range gvkList {
-		err := addDataToDatabase(gvk.Group, gvk.Kind, log, r.K8sClient)
+		err := addDataToDatabase(gvk.Group, gvk.Kind, log, r.K8sClient, r.Repository)
 		if err != nil {
 			log.Error(err, "unable to add data to database", "gvk", gvk)
 		}
 	}
-	data, err := re.Query(template.Spec.Query)
+	data, err := r.Repository.Query(template.Spec.Query)
 	fmt.Println(template, "this is template")
 	if err != nil {
 		log.Error(err, "unable to query database", "query", template.Spec.Query)
@@ -268,7 +244,7 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	fmt.Println(len(data.Results), "found in the database")
 
-	err = applyTemplateResources(template, re, log, r.K8sClient, r.WatchManager)
+	err = applyTemplateResources(template, r.Repository, log, r.K8sClient, r.WatchManager)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -316,7 +292,7 @@ func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	r.WatchManager = NewWatchManager(mgr, r.K8sClient)
+	r.WatchManager = NewWatchManager(mgr, r.K8sClient, r.Repository)
 
 	return nil
 }
@@ -341,7 +317,7 @@ func BuildTableGVK(tableName string, log logr.Logger, k8sClient K8sClient) (sche
 	return gvk, nil
 }
 
-func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8sClient) error {
+func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8sClient, repo repository.Repository) error {
 	fmt.Println("Adding data to database for", group, kind)
 
 	context := context.TODO()
@@ -353,7 +329,7 @@ func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8s
 	log.Info("found in the cluster", "count", len(data.Items))
 
 	for _, item := range data.Items {
-		err := upsertResource(item.Object)
+		err := upsertResource(item.Object, repo)
 		if err != nil {
 			return err
 		}
@@ -361,16 +337,13 @@ func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8s
 	return nil
 }
 
-func upsertResource(obj map[string]interface{}) error {
+func upsertResource(obj map[string]interface{}, repo repository.Repository) error {
 	resource, err := repository.MakeResource(obj)
 	if err != nil {
 		return err
 	}
-	re, err := GetSqliteRepository()
-	if err != nil {
-		return err
-	}
-	return re.Upsert(resource)
+
+	return repo.Upsert(resource)
 }
 
 func GetTemplateResourceFromCluster(kind string, group string, name string, log logr.Logger,
