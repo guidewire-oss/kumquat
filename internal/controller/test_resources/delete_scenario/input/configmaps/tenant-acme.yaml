@@ -4,7 +4,7 @@ metadata:
   name: aws-auth-tenant-acme
   namespace: kube-system
   annotations:
-      aggregate: aws-auth
+      aggregate.auth.annotation: aws-auth
 data:
     mapRoles: |
         - rolearn: arn:aws:iam::111122223333:role/tenant-acme-role

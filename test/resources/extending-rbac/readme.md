@@ -25,25 +25,24 @@ spec:
     language: cue
     batchModeProcessing: true
     data: | #cue
-      unique_groups_map: {
-        for result in data {
+      _unique_groups_map: {
+        for result in DATA {
           "\(result.crd.spec.group)": result.crd.spec.group
         }
       }
-      unique_groups: [ for g in unique_groups_map {g}]
-      out: {
-        apiVersion: "rbac.authorization.k8s.io/v1"
-        kind: "ClusterRole"
-        metadata: 
-          name: "crossplane-aws-readers-role"
-        rules: [
-            {
-              apiGroups: unique_groups
-              resources: "*"
-              verbs: ["get", "list", "watch"]
-            }
-        ]
-      }
+      _unique_groups: [ for g in _unique_groups_map {g}]
+
+      apiVersion: "rbac.authorization.k8s.io/v1"
+      kind: "ClusterRole"
+      metadata: 
+        name: "crossplane-aws-readers-role"
+      rules: [
+          {
+            apiGroups: _unique_groups
+            resources: "*"
+            verbs: ["get", "list", "watch"]
+          }
+      ]
 ```
 
 The expected output depends on which Crossplane AWS providers are installed, but should be roughly like this:

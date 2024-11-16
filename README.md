@@ -49,20 +49,20 @@ spec:
     language: cue
     batchModeProcessing: true
     data: | #cue
-      unique_groups_map: {
-        for result in data {
+      _unique_groups_map: {
+        for result in DATA {
           "\(result.crd.spec.group)": result.crd.spec.group
         }
       }
-      unique_groups: [ for g in unique_groups_map {g}]
-      out: {
+      _unique_groups: [ for g in _unique_groups_map {g}]
+      {
         apiVersion: "rbac.authorization.k8s.io/v1"
         kind: "ClusterRole"
         metadata: 
           name: "crossplane-aws-readers-role"
         rules: [
             {
-              apiGroups: unique_groups
+              apiGroups: _unique_groups
               resources: "*"
               verbs: ["get", "list", "watch"]
             }
