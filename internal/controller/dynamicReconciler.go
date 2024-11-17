@@ -17,11 +17,11 @@ type DynamicReconciler struct {
 	client.Client
 	GVK          schema.GroupVersionKind
 	K8sClient    K8sClient
-	WatchManager *WatchManager
+	WatchManager WatchManagerInterface
 	repository   repository.Repository
 }
 
-func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient, wm *WatchManager, repo repository.Repository) *DynamicReconciler {
+func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient, wm WatchManagerInterface, repo repository.Repository) *DynamicReconciler {
 	return &DynamicReconciler{
 		Client:       client,
 		GVK:          gvk,
@@ -76,9 +76,9 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 func (r *DynamicReconciler) findAndReProcessAffectedTemplates(ctx context.Context) error {
 	log := log.FromContext(ctx)
 	var templates []string
-	wm := r.WatchManager // Use the injected WatchManager
 
-	for templateName, gvks := range wm.templates {
+	templatesMap := r.WatchManager.GetManagedTemplates()
+	for templateName, gvks := range templatesMap {
 		if _, exists := gvks[r.GVK]; exists {
 			log.Info("Reconciling template", "templateName", templateName)
 			templates = append(templates, templateName)

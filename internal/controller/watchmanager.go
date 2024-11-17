@@ -23,6 +23,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
+type WatchManagerInterface interface {
+	UpdateGeneratedResources(templateName string, resourceSet mapset.Set[ResourceIdentifier])
+	UpdateWatch(templateName string, newGVKs []schema.GroupVersionKind) error
+	RemoveWatch(templateName string)
+	GetGeneratedResources(templateName string) mapset.Set[ResourceIdentifier]
+	GetManagedTemplates() map[string]map[schema.GroupVersionKind]struct{}
+}
+
 // ControllerEntry represents a dynamically managed controller.
 type ControllerEntry struct {
 	controller controller.Controller
@@ -57,7 +65,7 @@ type WatchManager struct {
 }
 
 // NewWatchManager creates a new WatchManager instance.
-func NewWatchManager(mgr manager.Manager, k8sClient K8sClient, repo repository.Repository) *WatchManager {
+func NewWatchManager(mgr manager.Manager, k8sClient K8sClient, repo repository.Repository) WatchManagerInterface {
 	watchManager := &WatchManager{
 		watchedResources:   make(map[schema.GroupVersionKind]ControllerEntry),
 		refCounts:          make(map[schema.GroupVersionKind]int),
@@ -71,6 +79,12 @@ func NewWatchManager(mgr manager.Manager, k8sClient K8sClient, repo repository.R
 		repository:         repo,
 	}
 	return watchManager
+}
+
+func (wm *WatchManager) GetManagedTemplates() map[string]map[schema.GroupVersionKind]struct{} {
+	wm.mu.Lock()
+	defer wm.mu.Unlock()
+	return wm.templates
 }
 
 // AddWatch adds a watch for the specified template and GVKs.
@@ -255,6 +269,12 @@ func DeleteRecord(table, namespace, name string, repo repository.Repository) err
 	}
 	log.Log.Info("Record deleted", "table", table, "namespace", namespace, "name", name)
 	return nil
+}
+
+func (wm *WatchManager) GetGeneratedResources(templateName string) mapset.Set[ResourceIdentifier] {
+	wm.mu.Lock()
+	defer wm.mu.Unlock()
+	return wm.generatedResources[templateName]
 }
 
 // unstructuredEventHandler handles events for unstructured resources.
