@@ -1,11 +1,10 @@
-package controller_test
+package controller
 
 import (
 	"context"
 	"errors"
 
 	kumquatv1beta1 "kumquat/api/v1beta1"
-	"kumquat/internal/controller"
 	"kumquat/repository"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -34,13 +33,13 @@ var _ = Describe("DynamicReconciler", func() {
 		mockK8sClient                    *MockK8sClient
 		mockWatchManager                 *MockWatchManager
 		mockRepository                   *MockRepository
-		dynamicReconciler                *controller.DynamicReconciler
+		dynamicReconciler                *DynamicReconciler
 		originalProcessTemplateResources func(
 			templateObj *kumquatv1beta1.Template,
 			sr repository.Repository,
 			log logr.Logger,
-			k8sClient controller.K8sClient,
-			wm controller.WatchManagerInterface,
+			k8sClient K8sClient,
+			wm WatchManagerInterface,
 		) error
 	)
 
@@ -57,12 +56,12 @@ var _ = Describe("DynamicReconciler", func() {
 		mockRepository = &MockRepository{}
 
 		// Save the original ProcessTemplateResources
-		originalProcessTemplateResources = controller.ProcessTemplateResources
+		originalProcessTemplateResources = ProcessTemplateResources
 	})
 
 	AfterEach(func() {
 		// Restore the original ProcessTemplateResources
-		controller.ProcessTemplateResources = originalProcessTemplateResources
+		ProcessTemplateResources = originalProcessTemplateResources
 	})
 
 	Context("When reconciling resources", func() {
@@ -85,7 +84,7 @@ var _ = Describe("DynamicReconciler", func() {
 				fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithObjects(testResource.DeepCopy()).Build()
 
 				// Create the DynamicReconciler with the fake client
-				dynamicReconciler = controller.NewDynamicReconciler(fakeClient, gvk, mockK8sClient, mockWatchManager, mockRepository) // nolint:errcheck
+				dynamicReconciler = NewDynamicReconciler(fakeClient, gvk, mockK8sClient, mockWatchManager, mockRepository) // nolint:errcheck
 
 				// Mock K8sClient.Get to return a Template
 				mockK8sClient.GetFunc = func(ctx context.Context, group, kind, namespace, name string) (*unstructured.Unstructured, error) {
@@ -123,12 +122,12 @@ var _ = Describe("DynamicReconciler", func() {
 				}
 
 				// Mock ProcessTemplateResources to do nothing
-				controller.ProcessTemplateResources = func(
+				ProcessTemplateResources = func(
 					templateObj *kumquatv1beta1.Template,
 					sr repository.Repository,
 					log logr.Logger,
-					k8sClient controller.K8sClient,
-					wm controller.WatchManagerInterface,
+					k8sClient K8sClient,
+					wm WatchManagerInterface,
 				) error {
 					return nil
 				}
@@ -165,7 +164,7 @@ var _ = Describe("DynamicReconciler", func() {
 				fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithObjects().Build()
 
 				// Create the DynamicReconciler with the fake client
-				dynamicReconciler = controller.NewDynamicReconciler(fakeClient, gvk, mockK8sClient, mockWatchManager, mockRepository)
+				dynamicReconciler = NewDynamicReconciler(fakeClient, gvk, mockK8sClient, mockWatchManager, mockRepository)
 
 				// Mock K8sClient.Get to return not found
 				mockK8sClient.GetFunc = func(ctx context.Context, group, kind, namespace, name string) (*unstructured.Unstructured, error) {
@@ -190,12 +189,12 @@ var _ = Describe("DynamicReconciler", func() {
 				}
 
 				// Mock ProcessTemplateResources to do nothing
-				controller.ProcessTemplateResources = func(
+				ProcessTemplateResources = func(
 					templateObj *kumquatv1beta1.Template,
 					sr repository.Repository,
 					log logr.Logger,
-					k8sClient controller.K8sClient,
-					wm controller.WatchManagerInterface,
+					k8sClient K8sClient,
+					wm WatchManagerInterface,
 				) error {
 					return nil
 				}
@@ -291,14 +290,14 @@ func (m *MockK8sClient) Reset() {
 
 // MockWatchManager implements the WatchManagerInterface for testing
 type MockWatchManager struct {
-	UpdateGeneratedResourcesFunc func(templateName string, resourceSet mapset.Set[controller.ResourceIdentifier])
+	UpdateGeneratedResourcesFunc func(templateName string, resourceSet mapset.Set[ResourceIdentifier])
 	UpdateWatchFunc              func(templateName string, newGVKs []schema.GroupVersionKind) error
 	RemoveWatchFunc              func(templateName string)
-	GetGeneratedResourcesFunc    func(templateName string) mapset.Set[controller.ResourceIdentifier]
+	GetGeneratedResourcesFunc    func(templateName string) mapset.Set[ResourceIdentifier]
 	GetManagedTemplatesFunc      func() map[string]map[schema.GroupVersionKind]struct{}
 }
 
-func (m *MockWatchManager) UpdateGeneratedResources(templateName string, resourceSet mapset.Set[controller.ResourceIdentifier]) {
+func (m *MockWatchManager) UpdateGeneratedResources(templateName string, resourceSet mapset.Set[ResourceIdentifier]) {
 	if m.UpdateGeneratedResourcesFunc != nil {
 		m.UpdateGeneratedResourcesFunc(templateName, resourceSet)
 	}
@@ -317,11 +316,11 @@ func (m *MockWatchManager) RemoveWatch(templateName string) {
 	}
 }
 
-func (m *MockWatchManager) GetGeneratedResources(templateName string) mapset.Set[controller.ResourceIdentifier] {
+func (m *MockWatchManager) GetGeneratedResources(templateName string) mapset.Set[ResourceIdentifier] {
 	if m.GetGeneratedResourcesFunc != nil {
 		return m.GetGeneratedResourcesFunc(templateName)
 	}
-	return mapset.NewSet[controller.ResourceIdentifier]()
+	return mapset.NewSet[ResourceIdentifier]()
 }
 
 func (m *MockWatchManager) GetManagedTemplates() map[string]map[schema.GroupVersionKind]struct{} {

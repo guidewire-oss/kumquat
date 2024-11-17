@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"bufio"
@@ -12,6 +12,8 @@ import (
 
 	// Alias the standard library runtime package
 	"testing"
+
+	controller "kumquat/internal/controller"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -117,12 +119,12 @@ var _ = BeforeSuite(func() {
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{Scheme: scheme})
 	Expect(err).NotTo(HaveOccurred())
 
-	dynamicK8sClient, err := NewDynamicK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
+	dynamicK8sClient, err := controller.NewDynamicK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
 	Expect(err).NotTo(HaveOccurred())
 	repository, err := repository.NewSQLiteRepository()
 	Expect(err).NotTo(HaveOccurred())
 
-	err = (&TemplateReconciler{
+	err = (&controller.TemplateReconciler{
 		Client:     k8sManager.GetClient(),
 		Scheme:     scheme,
 		K8sClient:  dynamicK8sClient,
