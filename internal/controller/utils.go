@@ -42,8 +42,6 @@ func UpsertResourceToDatabase(
 // deleteTableFromDataBase deletes a table from the database.
 func deleteTableFromDataBase(repo repository.Repository, tableName string) error {
 
-	//tableName := gvk.Kind + "." + gvk.Group
-
 	err := repo.DropTable(tableName)
 	if err != nil {
 		// if the table does not exist, return nil

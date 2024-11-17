@@ -85,7 +85,7 @@ var _ = Describe("DynamicReconciler", func() {
 				fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithObjects(testResource.DeepCopy()).Build()
 
 				// Create the DynamicReconciler with the fake client
-				dynamicReconciler = controller.NewDynamicReconciler(fakeClient, gvk, mockK8sClient, mockWatchManager, mockRepository)
+				dynamicReconciler = controller.NewDynamicReconciler(fakeClient, gvk, mockK8sClient, mockWatchManager, mockRepository) // nolint:errcheck
 
 				// Mock K8sClient.Get to return a Template
 				mockK8sClient.GetFunc = func(ctx context.Context, group, kind, namespace, name string) (*unstructured.Unstructured, error) {

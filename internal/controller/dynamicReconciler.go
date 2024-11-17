@@ -21,7 +21,7 @@ type DynamicReconciler struct {
 	repository   repository.Repository
 }
 
-func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient, wm WatchManagerInterface, repo repository.Repository) *DynamicReconciler {
+func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient, wm WatchManagerInterface, repo repository.Repository) *DynamicReconciler { // nolint:errcheck
 	return &DynamicReconciler{
 		Client:       client,
 		GVK:          gvk,
