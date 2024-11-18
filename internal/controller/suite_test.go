@@ -85,7 +85,8 @@ var _ = BeforeSuite(func() {
 		}
 		Expect(scanner.Err()).NotTo(HaveOccurred(), "Failed to read Makefile")
 
-		binaryDir = filepath.Join("..", "..", "bin", "k8s", fmt.Sprintf("%s-linux-%s", envtestK8sVersion, goruntime.GOARCH))
+		binaryDir = filepath.Join("..", "..", "bin", "k8s",
+			fmt.Sprintf("%s-%s-%s", envtestK8sVersion, goruntime.GOOS, goruntime.GOARCH))
 	}
 
 	testEnv = &envtest.Environment{
@@ -112,6 +113,17 @@ var _ = BeforeSuite(func() {
 	discoveryClient, err = discovery.NewDiscoveryClientForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred(), "Failed to create discovery client")
 
+	startController()
+})
+
+var _ = AfterSuite(func() {
+	By("tearing down the test environment")
+	stopMgr()
+	err := testEnv.Stop()
+	Expect(err).NotTo(HaveOccurred())
+})
+
+func startController() {
 	// Start the manager and controller
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{Scheme: scheme})
 	Expect(err).NotTo(HaveOccurred())
@@ -137,4 +149,4 @@ var _ = BeforeSuite(func() {
 
 	// Wait for the cache to sync
 	Expect(k8sManager.GetCache().WaitForCacheSync(context.Background())).To(BeTrue())
-})
+}
