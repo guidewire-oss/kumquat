@@ -14,26 +14,26 @@ import (
 )
 
 type DynamicReconciler struct {
-	client.Client
-	GVK          schema.GroupVersionKind
-	K8sClient    K8sClient
-	WatchManager WatchManagerInterface
+	client       client.Client
+	gvk          schema.GroupVersionKind
+	k8sClient    K8sClient
+	watchManager WatchManagerInterface
 	repository   repository.Repository
 }
 
-func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient, wm WatchManagerInterface, repo repository.Repository) *DynamicReconciler { // nolint:errcheck
+func NewDynamicReconciler(client client.Client, gvk schema.GroupVersionKind, k8sClient K8sClient, wm WatchManagerInterface, repo repository.Repository) *DynamicReconciler {
 	return &DynamicReconciler{
-		Client:       client,
-		GVK:          gvk,
-		K8sClient:    k8sClient,
-		WatchManager: wm,
+		client:       client,
+		gvk:          gvk,
+		k8sClient:    k8sClient,
+		watchManager: wm,
 		repository:   repo,
 	}
 }
 
 func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 	log := log.FromContext(ctx)
-	log.Info("Reconciling dynamic resource", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
+	log.Info("Reconciling dynamic resource", "GVK", r.gvk, "name", req.Name, "namespace", req.Namespace)
 
 	resource, err := r.fetchResource(ctx, req)
 	if err != nil {
@@ -41,18 +41,21 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 	}
 
 	if resource == nil {
-		log.Info("Resource deleted", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
+		log.Info("Resource deleted", "GVK", r.gvk, "name", req.Name, "namespace", req.Namespace)
 		// set group to core if it is empty
-		group := r.GVK.Group
-		if r.GVK.Group == "" {
+		group := r.gvk.Group
+		if r.gvk.Group == "" {
 			group = "core"
 		}
 
-		err = DeleteResourceFromDatabaseByNameAndNameSpace(r.repository, r.GVK.Kind, group, req.Namespace, req.Name) // nolint:errcheck
+		err = DeleteResourceFromDatabaseByNameAndNameSpace(r.repository, r.gvk.Kind, group, req.Namespace, req.Name)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-		r.findAndReProcessAffectedTemplates(ctx) // nolint:errcheck
+		err = r.findAndReProcessAffectedTemplates(ctx)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 
 		return reconcile.Result{}, nil
 
@@ -77,9 +80,9 @@ func (r *DynamicReconciler) findAndReProcessAffectedTemplates(ctx context.Contex
 	log := log.FromContext(ctx)
 	var templates []string
 
-	templatesMap := r.WatchManager.GetManagedTemplates()
+	templatesMap := r.watchManager.GetManagedTemplates()
 	for templateName, gvks := range templatesMap {
-		if _, exists := gvks[r.GVK]; exists {
+		if _, exists := gvks[r.gvk]; exists {
 			log.Info("Reconciling template", "templateName", templateName)
 			templates = append(templates, templateName)
 		}
@@ -100,13 +103,10 @@ func (r *DynamicReconciler) fetchResource(
 	req reconcile.Request,
 ) (*unstructured.Unstructured, error) {
 	resource := &unstructured.Unstructured{}
-	resource.SetGroupVersionKind(r.GVK)
-	err := r.Client.Get(ctx, req.NamespacedName, resource)
+	resource.SetGroupVersionKind(r.gvk)
+	err := r.client.Get(ctx, req.NamespacedName, resource)
 	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			return nil, err
-		}
-		return nil, nil
+		return nil, client.IgnoreNotFound(err)
 	}
 	return resource, nil
 }
@@ -115,7 +115,7 @@ func (r *DynamicReconciler) fetchResource(
 func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName string) error {
 	log := log.FromContext(ctx)
 
-	template, err := r.K8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
+	template, err := r.k8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
 	if err != nil {
 		log.Error(err, "unable to get template", "templateName", templateName)
 		return err
@@ -126,6 +126,6 @@ func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName st
 		log.Error(err, "unable to convert unstructured to template")
 		return err
 	}
-	return ProcessTemplateResources(templateObj, r.repository, log, r.K8sClient, r.WatchManager)
+	return ProcessTemplateResources(templateObj, r.repository, log, r.k8sClient, r.watchManager)
 
 }
