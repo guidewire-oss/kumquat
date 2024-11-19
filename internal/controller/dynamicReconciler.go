@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	kumquatv1beta1 "kumquat/api/v1beta1"
 	"kumquat/repository"
 
@@ -90,7 +91,13 @@ func (r *DynamicReconciler) findAndReProcessAffectedTemplates(ctx context.Contex
 
 	for _, templateName := range templates {
 		if err := r.processTemplate(ctx, templateName); err != nil {
-			return err
+			if err.Error() == "not found" {
+				log.Info("Resource not found", "templateName", templateName)
+			} else {
+				fmt.Println("Error in processTemplate", err)
+				return err
+
+			}
 		}
 	}
 
