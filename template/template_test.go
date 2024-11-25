@@ -334,6 +334,12 @@ func (m *MockRepository) Upsert(r repository.Resource) error {
 func (m *MockRepository) Delete(namespace, name, table string) error {
 	return nil
 }
+func (m *MockRepository) DropTable(tableName string) error {
+	return nil
+}
+func (m *MockRepository) ExtractTableNamesFromQuery(query string) []string {
+	return nil
+}
 
 func explodeOnErr[X any](x X, err error) X {
 	if err != nil {

@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	kumquatv1beta1 "kumquat/api/v1beta1"
 	"kumquat/repository"
 	"sync"
 
@@ -21,9 +20,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
+
+type WatchManager interface {
+	UpdateGeneratedResources(templateName string, resourceSet mapset.Set[ResourceIdentifier])
+	UpdateWatch(templateName string, newGVKs []schema.GroupVersionKind) error
+	RemoveWatch(templateName string)
+	GetGeneratedResources(templateName string) mapset.Set[ResourceIdentifier]
+	GetManagedTemplates() map[string]map[schema.GroupVersionKind]struct{}
+}
 
 // ControllerEntry represents a dynamically managed controller.
 type ControllerEntry struct {
@@ -40,7 +46,7 @@ type ResourceIdentifier struct {
 }
 
 // WatchManager manages dynamic watches.
-type WatchManager struct {
+type watchManager struct {
 	refCounts          map[schema.GroupVersionKind]int
 	watchedResources   map[schema.GroupVersionKind]ControllerEntry
 	templates          map[string]map[schema.GroupVersionKind]struct{}
@@ -51,13 +57,12 @@ type WatchManager struct {
 	mgr                manager.Manager
 	K8sClient          K8sClient
 	generatedResources map[string]mapset.Set[ResourceIdentifier]
+	repository         repository.Repository
 }
 
-var wm *WatchManager
-
 // NewWatchManager creates a new WatchManager instance.
-func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
-	watchManager := &WatchManager{
+func NewWatchManager(mgr manager.Manager, k8sClient K8sClient, repo repository.Repository) WatchManager {
+	wm := &watchManager{
 		watchedResources:   make(map[schema.GroupVersionKind]ControllerEntry),
 		refCounts:          make(map[schema.GroupVersionKind]int),
 		templates:          make(map[string]map[schema.GroupVersionKind]struct{}),
@@ -67,18 +72,19 @@ func NewWatchManager(mgr manager.Manager, k8sClient K8sClient) *WatchManager {
 		mgr:                mgr,
 		K8sClient:          k8sClient,
 		client:             mgr.GetClient(),
+		repository:         repo,
 	}
-	wm = watchManager
-	return watchManager
-}
-
-// GetWatchManager returns the singleton instance of WatchManager.
-func GetWatchManager() *WatchManager {
 	return wm
 }
 
+func (wm *watchManager) GetManagedTemplates() map[string]map[schema.GroupVersionKind]struct{} {
+	wm.mu.Lock()
+	defer wm.mu.Unlock()
+	return wm.templates
+}
+
 // AddWatch adds a watch for the specified template and GVKs.
-func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersionKind) error {
+func (wm *watchManager) AddWatch(templateName string, gvks []schema.GroupVersionKind) error {
 	if _, exists := wm.templates[templateName]; !exists {
 		wm.templates[templateName] = make(map[schema.GroupVersionKind]struct{})
 	}
@@ -89,8 +95,8 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 		}
 		wm.templates[templateName][gvk] = struct{}{}
 		if wm.refCounts[gvk] == 0 {
-			err := deleteTableFromDataBase(gvk)
-			if err != nil {
+			tableName := gvk.Kind + "." + gvk.Group
+			if err := deleteTableFromDataBase(wm.repository, tableName); err != nil {
 				return err
 			}
 			if err := wm.startWatching(gvk); err != nil {
@@ -103,14 +109,14 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 
 	return nil
 }
-func (wm *WatchManager) UpdateGeneratedResources(templateName string, resources mapset.Set[ResourceIdentifier]) {
+func (wm *watchManager) UpdateGeneratedResources(templateName string, resources mapset.Set[ResourceIdentifier]) {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 	wm.generatedResources[templateName] = resources
 }
 
 // UpdateWatch updates the watch for the specified template with new GVKs.
-func (wm *WatchManager) UpdateWatch(templateName string, newGVKs []schema.GroupVersionKind) error {
+func (wm *watchManager) UpdateWatch(templateName string, newGVKs []schema.GroupVersionKind) error {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 
@@ -148,7 +154,7 @@ func (wm *WatchManager) UpdateWatch(templateName string, newGVKs []schema.GroupV
 }
 
 // RemoveWatch removes the watch for the specified template.
-func (wm *WatchManager) RemoveWatch(templateName string) {
+func (wm *watchManager) RemoveWatch(templateName string) {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 	log.Log.Info("Removing watch", "templateName", templateName)
@@ -171,7 +177,7 @@ func (wm *WatchManager) RemoveWatch(templateName string) {
 }
 
 // addWatchForGVK adds a watch for a specific GVK.
-func (wm *WatchManager) addWatchForGVK(templateName string, gvk schema.GroupVersionKind) error {
+func (wm *watchManager) addWatchForGVK(templateName string, gvk schema.GroupVersionKind) error {
 	wm.templates[templateName][gvk] = struct{}{}
 	if wm.refCounts[gvk] == 0 {
 		if err := wm.startWatching(gvk); err != nil {
@@ -185,7 +191,7 @@ func (wm *WatchManager) addWatchForGVK(templateName string, gvk schema.GroupVers
 }
 
 // removeWatchForGVK removes a watch for a specific GVK.
-func (wm *WatchManager) removeWatchForGVK(templateName string, gvk schema.GroupVersionKind) {
+func (wm *watchManager) removeWatchForGVK(templateName string, gvk schema.GroupVersionKind) {
 	wm.refCounts[gvk]--
 	if wm.refCounts[gvk] <= 0 {
 		wm.stopWatching(gvk)
@@ -196,17 +202,11 @@ func (wm *WatchManager) removeWatchForGVK(templateName string, gvk schema.GroupV
 }
 
 // startWatching starts watching a specific GVK.
-func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error {
+func (wm *watchManager) startWatching(gvk schema.GroupVersionKind) error {
 	log.Log.Info("Starting watch", "gvk", gvk)
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
-
-	dynamicReconciler := &DynamicReconciler{
-		Client:    wm.client,
-		GVK:       gvk,
-		K8sClient: wm.K8sClient, // Pass the K8sClient here
-
-	}
+	dynamicReconciler := NewDynamicReconciler(wm.client, gvk, wm.K8sClient, wm, wm.repository)
 
 	c, err := controller.NewUnmanaged("dynamic-controller-"+gvk.Kind, wm.mgr, controller.Options{
 		Reconciler: dynamicReconciler,
@@ -239,7 +239,7 @@ func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error {
 }
 
 // stopWatching stops watching a specific GVK.
-func (wm *WatchManager) stopWatching(gvk schema.GroupVersionKind) {
+func (wm *watchManager) stopWatching(gvk schema.GroupVersionKind) {
 	log.Log.Info("Stopping watch", "gvk", gvk)
 	if entry, exists := wm.watchedResources[gvk]; exists {
 		entry.cancelFunc()
@@ -249,7 +249,7 @@ func (wm *WatchManager) stopWatching(gvk schema.GroupVersionKind) {
 }
 
 // logs all active controllers.
-func (wm *WatchManager) logActiveControllers() {
+func (wm *watchManager) logActiveControllers() {
 	log.Log.Info("Listing all active controllers:")
 	for gvk, entry := range wm.watchedResources {
 		log.Log.Info("Active controller", "gvk", gvk, "context", entry.ctx)
@@ -257,13 +257,8 @@ func (wm *WatchManager) logActiveControllers() {
 }
 
 // DeleteRecord deletes a record from the specified table.
-func DeleteRecord(table, namespace, name string) error {
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Log.Error(err, "unable to create repository")
-		return err
-	}
-	err = re.Delete(namespace, name, table)
+func DeleteRecord(table, namespace, name string, repo repository.Repository) error {
+	err := repo.Delete(namespace, name, table)
 	if err != nil {
 		log.Log.Error(err, "unable to delete record")
 		return err
@@ -272,188 +267,10 @@ func DeleteRecord(table, namespace, name string) error {
 	return nil
 }
 
-// deleteTableFromDataBase deletes a table from the database.
-func deleteTableFromDataBase(gvk schema.GroupVersionKind) error {
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Log.Error(err, "unable to create repository")
-		return err
-	}
-	tableName := gvk.Kind + "." + gvk.Group
-
-	err = re.DropTable(tableName)
-	if err != nil {
-		// if the table does not exist, return nil
-		if err.Error() == "table does not exist: "+tableName {
-			return nil
-		}
-		log.Log.Error(err, "unable to drop table")
-		return err
-	}
-	log.Log.Info("Table dropped", "tableName", tableName)
-	return nil
-}
-
-// DynamicReconciler reconciles dynamic resources.
-type DynamicReconciler struct {
-	client.Client
-	GVK       schema.GroupVersionKind
-	K8sClient K8sClient
-}
-
-func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
-	log := log.FromContext(ctx)
-	log.Info("Reconciling dynamic resource", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
-
-	resource, err := r.fetchResource(ctx, req)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	if resource == nil {
-		log.Info("Resource deleted", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
-		// set group to core if it is empty
-		group := r.GVK.Group
-		if r.GVK.Group == "" {
-			group = "core"
-		}
-		// delete record from database
-		// TODO: checking the return code and returning an error causes the E2E tests to fail during delete template
-
-		DeleteRecord(r.GVK.Kind+"."+group, req.Namespace, req.Name) // nolint:errcheck
-
-		r.reconcileTemplates(ctx) // nolint:errcheck
-
-		return reconcile.Result{}, nil
-
-	}
-
-	if err := r.processResource(ctx, resource); err != nil {
-		return reconcile.Result{}, err
-	}
-
-	return reconcile.Result{}, nil
-}
-
-// processResource processes the fetched resource.
-func (r *DynamicReconciler) processResource(ctx context.Context, resource *unstructured.Unstructured) error {
-	log := log.FromContext(ctx)
-	log.Info("Processing dynamic resource", "GVK", r.GVK, "resource", resource)
-
-	makedResource, err := repository.MakeResource(resource.Object)
-	if err != nil {
-		return fmt.Errorf("error creating resource: %w", err)
-	}
-
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Error(err, "unable to create repository")
-		return err
-	}
-
-	if exists, err := re.CheckIfResourceExists(makedResource); err != nil {
-		log.Error(err, "unable to check if resource exists")
-		return err
-	} else if exists {
-		log.Info("Resource already exists in database",
-			"GVK", r.GVK,
-			"name", resource.GetName(),
-			"namespace", resource.GetNamespace())
-		return nil
-	}
-
-	if err := re.Upsert(makedResource); err != nil {
-		log.Error(err, "unable to upsert resource")
-		return err
-	}
-
-	return r.reconcileTemplates(ctx)
-}
-
-// reconcileTemplates reconciles the templates associated with the resource.
-func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error {
-	log := log.FromContext(ctx)
-	var templates []string
-
-	for templateName, gvks := range wm.templates {
-		if _, exists := gvks[r.GVK]; exists {
-			log.Info("Reconciling template", "templateName", templateName)
-			templates = append(templates, templateName)
-		}
-	}
-
-	for _, templateName := range templates {
-		if err := r.processTemplate(ctx, templateName); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// processTemplate processes a single template.
-func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName string) error {
-	log := log.FromContext(ctx)
-
-	k8sClient := r.K8sClient
-	if k8sClient == nil {
-		err := fmt.Errorf("K8sClient is not initialized")
-		log.Error(err, "K8sClient is not initialized")
-		return err
-	}
-	template, err := k8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
-	if err != nil {
-		log.Error(err, "unable to get template", "templateName", templateName)
-		return err
-	}
-
-	templateObj := &kumquatv1beta1.Template{}
-	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(template.Object, templateObj); err != nil {
-		log.Error(err, "unable to convert unstructured to template")
-		return err
-	}
-
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Error(err, "unable to create repository")
-		return err
-	}
-
-	return r.evaluateTemplate(ctx, template, re)
-}
-
-// fetchResource fetches the resource from the cluster.
-func (r *DynamicReconciler) fetchResource(
-	ctx context.Context,
-	req reconcile.Request,
-) (*unstructured.Unstructured, error) {
-	resource := &unstructured.Unstructured{}
-	resource.SetGroupVersionKind(r.GVK)
-	err := r.Client.Get(ctx, req.NamespacedName, resource)
-	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			return nil, err
-		}
-		return nil, nil
-	}
-	return resource, nil
-}
-
-// evaluateTemplate evaluates the template with the given data.
-func (r *DynamicReconciler) evaluateTemplate(
-	ctx context.Context,
-	template *unstructured.Unstructured,
-	re *repository.SQLiteRepository,
-) error {
-	templateObj := &kumquatv1beta1.Template{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(template.Object, templateObj)
-	if err != nil {
-		log := log.FromContext(ctx)
-		log.Error(err, "unable to convert unstructured to template")
-		return err
-	}
-
-	return processTemplateResources(templateObj, re, log.FromContext(ctx), r.K8sClient)
+func (wm *watchManager) GetGeneratedResources(templateName string) mapset.Set[ResourceIdentifier] {
+	wm.mu.Lock()
+	defer wm.mu.Unlock()
+	return wm.generatedResources[templateName]
 }
 
 // unstructuredEventHandler handles events for unstructured resources.

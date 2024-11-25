@@ -192,40 +192,6 @@ func (r *SQLiteRepository) Upsert(resource Resource) error {
 	return nil
 }
 
-// a function that builds data columns from the resource and check if a row with the same value for data column exists
-func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	byteJSON, err := json.Marshal(resource.Content())
-
-	if err != nil {
-		return false, fmt.Errorf("unable to encode resource as JSON: %w", err)
-	}
-
-	table := resource.Kind() + "." + resource.Group()
-	fmt.Println("Checking if resource with same data already exists",
-		"table", table, "namespace", resource.Namespace(), "name", resource.Name())
-	contentJSON := string(byteJSON)
-	log.Log.Info("Checking if resource exists", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
-
-	if !r.StoredKinds[table] {
-		err := r.createTable(table)
-
-		if err != nil {
-			return false, err
-		}
-	}
-
-	var count int
-	err = r.db.QueryRow( /* sql */ `SELECT COUNT(*) FROM "`+table+`" WHERE data = ?`, contentJSON).Scan(&count)
-
-	if err != nil {
-		return false, fmt.Errorf("unable to check if resource exists: %w", err)
-	}
-
-	return count > 0, nil
-}
-
 func (r *SQLiteRepository) ExtractTableNamesFromQuery(query string) []string {
 	// Extract table names from query
 	tableNames := make([]string, 0)

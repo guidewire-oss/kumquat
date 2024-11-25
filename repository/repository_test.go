@@ -196,6 +196,12 @@ func (repo *MockRepo) Upsert(r repository.Resource) error {
 func (m *MockRepo) Delete(namespace, name, table string) error {
 	return nil
 }
+func (m *MockRepo) DropTable(tableName string) error {
+	return nil
+}
+func (m *MockRepo) ExtractTableNamesFromQuery(query string) []string {
+	return nil
+}
 
 func TestLoadYAMLResourcesFromDirectoryTreeWithErrors(t *testing.T) {
 	repo := &MockRepo{}
