@@ -62,12 +62,12 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 
 	}
 
-	err = UpsertResourceToDatabase(r.repository, resource, ctx) // nolint:errcheck
+	err = UpsertResourceToDatabase(r.repository, resource, ctx)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	err = r.findAndReProcessAffectedTemplates(ctx) // nolint:errcheck
+	err = r.findAndReProcessAffectedTemplates(ctx)
 
 	if err != nil {
 		return reconcile.Result{}, err
