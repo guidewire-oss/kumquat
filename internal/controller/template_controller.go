@@ -86,7 +86,7 @@ func (r *TemplateReconciler) RemoveFinalizer(template *kumquatv1beta1.Template) 
 type TemplateReconciler struct {
 	client.Client
 	Scheme       *runtime.Scheme
-	WatchManager WatchManagerInterface
+	WatchManager WatchManager
 	K8sClient    K8sClient
 	Repository   repository.Repository
 }
@@ -362,7 +362,7 @@ var ProcessTemplateResources = processTemplateResources
 
 // applyTemplateResources applies the resources generated from the template.
 func applyTemplateResources(
-	template *kumquatv1beta1.Template, re repository.Repository, log logr.Logger, k8sClient K8sClient, wm WatchManagerInterface) error {
+	template *kumquatv1beta1.Template, re repository.Repository, log logr.Logger, k8sClient K8sClient, wm WatchManager) error {
 	return ProcessTemplateResources(template, re, log, k8sClient, wm)
 }
 
@@ -371,7 +371,7 @@ func processTemplateResources(
 	re repository.Repository,
 	log logr.Logger,
 	k8sClient K8sClient,
-	wm WatchManagerInterface,
+	wm WatchManager,
 ) error {
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 	if err != nil {

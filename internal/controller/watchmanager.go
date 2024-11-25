@@ -23,7 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-type WatchManagerInterface interface {
+type WatchManager interface {
 	UpdateGeneratedResources(templateName string, resourceSet mapset.Set[ResourceIdentifier])
 	UpdateWatch(templateName string, newGVKs []schema.GroupVersionKind) error
 	RemoveWatch(templateName string)
@@ -50,7 +50,7 @@ func (r *ResourceIdentifier) ToString() string {
 }
 
 // WatchManager manages dynamic watches.
-type WatchManager struct {
+type watchManager struct {
 	refCounts          map[schema.GroupVersionKind]int
 	watchedResources   map[schema.GroupVersionKind]ControllerEntry
 	templates          map[string]map[schema.GroupVersionKind]struct{}
@@ -65,8 +65,8 @@ type WatchManager struct {
 }
 
 // NewWatchManager creates a new WatchManager instance.
-func NewWatchManager(mgr manager.Manager, k8sClient K8sClient, repo repository.Repository) WatchManagerInterface {
-	watchManager := &WatchManager{
+func NewWatchManager(mgr manager.Manager, k8sClient K8sClient, repo repository.Repository) WatchManager {
+	wm := &watchManager{
 		watchedResources:   make(map[schema.GroupVersionKind]ControllerEntry),
 		refCounts:          make(map[schema.GroupVersionKind]int),
 		templates:          make(map[string]map[schema.GroupVersionKind]struct{}),
@@ -78,17 +78,17 @@ func NewWatchManager(mgr manager.Manager, k8sClient K8sClient, repo repository.R
 		client:             mgr.GetClient(),
 		repository:         repo,
 	}
-	return watchManager
+	return wm
 }
 
-func (wm *WatchManager) GetManagedTemplates() map[string]map[schema.GroupVersionKind]struct{} {
+func (wm *watchManager) GetManagedTemplates() map[string]map[schema.GroupVersionKind]struct{} {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 	return wm.templates
 }
 
 // AddWatch adds a watch for the specified template and GVKs.
-func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersionKind) error {
+func (wm *watchManager) AddWatch(templateName string, gvks []schema.GroupVersionKind) error {
 	if _, exists := wm.templates[templateName]; !exists {
 		wm.templates[templateName] = make(map[schema.GroupVersionKind]struct{})
 	}
@@ -113,14 +113,14 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 
 	return nil
 }
-func (wm *WatchManager) UpdateGeneratedResources(templateName string, resources mapset.Set[ResourceIdentifier]) {
+func (wm *watchManager) UpdateGeneratedResources(templateName string, resources mapset.Set[ResourceIdentifier]) {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 	wm.generatedResources[templateName] = resources
 }
 
 // UpdateWatch updates the watch for the specified template with new GVKs.
-func (wm *WatchManager) UpdateWatch(templateName string, newGVKs []schema.GroupVersionKind) error {
+func (wm *watchManager) UpdateWatch(templateName string, newGVKs []schema.GroupVersionKind) error {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 
@@ -158,7 +158,7 @@ func (wm *WatchManager) UpdateWatch(templateName string, newGVKs []schema.GroupV
 }
 
 // RemoveWatch removes the watch for the specified template.
-func (wm *WatchManager) RemoveWatch(templateName string) {
+func (wm *watchManager) RemoveWatch(templateName string) {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 	log.Log.Info("Removing watch", "templateName", templateName)
@@ -181,7 +181,7 @@ func (wm *WatchManager) RemoveWatch(templateName string) {
 }
 
 // addWatchForGVK adds a watch for a specific GVK.
-func (wm *WatchManager) addWatchForGVK(templateName string, gvk schema.GroupVersionKind) error {
+func (wm *watchManager) addWatchForGVK(templateName string, gvk schema.GroupVersionKind) error {
 	wm.templates[templateName][gvk] = struct{}{}
 	if wm.refCounts[gvk] == 0 {
 		if err := wm.startWatching(gvk); err != nil {
@@ -195,7 +195,7 @@ func (wm *WatchManager) addWatchForGVK(templateName string, gvk schema.GroupVers
 }
 
 // removeWatchForGVK removes a watch for a specific GVK.
-func (wm *WatchManager) removeWatchForGVK(templateName string, gvk schema.GroupVersionKind) {
+func (wm *watchManager) removeWatchForGVK(templateName string, gvk schema.GroupVersionKind) {
 	wm.refCounts[gvk]--
 	if wm.refCounts[gvk] <= 0 {
 		wm.stopWatching(gvk)
@@ -206,7 +206,7 @@ func (wm *WatchManager) removeWatchForGVK(templateName string, gvk schema.GroupV
 }
 
 // startWatching starts watching a specific GVK.
-func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error {
+func (wm *watchManager) startWatching(gvk schema.GroupVersionKind) error {
 	log.Log.Info("Starting watch", "gvk", gvk)
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
@@ -243,7 +243,7 @@ func (wm *WatchManager) startWatching(gvk schema.GroupVersionKind) error {
 }
 
 // stopWatching stops watching a specific GVK.
-func (wm *WatchManager) stopWatching(gvk schema.GroupVersionKind) {
+func (wm *watchManager) stopWatching(gvk schema.GroupVersionKind) {
 	log.Log.Info("Stopping watch", "gvk", gvk)
 	if entry, exists := wm.watchedResources[gvk]; exists {
 		entry.cancelFunc()
@@ -253,7 +253,7 @@ func (wm *WatchManager) stopWatching(gvk schema.GroupVersionKind) {
 }
 
 // logs all active controllers.
-func (wm *WatchManager) logActiveControllers() {
+func (wm *watchManager) logActiveControllers() {
 	log.Log.Info("Listing all active controllers:")
 	for gvk, entry := range wm.watchedResources {
 		log.Log.Info("Active controller", "gvk", gvk, "context", entry.ctx)
@@ -271,7 +271,7 @@ func DeleteRecord(table, namespace, name string, repo repository.Repository) err
 	return nil
 }
 
-func (wm *WatchManager) GetGeneratedResources(templateName string) mapset.Set[ResourceIdentifier] {
+func (wm *watchManager) GetGeneratedResources(templateName string) mapset.Set[ResourceIdentifier] {
 	wm.mu.Lock()
 	defer wm.mu.Unlock()
 	return wm.generatedResources[templateName]

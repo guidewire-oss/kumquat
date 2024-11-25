@@ -39,7 +39,7 @@ var _ = Describe("DynamicReconciler", func() {
 			sr repository.Repository,
 			log logr.Logger,
 			k8sClient K8sClient,
-			wm WatchManagerInterface,
+			wm WatchManager,
 		) error
 	)
 
@@ -127,7 +127,7 @@ var _ = Describe("DynamicReconciler", func() {
 					sr repository.Repository,
 					log logr.Logger,
 					k8sClient K8sClient,
-					wm WatchManagerInterface,
+					wm WatchManager,
 				) error {
 					return nil
 				}
@@ -194,7 +194,7 @@ var _ = Describe("DynamicReconciler", func() {
 					sr repository.Repository,
 					log logr.Logger,
 					k8sClient K8sClient,
-					wm WatchManagerInterface,
+					wm WatchManager,
 				) error {
 					return nil
 				}
@@ -288,7 +288,7 @@ func (m *MockK8sClient) Reset() {
 	m.GetPreferredGVKFunc = nil
 }
 
-// MockWatchManager implements the WatchManagerInterface for testing
+// MockWatchManager implements the WatchManager for testing
 type MockWatchManager struct {
 	UpdateGeneratedResourcesFunc func(templateName string, resourceSet mapset.Set[ResourceIdentifier])
 	UpdateWatchFunc              func(templateName string, newGVKs []schema.GroupVersionKind) error
