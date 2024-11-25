@@ -24,19 +24,13 @@ func DeleteResourceFromDatabaseByNameAndNameSpace(
 
 func UpsertResourceToDatabase(
 	repo repository.Repository, resource *unstructured.Unstructured, ctx context.Context) error {
-	log := log.FromContext(ctx)
-	fmt.Println("UpsertResourceToDatabase")
 
 	makedResource, err := repository.MakeResource(resource.Object)
 	if err != nil {
 		return fmt.Errorf("error creating resource: %w", err)
 	}
+	return repo.Upsert(makedResource)
 
-	if err := repo.Upsert(makedResource); err != nil {
-		log.Error(err, "unable to upsert resource")
-		return err
-	}
-	return nil
 }
 
 // deleteTableFromDataBase deletes a table from the database.

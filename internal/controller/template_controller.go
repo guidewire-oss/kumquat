@@ -329,21 +329,12 @@ func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8s
 	log.Info("found in the cluster", "count", len(data.Items))
 
 	for _, item := range data.Items {
-		err := upsertResource(item.Object, repo)
+		err := UpsertResourceToDatabase(repo, &item, context)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func upsertResource(obj map[string]interface{}, repo repository.Repository) error {
-	resource, err := repository.MakeResource(obj)
-	if err != nil {
-		return err
-	}
-
-	return repo.Upsert(resource)
 }
 
 func GetTemplateResourceFromCluster(kind string, group string, name string, log logr.Logger,
