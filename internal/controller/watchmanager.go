@@ -45,10 +45,6 @@ type ResourceIdentifier struct {
 	Name      string
 }
 
-func (r *ResourceIdentifier) ToString() string {
-	return r.Group + "/" + r.Kind + "/" + r.Namespace + "/" + r.Name
-}
-
 // WatchManager manages dynamic watches.
 type watchManager struct {
 	refCounts          map[schema.GroupVersionKind]int
