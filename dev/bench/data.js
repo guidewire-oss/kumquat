@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733885207123,
+  "lastUpdate": 1733885609665,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -1578,6 +1578,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1400894508,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "0afe699f268c8534b2aebc54389ba9b2d3dcd223",
+          "message": ":arrow_up: Bump sigs.k8s.io/controller-runtime from 0.19.2 to 0.19.3\n\nBumps [sigs.k8s.io/controller-runtime](https://github.com/kubernetes-sigs/controller-runtime) from 0.19.2 to 0.19.3.\n- [Release notes](https://github.com/kubernetes-sigs/controller-runtime/releases)\n- [Changelog](https://github.com/kubernetes-sigs/controller-runtime/blob/main/RELEASE.md)\n- [Commits](https://github.com/kubernetes-sigs/controller-runtime/compare/v0.19.2...v0.19.3)\n\n---\nupdated-dependencies:\n- dependency-name: sigs.k8s.io/controller-runtime\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-12-10T21:50:22-05:00",
+          "tree_id": "d10a664976d4aaf3c7fbffd7b24c26a7238e0b95",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/0afe699f268c8534b2aebc54389ba9b2d3dcd223"
+        },
+        "date": 1733885608967,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29118,
+            "unit": "ns/op",
+            "extra": "415611 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 28994,
+            "unit": "ns/op",
+            "extra": "398312 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25055,
+            "unit": "ns/op",
+            "extra": "473515 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1430059957,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
