@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733884780827,
+  "lastUpdate": 1733885207123,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -1532,6 +1532,54 @@ window.BENCHMARK_DATA = {
             "value": 1435632667,
             "unit": "ns/op",
             "extra": "7 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "71a4ed20c0f058f6d87c3cd68a04edc8f053507e",
+          "message": ":arrow_up: Bump github.com/deckarep/golang-set/v2 from 2.6.0 to 2.7.0\n\nBumps [github.com/deckarep/golang-set/v2](https://github.com/deckarep/golang-set) from 2.6.0 to 2.7.0.\n- [Release notes](https://github.com/deckarep/golang-set/releases)\n- [Commits](https://github.com/deckarep/golang-set/compare/v2.6.0...v2.7.0)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/deckarep/golang-set/v2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-12-10T21:43:48-05:00",
+          "tree_id": "5706f389ea6c78e24c9be2a07dba09afddd5bae7",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/71a4ed20c0f058f6d87c3cd68a04edc8f053507e"
+        },
+        "date": 1733885206434,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29748,
+            "unit": "ns/op",
+            "extra": "401629 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29587,
+            "unit": "ns/op",
+            "extra": "401532 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25606,
+            "unit": "ns/op",
+            "extra": "467875 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1400894508,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
           }
         ]
       }
