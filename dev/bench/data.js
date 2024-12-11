@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1732375164048,
+  "lastUpdate": 1733884780827,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -1484,6 +1484,54 @@ window.BENCHMARK_DATA = {
             "value": 1409482624,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "c07944fd738fb562996b65383149fd4fc5a8e76a",
+          "message": ":arrow_up: Bump github.com/onsi/gomega from 1.35.1 to 1.36.1\n\nBumps [github.com/onsi/gomega](https://github.com/onsi/gomega) from 1.35.1 to 1.36.1.\n- [Release notes](https://github.com/onsi/gomega/releases)\n- [Changelog](https://github.com/onsi/gomega/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/onsi/gomega/compare/v1.35.1...v1.36.1)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/onsi/gomega\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-12-10T21:36:37-05:00",
+          "tree_id": "ec3b9c4bf5906c7418fe34c842351621cddf3906",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/c07944fd738fb562996b65383149fd4fc5a8e76a"
+        },
+        "date": 1733884779600,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29824,
+            "unit": "ns/op",
+            "extra": "383670 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29758,
+            "unit": "ns/op",
+            "extra": "397750 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25627,
+            "unit": "ns/op",
+            "extra": "466890 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1435632667,
+            "unit": "ns/op",
+            "extra": "7 times\n4 procs"
           }
         ]
       }
