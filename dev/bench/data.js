@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733887141408,
+  "lastUpdate": 1733952279139,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -1722,6 +1722,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1425504541,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "b258e7f885f8baf14d371c6404d780cbb0399fe5",
+          "message": ":arrow_up: Bump k8s.io/apimachinery from 0.31.3 to 0.31.4\n\nBumps [k8s.io/apimachinery](https://github.com/kubernetes/apimachinery) from 0.31.3 to 0.31.4.\n- [Commits](https://github.com/kubernetes/apimachinery/compare/v0.31.3...v0.31.4)\n\n---\nupdated-dependencies:\n- dependency-name: k8s.io/apimachinery\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-12-11T16:21:36-05:00",
+          "tree_id": "8b22512c83a2cf233d5fde5641a2dfe4b242f396",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/b258e7f885f8baf14d371c6404d780cbb0399fe5"
+        },
+        "date": 1733952277690,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29769,
+            "unit": "ns/op",
+            "extra": "400520 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29661,
+            "unit": "ns/op",
+            "extra": "400288 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25490,
+            "unit": "ns/op",
+            "extra": "465162 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1405737384,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
