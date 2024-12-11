@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733885609665,
+  "lastUpdate": 1733886012973,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -1626,6 +1626,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1430059957,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "239fefda3607f1a5963226ec99ac4e17123a000e",
+          "message": ":arrow_up: Bump github.com/stretchr/testify from 1.9.0 to 1.10.0\n\nBumps [github.com/stretchr/testify](https://github.com/stretchr/testify) from 1.9.0 to 1.10.0.\n- [Release notes](https://github.com/stretchr/testify/releases)\n- [Commits](https://github.com/stretchr/testify/compare/v1.9.0...v1.10.0)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/stretchr/testify\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-12-10T21:57:08-05:00",
+          "tree_id": "76a8edc992ce85c4b2c9cd06174e2af95d747f2a",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/239fefda3607f1a5963226ec99ac4e17123a000e"
+        },
+        "date": 1733886012358,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29409,
+            "unit": "ns/op",
+            "extra": "416581 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29297,
+            "unit": "ns/op",
+            "extra": "411342 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25379,
+            "unit": "ns/op",
+            "extra": "463555 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1407954848,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
