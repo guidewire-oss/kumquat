@@ -61,9 +61,9 @@
 				
 				<option value="file2">kumquat/cmd/main.go (0.0%)</option>
 				
-				<option value="file3">kumquat/internal/controller/k8sclient.go (73.3%)</option>
+				<option value="file3">kumquat/internal/controller/k8sclient.go (71.7%)</option>
 				
-				<option value="file4">kumquat/internal/controller/template_controller.go (70.6%)</option>
+				<option value="file4">kumquat/internal/controller/template_controller.go (69.7%)</option>
 				
 				<option value="file5">kumquat/internal/controller/watchmanager.go (73.6%)</option>
 				
@@ -548,7 +548,7 @@ func (k *DynamicK8sClient) Create(ctx context.Context, obj *unstructured.Unstruc
 }
 
 func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured.Unstructured) (
-        *unstructured.Unstructured, error) <span class="cov9" title="56">{
+        *unstructured.Unstructured, error) <span class="cov9" title="48">{
 
         existing := &amp;unstructured.Unstructured{}
         existing.SetGroupVersionKind(obj.GroupVersionKind())
@@ -571,12 +571,12 @@ func (k *DynamicK8sClient) CreateOrUpdate(ctx context.Context, obj *unstructured
         }
 
         // Resource exists, update
-        <span class="cov9" title="49">obj.SetResourceVersion(existing.GetResourceVersion())
+        <span class="cov9" title="41">obj.SetResourceVersion(existing.GetResourceVersion())
         err = k.client.Update(ctx, obj)
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov9" title="48">return obj, nil</span>
+        <span class="cov9" title="41">return obj, nil</span>
 }
 
 func (k *DynamicK8sClient) List(ctx context.Context, group, kind, namespace string) (
@@ -597,23 +597,23 @@ func (k *DynamicK8sClient) List(ctx context.Context, group, kind, namespace stri
 }
 
 func (k *DynamicK8sClient) Get(ctx context.Context, group, kind, namespace, name string) (
-        *unstructured.Unstructured, error) <span class="cov8" title="40">{
+        *unstructured.Unstructured, error) <span class="cov8" title="33">{
         gvk, err := k.GetPreferredGVK(group, kind)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov8" title="40">obj := &amp;unstructured.Unstructured{}
+        <span class="cov8" title="33">obj := &amp;unstructured.Unstructured{}
         obj.SetGroupVersionKind(gvk)
         key := client.ObjectKey{
                 Namespace: namespace,
                 Name:      name,
         }
         err = k.client.Get(ctx, key, obj)
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov2" title="2">{
                 return nil, err
         }</span>
-        <span class="cov8" title="39">return obj, nil</span>
+        <span class="cov8" title="31">return obj, nil</span>
 }
 
 func (k *DynamicK8sClient) Update(ctx context.Context, group, kind, namespace string, obj *unstructured.Unstructured) (
@@ -642,7 +642,7 @@ func (k *DynamicK8sClient) Delete(ctx context.Context, group, kind, namespace, n
         <span class="cov5" title="7">return nil</span>
 }
 
-func (k *DynamicK8sClient) GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error) <span class="cov10" title="69">{
+func (k *DynamicK8sClient) GetPreferredGVK(group, kind string) (schema.GroupVersionKind, error) <span class="cov10" title="62">{
         partialGVK := schema.GroupVersionKind{
                 Group: group,
                 Kind:  kind,
@@ -653,7 +653,7 @@ func (k *DynamicK8sClient) GetPreferredGVK(group, kind string) (schema.GroupVers
                 return schema.GroupVersionKind{}, fmt.Errorf("failed to get GVK from RESTMapper: %v", err)
         }</span>
 
-        <span class="cov10" title="69">return mapping.GroupVersionKind, nil</span>
+        <span class="cov10" title="62">return mapping.GroupVersionKind, nil</span>
 
 }
 </pre>
@@ -706,7 +706,7 @@ const templateFinalizer = "kumquat.guidewire.com/finalizer"
 
 var SqliteRepository *repository.SQLiteRepository // Initially nil
 
-func GetSqliteRepository() (*repository.SQLiteRepository, error) <span class="cov10" title="252">{
+func GetSqliteRepository() (*repository.SQLiteRepository, error) <span class="cov10" title="235">{
         if SqliteRepository == nil </span><span class="cov1" title="1">{
                 rep, err := repository.NewSQLiteRepository()
                 if err != nil </span><span class="cov0" title="0">{
@@ -714,7 +714,7 @@ func GetSqliteRepository() (*repository.SQLiteRepository, error) <span class="co
                 }</span>
                 <span class="cov1" title="1">SqliteRepository = rep</span>
         }
-        <span class="cov10" title="252">return SqliteRepository, nil</span>
+        <span class="cov10" title="235">return SqliteRepository, nil</span>
 }
 
 // containsString checks if a string is in a slice
@@ -884,7 +884,7 @@ func deleteResourceFromCluster(out string, log logr.Logger, k8sClient K8sClient)
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.18.4/pkg/reconcile
-func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) <span class="cov5" title="21">{
+func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) <span class="cov6" title="21">{
         log := log.FromContext(ctx)
 
         template := &amp;kumquatv1beta1.Template{}
@@ -1061,56 +1061,56 @@ func processTemplateResources(
         re *repository.SQLiteRepository,
         log logr.Logger,
         k8sClient K8sClient,
-) error <span class="cov7" title="50">{
+) error <span class="cov7" title="42">{
         objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
         if err != nil </span><span class="cov0" title="0">{
                 log.Error(err, "failed to convert template to unstructured map")
                 return err
         }</span>
 
-        <span class="cov7" title="50">resource, err := repository.MakeResource(objMap)
+        <span class="cov7" title="42">resource, err := repository.MakeResource(objMap)
         if err != nil </span><span class="cov0" title="0">{
                 log.Error(err, "unable to make resource from object")
                 return err
         }</span>
 
-        <span class="cov7" title="50">t, err := kumquatTemplate.NewTemplate(resource)
+        <span class="cov7" title="42">t, err := kumquatTemplate.NewTemplate(resource)
         if err != nil </span><span class="cov0" title="0">{
                 log.Error(err, "unable to create template from resource")
                 return err
         }</span>
 
-        <span class="cov7" title="50">o, err := t.Evaluate(re)
+        <span class="cov7" title="42">o, err := t.Evaluate(re)
         if err != nil </span><span class="cov0" title="0">{
                 log.Error(err, "unable to evaluate template")
                 return err
         }</span>
 
-        <span class="cov7" title="50">desiredResourceIdentifiersSet := mapset.NewSet[ResourceIdentifier]()
+        <span class="cov7" title="42">desiredResourceIdentifiersSet := mapset.NewSet[ResourceIdentifier]()
         desiredResources := make(map[ResourceIdentifier]*unstructured.Unstructured)
 
         // Process each resource generated by the template
-        for i := 0; i &lt; o.Output.ResourceCount(); i++ </span><span class="cov7" title="56">{
+        for i := 0; i &lt; o.Output.ResourceCount(); i++ </span><span class="cov7" title="48">{
                 out, err := o.Output.ResultString(i)
                 if err != nil </span><span class="cov0" title="0">{
                         log.Error(err, "unable to get result string")
                         return err
                 }</span>
 
-                <span class="cov7" title="56">jsonData, err := yaml.YAMLToJSON([]byte(out))
+                <span class="cov7" title="48">jsonData, err := yaml.YAMLToJSON([]byte(out))
                 if err != nil </span><span class="cov0" title="0">{
                         log.Error(err, "unable to convert YAML to JSON")
                         return err
                 }</span>
 
-                <span class="cov7" title="56">unstructuredObj := &amp;unstructured.Unstructured{}
+                <span class="cov7" title="48">unstructuredObj := &amp;unstructured.Unstructured{}
                 err = unstructuredObj.UnmarshalJSON(jsonData)
                 if err != nil </span><span class="cov0" title="0">{
                         log.Error(err, "unable to unmarshal JSON")
                         return err
                 }</span>
 
-                <span class="cov7" title="56">ri := ResourceIdentifier{
+                <span class="cov7" title="48">ri := ResourceIdentifier{
                         Group:     unstructuredObj.GroupVersionKind().Group,
                         Kind:      unstructuredObj.GroupVersionKind().Kind,
                         Namespace: unstructuredObj.GetNamespace(),
@@ -1122,11 +1122,11 @@ func processTemplateResources(
         }
 
         // Retrieve existing resources generated by this template
-        <span class="cov7" title="50">existingResourceIdentifiers := wm.generatedResources[template.Name]
+        <span class="cov7" title="42">existingResourceIdentifiers := wm.generatedResources[template.Name]
         if existingResourceIdentifiers == nil </span><span class="cov3" title="4">{
                 existingResourceIdentifiers = mapset.NewSet[ResourceIdentifier]()
         }</span>
-        <span class="cov7" title="50">fmt.Println("Existing resources", existingResourceIdentifiers)
+        <span class="cov7" title="42">fmt.Println("Existing resources", existingResourceIdentifiers)
         // Convert the existing resources to a set for easy comparison
 
         resourcesToDelete := existingResourceIdentifiers.Difference(desiredResourceIdentifiersSet)
@@ -1140,16 +1140,16 @@ func processTemplateResources(
                 }</span>
         }
         // Apply desired resources (create or update)
-        <span class="cov7" title="50">for ri := range desiredResourceIdentifiersSet.Iter() </span><span class="cov7" title="56">{
+        <span class="cov7" title="42">for ri := range desiredResourceIdentifiersSet.Iter() </span><span class="cov7" title="48">{
                 _, err := k8sClient.CreateOrUpdate(context.Background(), desiredResources[ri])
-                if err != nil </span><span class="cov1" title="1">{
+                if err != nil </span><span class="cov0" title="0">{
                         log.Error(err, "unable to create or update resource", "resource", ri)
                         return err
                 }</span>
         }
 
         // Update the generatedResources in WatchManager
-        <span class="cov7" title="49">wm.UpdateGeneratedResources(template.Name, desiredResourceIdentifiersSet)
+        <span class="cov7" title="42">wm.UpdateGeneratedResources(template.Name, desiredResourceIdentifiersSet)
         return nil</span>
 }
 
@@ -1278,7 +1278,7 @@ func (wm *WatchManager) AddWatch(templateName string, gvks []schema.GroupVersion
 
         <span class="cov4" title="6">return nil</span>
 }
-func (wm *WatchManager) UpdateGeneratedResources(templateName string, resources mapset.Set[ResourceIdentifier]) <span class="cov8" title="49">{
+func (wm *WatchManager) UpdateGeneratedResources(templateName string, resources mapset.Set[ResourceIdentifier]) <span class="cov8" title="42">{
         wm.mu.Lock()
         defer wm.mu.Unlock()
         wm.generatedResources[templateName] = resources
@@ -1432,18 +1432,18 @@ func (wm *WatchManager) logActiveControllers() <span class="cov4" title="5">{
 }
 
 // DeleteRecord deletes a record from the specified table.
-func DeleteRecord(table, namespace, name string) error <span class="cov7" title="27">{
+func DeleteRecord(table, namespace, name string) error <span class="cov7" title="20">{
         re, err := GetSqliteRepository()
         if err != nil </span><span class="cov0" title="0">{
                 log.Log.Error(err, "unable to create repository")
                 return err
         }</span>
-        <span class="cov7" title="27">err = re.Delete(namespace, name, table)
+        <span class="cov7" title="20">err = re.Delete(namespace, name, table)
         if err != nil </span><span class="cov0" title="0">{
                 log.Log.Error(err, "unable to delete record")
                 return err
         }</span>
-        <span class="cov7" title="27">log.Log.Info("Record deleted", "table", table, "namespace", namespace, "name", name)
+        <span class="cov7" title="20">log.Log.Info("Record deleted", "table", table, "namespace", namespace, "name", name)
         return nil</span>
 }
 
@@ -1476,16 +1476,16 @@ type DynamicReconciler struct {
         K8sClient K8sClient
 }
 
-func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) <span class="cov10" title="91">{
+func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) <span class="cov10" title="88">{
         log := log.FromContext(ctx)
         log.Info("Reconciling dynamic resource", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
 
         resource, err := r.fetchResource(ctx, req)
-        if err != nil </span><span class="cov4" title="5">{
+        if err != nil </span><span class="cov5" title="11">{
                 return reconcile.Result{}, err
         }</span>
 
-        <span class="cov9" title="86">if resource == nil </span><span class="cov7" title="27">{
+        <span class="cov9" title="77">if resource == nil </span><span class="cov7" title="20">{
                 log.Info("Resource deleted", "GVK", r.GVK, "name", req.Name, "namespace", req.Namespace)
                 // set group to core if it is empty
                 group := r.GVK.Group
@@ -1495,7 +1495,7 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
                 // delete record from database
                 // TODO: checking the return code and returning an error causes the E2E tests to fail during delete template
 
-                <span class="cov7" title="27">DeleteRecord(r.GVK.Kind+"."+group, req.Namespace, req.Name) // nolint:errcheck
+                <span class="cov7" title="20">DeleteRecord(r.GVK.Kind+"."+group, req.Namespace, req.Name) // nolint:errcheck
 
                 r.reconcileTemplates(ctx) // nolint:errcheck
 
@@ -1503,15 +1503,15 @@ func (r *DynamicReconciler) Reconcile(ctx context.Context, req reconcile.Request
 
         }
 
-        <span class="cov9" title="59">if err := r.processResource(ctx, resource); err != nil </span><span class="cov0" title="0">{
+        <span class="cov9" title="57">if err := r.processResource(ctx, resource); err != nil </span><span class="cov0" title="0">{
                 return reconcile.Result{}, err
         }</span>
 
-        <span class="cov9" title="59">return reconcile.Result{}, nil</span>
+        <span class="cov9" title="57">return reconcile.Result{}, nil</span>
 }
 
 // processResource processes the fetched resource.
-func (r *DynamicReconciler) processResource(ctx context.Context, resource *unstructured.Unstructured) error <span class="cov9" title="59">{
+func (r *DynamicReconciler) processResource(ctx context.Context, resource *unstructured.Unstructured) error <span class="cov9" title="57">{
         log := log.FromContext(ctx)
         log.Info("Processing dynamic resource", "GVK", r.GVK, "resource", resource)
 
@@ -1520,16 +1520,16 @@ func (r *DynamicReconciler) processResource(ctx context.Context, resource *unstr
                 return fmt.Errorf("error creating resource: %w", err)
         }</span>
 
-        <span class="cov9" title="59">re, err := GetSqliteRepository()
+        <span class="cov9" title="57">re, err := GetSqliteRepository()
         if err != nil </span><span class="cov0" title="0">{
                 log.Error(err, "unable to create repository")
                 return err
         }</span>
 
-        <span class="cov9" title="59">if exists, err := re.CheckIfResourceExists(makedResource); err != nil </span><span class="cov0" title="0">{
+        <span class="cov9" title="57">if exists, err := re.CheckIfResourceExists(makedResource); err != nil </span><span class="cov0" title="0">{
                 log.Error(err, "unable to check if resource exists")
                 return err
-        }</span> else<span class="cov9" title="59"> if exists </span><span class="cov8" title="45">{
+        }</span> else<span class="cov9" title="57"> if exists </span><span class="cov8" title="44">{
                 log.Info("Resource already exists in database",
                         "GVK", r.GVK,
                         "name", resource.GetName(),
@@ -1537,37 +1537,37 @@ func (r *DynamicReconciler) processResource(ctx context.Context, resource *unstr
                 return nil
         }</span>
 
-        <span class="cov6" title="14">if err := re.Upsert(makedResource); err != nil </span><span class="cov0" title="0">{
+        <span class="cov6" title="13">if err := re.Upsert(makedResource); err != nil </span><span class="cov0" title="0">{
                 log.Error(err, "unable to upsert resource")
                 return err
         }</span>
 
-        <span class="cov6" title="14">return r.reconcileTemplates(ctx)</span>
+        <span class="cov6" title="13">return r.reconcileTemplates(ctx)</span>
 }
 
 // reconcileTemplates reconciles the templates associated with the resource.
-func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error <span class="cov8" title="41">{
+func (r *DynamicReconciler) reconcileTemplates(ctx context.Context) error <span class="cov8" title="33">{
         log := log.FromContext(ctx)
         var templates []string
 
-        for templateName, gvks := range wm.templates </span><span class="cov8" title="45">{
-                if _, exists := gvks[r.GVK]; exists </span><span class="cov8" title="40">{
+        for templateName, gvks := range wm.templates </span><span class="cov8" title="39">{
+                if _, exists := gvks[r.GVK]; exists </span><span class="cov8" title="33">{
                         log.Info("Reconciling template", "templateName", templateName)
                         templates = append(templates, templateName)
                 }</span>
         }
 
-        <span class="cov8" title="41">for _, templateName := range templates </span><span class="cov8" title="40">{
+        <span class="cov8" title="33">for _, templateName := range templates </span><span class="cov8" title="33">{
                 if err := r.processTemplate(ctx, templateName); err != nil </span><span class="cov2" title="2">{
                         return err
                 }</span>
         }
 
-        <span class="cov8" title="39">return nil</span>
+        <span class="cov7" title="31">return nil</span>
 }
 
 // processTemplate processes a single template.
-func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName string) error <span class="cov8" title="40">{
+func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName string) error <span class="cov8" title="33">{
         log := log.FromContext(ctx)
 
         k8sClient := r.K8sClient
@@ -1576,42 +1576,42 @@ func (r *DynamicReconciler) processTemplate(ctx context.Context, templateName st
                 log.Error(err, "K8sClient is not initialized")
                 return err
         }</span>
-        <span class="cov8" title="40">template, err := k8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov8" title="33">template, err := k8sClient.Get(ctx, "kumquat.guidewire.com", "Template", "templates", templateName)
+        if err != nil </span><span class="cov2" title="2">{
                 log.Error(err, "unable to get template", "templateName", templateName)
                 return err
         }</span>
 
-        <span class="cov8" title="39">templateObj := &amp;kumquatv1beta1.Template{}
+        <span class="cov7" title="31">templateObj := &amp;kumquatv1beta1.Template{}
         if err := runtime.DefaultUnstructuredConverter.FromUnstructured(template.Object, templateObj); err != nil </span><span class="cov0" title="0">{
                 log.Error(err, "unable to convert unstructured to template")
                 return err
         }</span>
 
-        <span class="cov8" title="39">re, err := GetSqliteRepository()
+        <span class="cov7" title="31">re, err := GetSqliteRepository()
         if err != nil </span><span class="cov0" title="0">{
                 log.Error(err, "unable to create repository")
                 return err
         }</span>
 
-        <span class="cov8" title="39">return r.evaluateTemplate(ctx, template, re)</span>
+        <span class="cov7" title="31">return r.evaluateTemplate(ctx, template, re)</span>
 }
 
 // fetchResource fetches the resource from the cluster.
 func (r *DynamicReconciler) fetchResource(
         ctx context.Context,
         req reconcile.Request,
-) (*unstructured.Unstructured, error) <span class="cov10" title="91">{
+) (*unstructured.Unstructured, error) <span class="cov10" title="88">{
         resource := &amp;unstructured.Unstructured{}
         resource.SetGroupVersionKind(r.GVK)
         err := r.Client.Get(ctx, req.NamespacedName, resource)
-        if err != nil </span><span class="cov7" title="32">{
-                if client.IgnoreNotFound(err) != nil </span><span class="cov4" title="5">{
+        if err != nil </span><span class="cov7" title="31">{
+                if client.IgnoreNotFound(err) != nil </span><span class="cov5" title="11">{
                         return nil, err
                 }</span>
-                <span class="cov7" title="27">return nil, nil</span>
+                <span class="cov7" title="20">return nil, nil</span>
         }
-        <span class="cov9" title="59">return resource, nil</span>
+        <span class="cov9" title="57">return resource, nil</span>
 }
 
 // evaluateTemplate evaluates the template with the given data.
@@ -1619,7 +1619,7 @@ func (r *DynamicReconciler) evaluateTemplate(
         ctx context.Context,
         template *unstructured.Unstructured,
         re *repository.SQLiteRepository,
-) error <span class="cov8" title="39">{
+) error <span class="cov7" title="31">{
         templateObj := &amp;kumquatv1beta1.Template{}
         err := runtime.DefaultUnstructuredConverter.FromUnstructured(template.Object, templateObj)
         if err != nil </span><span class="cov0" title="0">{
@@ -1628,7 +1628,7 @@ func (r *DynamicReconciler) evaluateTemplate(
                 return err
         }</span>
 
-        <span class="cov8" title="39">return processTemplateResources(templateObj, re, log.FromContext(ctx), r.K8sClient)</span>
+        <span class="cov7" title="31">return processTemplateResources(templateObj, re, log.FromContext(ctx), r.K8sClient)</span>
 }
 
 // unstructuredEventHandler handles events for unstructured resources.
@@ -1638,7 +1638,7 @@ func (h *unstructuredEventHandler) Create(
         ctx context.Context,
         evt event.TypedCreateEvent[*unstructured.Unstructured],
         q workqueue.TypedRateLimitingInterface[ctrl.Request],
-) <span class="cov9" title="74">{
+) <span class="cov9" title="75">{
         q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }</span>
 
@@ -1654,7 +1654,7 @@ func (h *unstructuredEventHandler) Delete(
         ctx context.Context,
         evt event.TypedDeleteEvent[*unstructured.Unstructured],
         q workqueue.TypedRateLimitingInterface[ctrl.Request],
-) <span class="cov7" title="31">{
+) <span class="cov7" title="32">{
         q.Add(ctrl.Request{NamespacedName: client.ObjectKeyFromObject(evt.Object)})
 }</span>
 
@@ -1768,7 +1768,7 @@ import (
 )
 
 func init() <span class="cov2" title="2">{
-        err := renderer.Register("cue", func(template, source string) (renderer.Renderer, error) </span><span class="cov9" title="55">{
+        err := renderer.Register("cue", func(template, source string) (renderer.Renderer, error) </span><span class="cov9" title="47">{
                 return NewCUERenderer(template, source)
         }</span>)
         <span class="cov2" title="2">if err != nil </span><span class="cov0" title="0">{
@@ -1782,7 +1782,7 @@ type CUERenderer struct {
         ctx    *cuelang.Context
 }
 
-func NewCUERenderer(template string, source string) (*CUERenderer, error) <span class="cov9" title="67">{
+func NewCUERenderer(template string, source string) (*CUERenderer, error) <span class="cov9" title="59">{
         tpl := CUERenderer{
                 config: template,
                 source: source,
@@ -1792,17 +1792,17 @@ func NewCUERenderer(template string, source string) (*CUERenderer, error) <span 
         return &amp;tpl, nil
 }</span>
 
-func (r *CUERenderer) Render(results any, output *renderer.Output) error <span class="cov10" title="77">{
+func (r *CUERenderer) Render(results any, output *renderer.Output) error <span class="cov10" title="69">{
         err := r.evaluate(results, output)
 
         if err != nil </span><span class="cov5" title="9">{
                 return fmt.Errorf("error evaluating CUE template '%s': %w", r.source, err)
         }</span>
 
-        <span class="cov9" title="68">return nil</span>
+        <span class="cov9" title="60">return nil</span>
 }
 
-func (t *CUERenderer) evaluate(r any, o *renderer.Output) error <span class="cov10" title="77">{
+func (t *CUERenderer) evaluate(r any, o *renderer.Output) error <span class="cov10" title="69">{
         data := t.ctx.Encode(map[string]any{"DATA": r})
         compiled := t.ctx.CompileString(t.config, cuelang.Scope(data))
         v := compiled.Eval()
@@ -1811,10 +1811,10 @@ func (t *CUERenderer) evaluate(r any, o *renderer.Output) error <span class="cov
                 return newRendererError(v.Err())
         }</span>
 
-        <span class="cov9" title="74">return appendOutput(o, v)</span>
+        <span class="cov9" title="66">return appendOutput(o, v)</span>
 }
 
-func appendOutput(o *renderer.Output, v cuelang.Value) error <span class="cov9" title="74">{
+func appendOutput(o *renderer.Output, v cuelang.Value) error <span class="cov9" title="66">{
         switch t := v.Kind(); t </span>{
         case cuelang.ListKind:<span class="cov4" title="5">
                 var output []map[string]any
@@ -1836,7 +1836,7 @@ func appendOutput(o *renderer.Output, v cuelang.Value) error <span class="cov9" 
 
                 <span class="cov3" title="3">o.Append(strings.Join(outputs, "---\n"))</span>
 
-        case cuelang.StructKind:<span class="cov9" title="65">
+        case cuelang.StructKind:<span class="cov9" title="57">
                 var output map[string]any
                 err := v.Decode(&amp;output)
                 if err != nil </span><span class="cov0" title="0">{
@@ -1844,12 +1844,12 @@ func appendOutput(o *renderer.Output, v cuelang.Value) error <span class="cov9" 
                 }</span>
 
                 // convert output to string
-                <span class="cov9" title="65">outputByteArray, err := yaml.Marshal(output)
+                <span class="cov9" title="57">outputByteArray, err := yaml.Marshal(output)
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("error decoding output: %w", err)
                 }</span>
 
-                <span class="cov9" title="65">o.Append(string(outputByteArray))</span>
+                <span class="cov9" title="57">o.Append(string(outputByteArray))</span>
 
         case cuelang.BottomKind:<span class="cov2" title="2">
                 return fmt.Errorf("output is nothing concrete")</span>
@@ -1857,7 +1857,7 @@ func appendOutput(o *renderer.Output, v cuelang.Value) error <span class="cov9" 
                 return fmt.Errorf("output is unsupported type '%v'", t)</span>
         }
 
-        <span class="cov9" title="68">return nil</span>
+        <span class="cov9" title="60">return nil</span>
 }
 
 func newRendererError(err error) *renderer.Error <span class="cov3" title="3">{
@@ -1953,7 +1953,7 @@ type GoRenderer struct {
         source   string
 }
 
-func (r *GoRenderer) Render(results any, output *renderer.Output) error <span class="cov9" title="78">{
+func (r *GoRenderer) Render(results any, output *renderer.Output) error <span class="cov9" title="70">{
         var buffer bytes.Buffer
         err := r.template.Execute(&amp;buffer, results)
 
@@ -1961,18 +1961,18 @@ func (r *GoRenderer) Render(results any, output *renderer.Output) error <span cl
                 return fmt.Errorf("error executing Go template: %w", newRendererError(err, r.source))
         }</span>
 
-        <span class="cov9" title="74">output.Append(buffer.String())
+        <span class="cov9" title="66">output.Append(buffer.String())
 
         return nil</span>
 }
 
-func NewGoRenderer(tmpl string, source string) (*GoRenderer, error) <span class="cov10" title="96">{
+func NewGoRenderer(tmpl string, source string) (*GoRenderer, error) <span class="cov10" title="88">{
         t, err := template.New(source).Option("missingkey=zero").Parse(tmpl)
         if err != nil </span><span class="cov4" title="5">{
                 return nil, fmt.Errorf("error parsing Go template: %w", newRendererError(err, source))
         }</span>
 
-        <span class="cov9" title="91">return &amp;GoRenderer{template: t, source: source}, nil</span>
+        <span class="cov9" title="83">return &amp;GoRenderer{template: t, source: source}, nil</span>
 }
 
 var lineRE = regexp.MustCompile(`^template: .*?:(\d+)(:(\d+))?: (.*)`)
@@ -2105,11 +2105,11 @@ type Renderer interface {
 
 // Render the results using the provided renderer. If batchMode is true, the renderer will be called once
 // with all the results; otherwise, the renderer will be called once for each result.
-func Render(renderer Renderer, results []map[string]repository.Resource, batchMode bool) (*Output, error) <span class="cov8" title="151">{
+func Render(renderer Renderer, results []map[string]repository.Resource, batchMode bool) (*Output, error) <span class="cov8" title="135">{
         var o *Output
         resultsWithoutResources := StripResourcesFromResults(results)
 
-        if batchMode </span><span class="cov8" title="117">{
+        if batchMode </span><span class="cov8" title="101">{
                 o = NewOutput(1)
                 err := renderer.Render(resultsWithoutResources, o)
                 if err != nil </span><span class="cov3" title="6">{
@@ -2126,7 +2126,7 @@ func Render(renderer Renderer, results []map[string]repository.Resource, batchMo
                 }
         }
 
-        <span class="cov8" title="137">return o, nil</span>
+        <span class="cov8" title="121">return o, nil</span>
 }
 
 type RendererMaker func(string, string) (Renderer, error)
@@ -2148,20 +2148,20 @@ func Register(name string, f RendererMaker) error <span class="cov4" title="8">{
         return nil</span>
 }
 
-func MakeRenderer(name, template, source string) (Renderer, error) <span class="cov7" title="72">{
+func MakeRenderer(name, template, source string) (Renderer, error) <span class="cov7" title="64">{
         f, ok := rendererRegistry[name]
         if !ok </span><span class="cov2" title="2">{
                 return nil, &amp;LookupError{rendererName: name}
         }</span>
 
-        <span class="cov7" title="70">return f(template, source)</span>
+        <span class="cov7" title="62">return f(template, source)</span>
 }
 
 type Output struct {
         output []string
 }
 
-func NewOutput(expectedSize int) *Output <span class="cov8" title="151">{
+func NewOutput(expectedSize int) *Output <span class="cov8" title="135">{
         return &amp;Output{output: make([]string, 0, expectedSize)}
 }</span>
 
@@ -2169,19 +2169,19 @@ func NewOutputFromSlice(output []string) *Output <span class="cov3" title="4">{
         return &amp;Output{output: output}
 }</span>
 
-func (o *Output) Append(result string) <span class="cov8" title="151">{
+func (o *Output) Append(result string) <span class="cov8" title="135">{
         o.output = append(o.output, result)
 }</span>
 
-func (o *Output) ResourceCount() int <span class="cov10" title="432">{
+func (o *Output) ResourceCount() int <span class="cov10" title="376">{
         return len(o.output)
 }</span>
 
-func (o *Output) ResultString(resource int) (string, error) <span class="cov8" title="156">{
+func (o *Output) ResultString(resource int) (string, error) <span class="cov8" title="140">{
         if resource &lt; 0 || resource &gt;= len(o.output) </span><span class="cov3" title="5">{
                 return "", fmt.Errorf("resource index out of range")
         }</span>
-        <span class="cov8" title="151">return o.output[resource], nil</span>
+        <span class="cov8" title="135">return o.output[resource], nil</span>
 }
 </pre>
 		
@@ -2192,17 +2192,17 @@ import (
 )
 
 // stripResourcesFromResults removes the Resource objects from the results, replacing them with the underlying content.
-func StripResourcesFromResults(results []map[string]repository.Resource) []map[string]any <span class="cov8" title="151">{
+func StripResourcesFromResults(results []map[string]repository.Resource) []map[string]any <span class="cov7" title="135">{
         strippedResults := make([]map[string]any, len(results))
-        for i, result := range results </span><span class="cov10" title="523">{
+        for i, result := range results </span><span class="cov10" title="555">{
                 stripped := make(map[string]any)
-                for k, v := range result </span><span class="cov10" title="523">{
+                for k, v := range result </span><span class="cov10" title="555">{
                         stripped[k] = v.Content()
                 }</span>
-                <span class="cov10" title="523">strippedResults[i] = stripped</span>
+                <span class="cov10" title="555">strippedResults[i] = stripped</span>
         }
 
-        <span class="cov8" title="151">return strippedResults</span>
+        <span class="cov7" title="135">return strippedResults</span>
 }
 </pre>
 		
@@ -2226,7 +2226,7 @@ type Resource struct {
 }
 
 // Group returns the API group of the resource.
-func (r Resource) Group() string <span class="cov7" title="182">{
+func (r Resource) Group() string <span class="cov7" title="179">{
         return r.group
 }</span>
 
@@ -2236,109 +2236,109 @@ func (r Resource) Version() string <span class="cov1" title="1">{
 }</span>
 
 // Kind returns the kind of the resource.
-func (r Resource) Kind() string <span class="cov7" title="182">{
+func (r Resource) Kind() string <span class="cov7" title="179">{
         return r.kind
 }</span>
 
 // Namespace returns the namespace of the resource.
-func (r Resource) Namespace() string <span class="cov8" title="364">{
+func (r Resource) Namespace() string <span class="cov8" title="358">{
         return r.namespace
 }</span>
 
 // Name returns the name of the resource.
-func (r Resource) Name() string <span class="cov8" title="363">{
+func (r Resource) Name() string <span class="cov8" title="357">{
         return r.name
 }</span>
 
 // Content returns the content of the resource.
 // Do not alter the returned map or the resource could become inconsistent.
-func (r Resource) Content() map[string]any <span class="cov10" title="1014">{
+func (r Resource) Content() map[string]any <span class="cov10" title="1011">{
         return r.content
 }</span>
 
 // MakeResource creates a new Resource from a map of the resource's content.
-func MakeResource(content map[string]any) (Resource, error) <span class="cov9" title="612">{
+func MakeResource(content map[string]any) (Resource, error) <span class="cov9" title="618">{
         apiVersionRaw, ok := content["apiVersion"]
 
         if !ok </span><span class="cov2" title="3">{
                 return Resource{}, fmt.Errorf("missing apiVersion")
         }</span>
 
-        <span class="cov9" title="609">apiVersion, ok := apiVersionRaw.(string)
+        <span class="cov9" title="615">apiVersion, ok := apiVersionRaw.(string)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("apiVersion '%#v' must be a string but it is %T", apiVersionRaw, apiVersionRaw)
         }</span>
 
-        <span class="cov9" title="608">var group, version string
+        <span class="cov9" title="614">var group, version string
 
         if apiVersion == "v1" </span><span class="cov7" title="111">{
                 group = "core"
                 version = "v1"
-        }</span> else<span class="cov9" title="497"> {
+        }</span> else<span class="cov9" title="503"> {
                 var found bool
                 group, version, found = strings.Cut(apiVersion, "/")
 
                 if !found </span><span class="cov1" title="1">{
                         return Resource{}, fmt.Errorf("missing '/' separator in apiVersion'%s'", apiVersion)
                 }</span>
-                <span class="cov9" title="496">if len(group) == 0 </span><span class="cov1" title="1">{
+                <span class="cov9" title="502">if len(group) == 0 </span><span class="cov1" title="1">{
                         return Resource{}, fmt.Errorf("missing group in apiVersion '%s'", apiVersion)
                 }</span>
-                <span class="cov9" title="495">if len(version) == 0 </span><span class="cov1" title="1">{
+                <span class="cov9" title="501">if len(version) == 0 </span><span class="cov1" title="1">{
                         return Resource{}, fmt.Errorf("missing version in apiVersion '%s'", apiVersion)
                 }</span>
         }
 
-        <span class="cov9" title="605">kindRaw, ok := content["kind"]
+        <span class="cov9" title="611">kindRaw, ok := content["kind"]
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("missing kind")
         }</span>
 
-        <span class="cov9" title="604">kind, ok := kindRaw.(string)
+        <span class="cov9" title="610">kind, ok := kindRaw.(string)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("kind '%#v' must be a string but it is %T", kindRaw, kindRaw)
         }</span>
 
-        <span class="cov9" title="603">metadataRaw, ok := content["metadata"]
+        <span class="cov9" title="609">metadataRaw, ok := content["metadata"]
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("missing metadata")
         }</span>
 
-        <span class="cov9" title="602">metadata, ok := metadataRaw.(map[string]any)
+        <span class="cov9" title="608">metadata, ok := metadataRaw.(map[string]any)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("metadata '%#v' must be a map but it is %T", metadataRaw, metadataRaw)
         }</span>
 
-        <span class="cov9" title="601">namespaceRaw, ok := metadata["namespace"]
+        <span class="cov9" title="607">namespaceRaw, ok := metadata["namespace"]
 
-        if !ok </span><span class="cov8" title="389">{
+        if !ok </span><span class="cov8" title="403">{
                 namespaceRaw = ""
         }</span>
 
-        <span class="cov9" title="601">namespace, ok := namespaceRaw.(string)
+        <span class="cov9" title="607">namespace, ok := namespaceRaw.(string)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("metadata.namespace '%#v' must be a string but it is %T", namespaceRaw, namespaceRaw)
         }</span>
 
-        <span class="cov9" title="600">nameRaw, ok := metadata["name"]
+        <span class="cov9" title="606">nameRaw, ok := metadata["name"]
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("missing name")
         }</span>
 
-        <span class="cov9" title="599">name, ok := nameRaw.(string)
+        <span class="cov9" title="605">name, ok := nameRaw.(string)
 
         if !ok </span><span class="cov1" title="1">{
                 return Resource{}, fmt.Errorf("metadata.name '%#v' must be a string but it is %T", nameRaw, nameRaw)
         }</span>
 
-        <span class="cov9" title="598">res := Resource{
+        <span class="cov9" title="604">res := Resource{
                 group:     group,
                 version:   version,
                 kind:      kind,
@@ -2423,7 +2423,7 @@ type GroupKind struct {
 
 var tableErrorRegexp = regexp.MustCompile(`^no such table: (.*)$`)
 
-func (r *SQLiteRepository) Query(query string) (ResultSet, error) <span class="cov7" title="75">{
+func (r *SQLiteRepository) Query(query string) (ResultSet, error) <span class="cov7" title="67">{
         r.mu.Lock()
         defer r.mu.Unlock()
 
@@ -2450,7 +2450,7 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) <span class="c
                 }</span>
         }
 
-        <span class="cov7" title="75">defer rows.Close() //nolint:errcheck
+        <span class="cov7" title="67">defer rows.Close() //nolint:errcheck
 
         /*
          * Process Columns
@@ -2463,27 +2463,27 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) <span class="c
         /*
          * Allocate temporary storage to Scan() into
          */
-        <span class="cov7" title="75">columnValues := make([]any, len(columnNames))
+        <span class="cov7" title="67">columnValues := make([]any, len(columnNames))
         columnValuePtrs := make([]any, len(columnNames))
 
-        for i := 0; i &lt; len(columnNames); i++ </span><span class="cov7" title="74">{
+        for i := 0; i &lt; len(columnNames); i++ </span><span class="cov7" title="66">{
                 columnValuePtrs[i] = &amp;columnValues[i]
         }</span>
 
         /*
          * Process Rows
          */
-        <span class="cov7" title="75">var results = make([]map[string]Resource, 0)
+        <span class="cov7" title="67">var results = make([]map[string]Resource, 0)
 
-        for rows.Next() </span><span class="cov10" title="331">{
+        for rows.Next() </span><span class="cov10" title="347">{
                 err = rows.Scan(columnValuePtrs...)
                 if err != nil </span><span class="cov0" title="0">{
                         return ResultSet{}, fmt.Errorf("error while scanning query result: %w", err)
                 }</span>
 
-                <span class="cov10" title="331">var result = make(map[string]Resource)
+                <span class="cov10" title="347">var result = make(map[string]Resource)
 
-                for i, columnName := range columnNames </span><span class="cov10" title="331">{
+                for i, columnName := range columnNames </span><span class="cov10" title="347">{
                         var parsed any
 
                         err = json.Unmarshal([]byte(columnValues[i].(string)), &amp;parsed)
@@ -2492,29 +2492,29 @@ func (r *SQLiteRepository) Query(query string) (ResultSet, error) <span class="c
                                         strings.Trim(columnName, "'"), err)
                         }</span>
 
-                        <span class="cov10" title="331">switch v := parsed.(type) </span>{
-                        case map[string]any:<span class="cov9" title="328">
+                        <span class="cov10" title="347">switch v := parsed.(type) </span>{
+                        case map[string]any:<span class="cov9" title="344">
                                 res, err := MakeResource(v)
                                 if err != nil </span><span class="cov1" title="1">{
                                         return ResultSet{}, fmt.Errorf("error retrieving resource from column '%s': %w",
                                                 strings.Trim(columnName, "'"), err)
                                 }</span>
-                                <span class="cov9" title="327">result[columnName] = res</span>
+                                <span class="cov9" title="343">result[columnName] = res</span>
                         default:<span class="cov2" title="3">
                                 return ResultSet{}, fmt.Errorf("expected JSON object in column '%s' but got %T",
                                         strings.Trim(columnName, "'"), v)</span>
                         }
                 }
 
-                <span class="cov9" title="327">results = append(results, result)</span>
+                <span class="cov9" title="343">results = append(results, result)</span>
         }
 
-        <span class="cov7" title="71">err = rows.Err()
+        <span class="cov7" title="63">err = rows.Err()
         if err != nil </span><span class="cov0" title="0">{
                 return ResultSet{}, fmt.Errorf("error while iterating query result: %w", err)
         }</span>
 
-        <span class="cov7" title="71">resultset := ResultSet{
+        <span class="cov7" title="63">resultset := ResultSet{
                 Names:   columnNames,
                 Results: results,
         }
@@ -2541,7 +2541,7 @@ func (r *SQLiteRepository) createTable(table string) error <span class="cov4" ti
 
         return nil</span>
 }
-func (r *SQLiteRepository) Delete(namespace, name, table string) error <span class="cov6" title="27">{
+func (r *SQLiteRepository) Delete(namespace, name, table string) error <span class="cov5" title="20">{
         r.mu.Lock()
         defer r.mu.Unlock()
 
@@ -2554,10 +2554,10 @@ func (r *SQLiteRepository) Delete(namespace, name, table string) error <span cla
                 return fmt.Errorf("unable to delete record: %w", err)
         }</span>
 
-        <span class="cov6" title="27">return nil</span>
+        <span class="cov5" title="20">return nil</span>
 }
 
-func (r *SQLiteRepository) Upsert(resource Resource) error <span class="cov8" title="123">{
+func (r *SQLiteRepository) Upsert(resource Resource) error <span class="cov8" title="122">{
         r.mu.Lock()
         defer r.mu.Unlock()
         byteJSON, err := json.Marshal(resource.Content())
@@ -2566,7 +2566,7 @@ func (r *SQLiteRepository) Upsert(resource Resource) error <span class="cov8" ti
                 return fmt.Errorf("unable to encode resource as JSON: %w", err)
         }</span>
 
-        <span class="cov8" title="122">table := resource.Kind() + "." + resource.Group()
+        <span class="cov8" title="121">table := resource.Kind() + "." + resource.Group()
         slog.Debug("Upserting resource", "table", table, "namespace", resource.Namespace(), "name", resource.Name())
         contentJSON := string(byteJSON)
 
@@ -2578,7 +2578,7 @@ func (r *SQLiteRepository) Upsert(resource Resource) error <span class="cov8" ti
                 }</span>
         }
 
-        <span class="cov8" title="122">_, err = r.db.Exec( /* sql */ `INSERT INTO "`+table+`" (namespace, name, data) VALUES (?,?,?)
+        <span class="cov8" title="121">_, err = r.db.Exec( /* sql */ `INSERT INTO "`+table+`" (namespace, name, data) VALUES (?,?,?)
                 ON CONFLICT(namespace, name) DO UPDATE SET data=excluded.data`,
                 resource.Namespace(), resource.Name(), contentJSON)
 
@@ -2586,11 +2586,11 @@ func (r *SQLiteRepository) Upsert(resource Resource) error <span class="cov8" ti
                 return fmt.Errorf("unable to upsert resource: %w", err)
         }</span>
 
-        <span class="cov8" title="122">return nil</span>
+        <span class="cov8" title="121">return nil</span>
 }
 
 // a function that builds data columns from the resource and check if a row with the same value for data column exists
-func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error) <span class="cov7" title="59">{
+func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error) <span class="cov7" title="57">{
         r.mu.Lock()
         defer r.mu.Unlock()
         byteJSON, err := json.Marshal(resource.Content())
@@ -2599,7 +2599,7 @@ func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error
                 return false, fmt.Errorf("unable to encode resource as JSON: %w", err)
         }</span>
 
-        <span class="cov7" title="59">table := resource.Kind() + "." + resource.Group()
+        <span class="cov7" title="57">table := resource.Kind() + "." + resource.Group()
         fmt.Println("Checking if resource with same data already exists",
                 "table", table, "namespace", resource.Namespace(), "name", resource.Name())
         contentJSON := string(byteJSON)
@@ -2613,14 +2613,14 @@ func (r *SQLiteRepository) CheckIfResourceExists(resource Resource) (bool, error
                 }</span>
         }
 
-        <span class="cov7" title="59">var count int
+        <span class="cov7" title="57">var count int
         err = r.db.QueryRow( /* sql */ `SELECT COUNT(*) FROM "`+table+`" WHERE data = ?`, contentJSON).Scan(&amp;count)
 
         if err != nil </span><span class="cov0" title="0">{
                 return false, fmt.Errorf("unable to check if resource exists: %w", err)
         }</span>
 
-        <span class="cov7" title="59">return count &gt; 0, nil</span>
+        <span class="cov7" title="57">return count &gt; 0, nil</span>
 }
 
 func (r *SQLiteRepository) ExtractTableNamesFromQuery(query string) []string <span class="cov5" title="18">{
@@ -2761,7 +2761,7 @@ func (e *ValidationErrors) Append(err error) <span class="cov6" title="23">{
         }
 }
 
-func (e *ValidationErrors) HasErrors() bool <span class="cov10" title="120">{
+func (e *ValidationErrors) HasErrors() bool <span class="cov10" title="112">{
         return len(e.errors) &gt; 0
 }</span>
 
@@ -2798,7 +2798,7 @@ type TemplateOutput struct {
         FileNames []string
 }
 
-func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" title="76">{
+func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" title="68">{
         // name is guaranteed to be present since it comes from a Resource
         name := r.Content()["metadata"].(map[string]any)["name"].(string)
         var validationError = &amp;ValidationErrors{template: name}
@@ -2815,7 +2815,7 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
                 })
         }</span>
 
-        <span class="cov10" title="76">if s[1] != "v1beta1" </span><span class="cov2" title="2">{
+        <span class="cov10" title="68">if s[1] != "v1beta1" </span><span class="cov2" title="2">{
                 validationError.Append(&amp;FieldValidationError{
                         template: name,
                         field:    "apiVersion",
@@ -2824,7 +2824,7 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
         }</span>
 
         // kind is guaranteed to be a string because it comes from a Resource
-        <span class="cov10" title="76">kind := r.Content()["kind"].(string)
+        <span class="cov10" title="68">kind := r.Content()["kind"].(string)
 
         if kind != TemplateKind </span><span class="cov2" title="2">{
                 validationError.Append(&amp;FieldValidationError{
@@ -2834,7 +2834,7 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
                 })
         }</span>
 
-        <span class="cov10" title="76">spec, ok := r.Content()["spec"].(map[string]any)
+        <span class="cov10" title="68">spec, ok := r.Content()["spec"].(map[string]any)
         if !ok </span><span class="cov1" title="1">{
                 validationError.Append(&amp;FieldValidationError{
                         template: name,
@@ -2843,10 +2843,10 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
                 })
         }</span>
 
-        <span class="cov10" title="76">var query string
+        <span class="cov10" title="68">var query string
         var template map[string]any
 
-        if len(spec) &gt; 0 </span><span class="cov9" title="75">{
+        if len(spec) &gt; 0 </span><span class="cov9" title="67">{
                 query, _ = spec["query"].(string)
                 if query == "" </span><span class="cov3" title="3">{
                         validationError.Append(&amp;FieldValidationError{
@@ -2856,7 +2856,7 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
                         })
                 }</span>
 
-                <span class="cov9" title="75">template, _ = spec["template"].(map[string]any)
+                <span class="cov9" title="67">template, _ = spec["template"].(map[string]any)
                 if len(template) == 0 </span><span class="cov2" title="2">{
                         validationError.Append(&amp;FieldValidationError{
                                 template: name,
@@ -2866,9 +2866,9 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
                 }</span>
         }
 
-        <span class="cov10" title="76">var lang, data, fileNameTemplate string
+        <span class="cov10" title="68">var lang, data, fileNameTemplate string
 
-        if len(template) &gt; 0 </span><span class="cov9" title="73">{
+        if len(template) &gt; 0 </span><span class="cov9" title="65">{
                 data, _ = template["data"].(string)
                 if data == "" </span><span class="cov2" title="2">{
                         validationError.Append(&amp;FieldValidationError{
@@ -2878,7 +2878,7 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
                         })
                 }</span>
 
-                <span class="cov9" title="73">lang, _ = template["language"].(string)
+                <span class="cov9" title="65">lang, _ = template["language"].(string)
                 if lang == "" </span><span class="cov1" title="1">{
                         validationError.Append(&amp;FieldValidationError{
                                 template: name,
@@ -2887,7 +2887,7 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
                         })
                 }</span>
 
-                <span class="cov9" title="73">fileNameTemplate, _ = template["fileName"].(string)
+                <span class="cov9" title="65">fileNameTemplate, _ = template["fileName"].(string)
                 if fileNameTemplate == "" </span><span class="cov1" title="1">{
                         validationError.Append(&amp;FieldValidationError{
                                 template: name,
@@ -2898,12 +2898,12 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
         }
 
         // batchModeProcessing false unless explicitly set to true in template
-        <span class="cov10" title="76">batchModeProcessing := false
-        if val, ok := template["batchModeProcessing"].(bool); ok </span><span class="cov9" title="51">{
+        <span class="cov10" title="68">batchModeProcessing := false
+        if val, ok := template["batchModeProcessing"].(bool); ok </span><span class="cov9" title="43">{
                 batchModeProcessing = val
         }</span>
 
-        <span class="cov10" title="76">t := &amp;Template{
+        <span class="cov10" title="68">t := &amp;Template{
                 name:      name,
                 query:     query,
                 batchMode: batchModeProcessing,
@@ -2911,11 +2911,11 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
 
         var err error
 
-        if lang != "" </span><span class="cov9" title="72">{
+        if lang != "" </span><span class="cov9" title="64">{
                 t.renderer, err = renderer.MakeRenderer(lang, data, name)
         }</span>
 
-        <span class="cov10" title="76">if err != nil </span><span class="cov3" title="3">{
+        <span class="cov10" title="68">if err != nil </span><span class="cov3" title="3">{
                 if _, ok := err.(*renderer.LookupError); ok </span><span class="cov2" title="2">{
                         validationError.Append(&amp;FieldValidationError{
                                 template: name,
@@ -2932,12 +2932,12 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
                 }</span>
         }
 
-        <span class="cov10" title="76">err = nil
-        if fileNameTemplate != "" </span><span class="cov9" title="72">{
+        <span class="cov10" title="68">err = nil
+        if fileNameTemplate != "" </span><span class="cov9" title="64">{
                 t.fileNameTemplate, err = gotemplate.NewGoRenderer(fileNameTemplate, name)
         }</span>
 
-        <span class="cov10" title="76">if err != nil </span><span class="cov2" title="2">{
+        <span class="cov10" title="68">if err != nil </span><span class="cov2" title="2">{
                 validationError.Append(&amp;FieldValidationError{
                         template: name,
                         field:    "spec.template.fileName",
@@ -2945,38 +2945,38 @@ func NewTemplate(r repository.Resource) (*Template, error) <span class="cov10" t
                 })
         }</span>
 
-        <span class="cov10" title="76">if validationError.HasErrors() </span><span class="cov6" title="15">{
+        <span class="cov10" title="68">if validationError.HasErrors() </span><span class="cov6" title="15">{
                 return nil, validationError
         }</span>
 
-        <span class="cov9" title="61">return t, nil</span>
+        <span class="cov9" title="53">return t, nil</span>
 }
 
 // Evaluate runs the query and renders the results using the template.
-func (t *Template) Evaluate(repo repository.Repository) (*TemplateOutput, error) <span class="cov9" title="61">{
+func (t *Template) Evaluate(repo repository.Repository) (*TemplateOutput, error) <span class="cov9" title="53">{
         resultset, err := repo.Query(t.query)
         if err != nil </span><span class="cov2" title="2">{
                 return nil, fmt.Errorf("query failed in Template '%s': %w", t.name, err)
         }</span>
 
-        <span class="cov9" title="59">output, err := renderer.Render(t.renderer, resultset.Results, t.batchMode)
+        <span class="cov9" title="51">output, err := renderer.Render(t.renderer, resultset.Results, t.batchMode)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("error rendering Template '%s': %w", t.name, err)
         }</span>
 
-        <span class="cov9" title="58">fileNamesOutput, err := renderer.Render(t.fileNameTemplate, resultset.Results, t.batchMode)
+        <span class="cov9" title="50">fileNamesOutput, err := renderer.Render(t.fileNameTemplate, resultset.Results, t.batchMode)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("error rendering fileName in Template '%s': %w", t.name, err)
         }</span>
 
         // TODO revisit this when we start outputting resources to Kubernetes directly
         // When putting results in files, these invariants should hold:
-        <span class="cov9" title="57">if t.batchMode </span><span class="cov9" title="50">{
+        <span class="cov9" title="49">if t.batchMode </span><span class="cov8" title="42">{
                 if fileNamesOutput.ResourceCount() != 1 </span><span class="cov0" title="0">{
                         return nil, fmt.Errorf("expected one file name in batch mode; got %d", fileNamesOutput.ResourceCount())
                 }</span>
 
-                <span class="cov9" title="50">if output.ResourceCount() != 1 </span><span class="cov0" title="0">{
+                <span class="cov8" title="42">if output.ResourceCount() != 1 </span><span class="cov0" title="0">{
                         return nil, fmt.Errorf("expected one rendered resource in batch mode; got %d", output.ResourceCount())
                 }</span>
         } else<span class="cov5" title="7"> {
@@ -2989,16 +2989,16 @@ func (t *Template) Evaluate(repo repository.Repository) (*TemplateOutput, error)
                 }</span>
         }
 
-        <span class="cov9" title="57">fileNames := make([]string, fileNamesOutput.ResourceCount())
-        for i := 0; i &lt; fileNamesOutput.ResourceCount(); i++ </span><span class="cov9" title="64">{
+        <span class="cov9" title="49">fileNames := make([]string, fileNamesOutput.ResourceCount())
+        for i := 0; i &lt; fileNamesOutput.ResourceCount(); i++ </span><span class="cov9" title="56">{
                 fileName, err := fileNamesOutput.ResultString(i)
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, fmt.Errorf("error getting filename: %w", err)
                 }</span>
-                <span class="cov9" title="64">fileNames[i] = strings.TrimSpace(fileName)</span>
+                <span class="cov9" title="56">fileNames[i] = strings.TrimSpace(fileName)</span>
         }
 
-        <span class="cov9" title="57">return &amp;TemplateOutput{Output: output, FileNames: fileNames}, nil</span>
+        <span class="cov9" title="49">return &amp;TemplateOutput{Output: output, FileNames: fileNames}, nil</span>
 }
 
 func (t *Template) BatchMode() bool <span class="cov2" title="2">{
