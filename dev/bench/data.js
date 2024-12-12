@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733952279139,
+  "lastUpdate": 1733971562684,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -1770,6 +1770,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1405737384,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "72c559c9eaba71f3eed35cd80c9b9f2f35e14e96",
+          "message": ":arrow_up: Bump k8s.io/client-go from 0.31.3 to 0.31.4\n\nBumps [k8s.io/client-go](https://github.com/kubernetes/client-go) from 0.31.3 to 0.31.4.\n- [Changelog](https://github.com/kubernetes/client-go/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/kubernetes/client-go/compare/v0.31.3...v0.31.4)\n\n---\nupdated-dependencies:\n- dependency-name: k8s.io/client-go\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-12-11T21:42:55-05:00",
+          "tree_id": "4c636d8619aaddb90e7e47df83cbc9421afb945d",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/72c559c9eaba71f3eed35cd80c9b9f2f35e14e96"
+        },
+        "date": 1733971562073,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29945,
+            "unit": "ns/op",
+            "extra": "405128 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29529,
+            "unit": "ns/op",
+            "extra": "399655 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25502,
+            "unit": "ns/op",
+            "extra": "463670 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1408807810,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
           }
