@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742591751164,
+  "lastUpdate": 1742592350149,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -2204,6 +2204,54 @@ window.BENCHMARK_DATA = {
             "value": 1450230899,
             "unit": "ns/op",
             "extra": "7 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jdobson@guidewire.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "jdobson@guidewire.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "20c547d7178825fb3a6fed17baa14519e7c64ada",
+          "message": "👷 Add permissions to Go workflow to create a release\n\nSigned-off-by: James Dobson <jdobson@guidewire.com>",
+          "timestamp": "2025-03-21T17:22:38-04:00",
+          "tree_id": "41b4ba03b497c2fc1e63e0764b303a0a84effdcf",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/20c547d7178825fb3a6fed17baa14519e7c64ada"
+        },
+        "date": 1742592349197,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29976,
+            "unit": "ns/op",
+            "extra": "401745 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29927,
+            "unit": "ns/op",
+            "extra": "380314 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25499,
+            "unit": "ns/op",
+            "extra": "470080 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1463630708,
+            "unit": "ns/op",
+            "extra": "8 times\n4 procs"
           }
         ]
       }
