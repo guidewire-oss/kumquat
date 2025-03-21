@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1735082390780,
+  "lastUpdate": 1742575811161,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -2012,6 +2012,54 @@ window.BENCHMARK_DATA = {
             "value": 1406270395,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "132ed2cd820ed35b4bbe9b7cb8c349e6e2a7568f",
+          "message": ":arrow_up: Bump github.com/onsi/ginkgo/v2 from 2.22.1 to 2.23.2\n\nBumps [github.com/onsi/ginkgo/v2](https://github.com/onsi/ginkgo) from 2.22.1 to 2.23.2.\n- [Release notes](https://github.com/onsi/ginkgo/releases)\n- [Changelog](https://github.com/onsi/ginkgo/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/onsi/ginkgo/compare/v2.22.1...v2.23.2)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/onsi/ginkgo/v2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-03-21T12:47:08-04:00",
+          "tree_id": "b88f9f10a49fa345ffc609f600a8c05d8eab8d43",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/132ed2cd820ed35b4bbe9b7cb8c349e6e2a7568f"
+        },
+        "date": 1742575810381,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29951,
+            "unit": "ns/op",
+            "extra": "402577 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 30068,
+            "unit": "ns/op",
+            "extra": "402049 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25510,
+            "unit": "ns/op",
+            "extra": "469927 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1455746401,
+            "unit": "ns/op",
+            "extra": "7 times\n4 procs"
           }
         ]
       }
