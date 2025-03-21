@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742577000858,
+  "lastUpdate": 1742591751164,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -2154,6 +2154,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1431698176,
+            "unit": "ns/op",
+            "extra": "7 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jdobson@guidewire.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "737087f06120dbce30777a4c3c5c82bce83d7c13",
+          "message": "👷 Publish the binary as a release artifact.\n\nSigned-off-by: James Dobson <jdobson@guidewire.com>",
+          "timestamp": "2025-03-21T17:14:17-04:00",
+          "tree_id": "df1a68f4ec673c0b2392b05bae78fc2dae18ee23",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/737087f06120dbce30777a4c3c5c82bce83d7c13"
+        },
+        "date": 1742591750143,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 30461,
+            "unit": "ns/op",
+            "extra": "394916 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 30191,
+            "unit": "ns/op",
+            "extra": "370530 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25555,
+            "unit": "ns/op",
+            "extra": "455180 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1450230899,
             "unit": "ns/op",
             "extra": "7 times\n4 procs"
           }
