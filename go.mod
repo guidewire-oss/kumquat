@@ -6,7 +6,7 @@ require (
 	cuelang.org/go v0.12.1
 	github.com/deckarep/golang-set/v2 v2.7.0
 	github.com/go-logr/logr v1.4.2
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/onsi/ginkgo/v2 v2.23.2
 	github.com/onsi/gomega v1.36.2
