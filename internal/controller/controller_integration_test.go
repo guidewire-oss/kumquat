@@ -91,8 +91,8 @@ var _ = Describe("Template Controller Integration Test", func() {
 		}
 
 	})
-	It("repeate apply and verify examples to check some race conditions", func() {
 
+	It("repeat apply and verify examples to check some race conditionss, also restart the controller", func() {
 		exampleFolderPath := path.Join("../", "../", "examples")
 		exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
 		Expect(err).NotTo(HaveOccurred())
@@ -108,7 +108,20 @@ var _ = Describe("Template Controller Integration Test", func() {
 			verifyExampleOutput(exampleFolderPath, "out.yaml")
 		}
 
+		By("restarting the controller")
+		stopMgr()
+		// HACK: Wait for the controller to stop
+		time.Sleep(1 * time.Second)
+		startController()
+
+		// Verify again
+		By("verifying that the output.yaml file has been created")
+		for _, exampleFolder := range exampleFolders {
+			exampleFolderPath := path.Join("..", "..", "examples", exampleFolder)
+			verifyExampleOutput(exampleFolderPath, "out.yaml")
+		}
 	})
+
 	It("should make sure that if the result of a query is changes,the resource that was created should be updated", func() { //nolint:errcheck
 		applyExampleResources(ctx, path.Join("test_resources", "delete_scenario"))
 		configmaps := []string{"test-aws-auth-tenant-acme", "test-aws-auth-base", "test-aws-auth-tenant-umbrella"}
