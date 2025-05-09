@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746757612910,
+  "lastUpdate": 1746758050861,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -2346,6 +2346,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1431229170,
+            "unit": "ns/op",
+            "extra": "7 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "53b77c5c1aa276048fa626753486359be0bacdd3",
+          "message": ":arrow_up: Bump cuelang.org/go from 0.10.1 to 0.12.1\n\nBumps cuelang.org/go from 0.10.1 to 0.12.1.\n\n---\nupdated-dependencies:\n- dependency-name: cuelang.org/go\n  dependency-version: 0.12.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-05-08T22:31:12-04:00",
+          "tree_id": "5e9c8a9f765ca1143c5426d6375c83a8c0e8b74f",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/53b77c5c1aa276048fa626753486359be0bacdd3"
+        },
+        "date": 1746758050249,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29846,
+            "unit": "ns/op",
+            "extra": "406030 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29695,
+            "unit": "ns/op",
+            "extra": "398019 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25289,
+            "unit": "ns/op",
+            "extra": "461241 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1436639726,
             "unit": "ns/op",
             "extra": "7 times\n4 procs"
           }
