@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742592350149,
+  "lastUpdate": 1746753097610,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -2252,6 +2252,54 @@ window.BENCHMARK_DATA = {
             "value": 1463630708,
             "unit": "ns/op",
             "extra": "8 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "56201313+amirbavand@users.noreply.github.com",
+            "name": "Amir Bavand",
+            "username": "amirbavand"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c8d819276709936ccb0957bd6fd529eb825bf500",
+          "message": "Refactor controller code (#41)\n\n* fixed some bugs\n* addd required files to implement integration test for deletion scenario\n* added required integration test\n* delete some of log statements\n* fixed some lint issues\n* addressed review comments\n* used map instead of list to delete the resources\n* refactored code for dynamicreconciler and removed unnecessary codes\n* fixed a bug in dynamicreconciler\n* fixed a runtime error\n* remove unused function CheckIfResourceExists\n* refactored code for testing\n* added unit tests for util functions\n* added some new changes for make code testable\n* removed singleton object for sqliterepository and pass inject it as dependency\n* pass watchmanager interface instead of watchmanager\n* added unit tests for dynamic_reconciler\n* changed package names for test files\n* applied some of the review comments\n* fix issue with unit test\n* changed watchmanagerinterface to watchmanager\n* Update watchmanager.go\nremove tostring from resourceidentifire\n* remove duplicated method\n* change go.mod file",
+          "timestamp": "2025-05-08T21:08:34-04:00",
+          "tree_id": "7a8495220262cae6687b02fec39dd385645a94bc",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/c8d819276709936ccb0957bd6fd529eb825bf500"
+        },
+        "date": 1746753096733,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29879,
+            "unit": "ns/op",
+            "extra": "399014 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29926,
+            "unit": "ns/op",
+            "extra": "398566 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25188,
+            "unit": "ns/op",
+            "extra": "478412 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1460934012,
+            "unit": "ns/op",
+            "extra": "7 times\n4 procs"
           }
         ]
       }
