@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746761595644,
+  "lastUpdate": 1746762460765,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -2586,6 +2586,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1456354043,
+            "unit": "ns/op",
+            "extra": "7 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "committer": {
+            "email": "dobson@softwarepunk.com",
+            "name": "James Dobson",
+            "username": "jamesdobson"
+          },
+          "distinct": true,
+          "id": "a5c85385760bfa6fa1351d5f3d52b837a40e26db",
+          "message": "📝  Accept ADR for project name.",
+          "timestamp": "2025-05-08T23:45:19-04:00",
+          "tree_id": "276c1c60e38abc7b44e5ecdb0afe228b24a14ff9",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/a5c85385760bfa6fa1351d5f3d52b837a40e26db"
+        },
+        "date": 1746762459848,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29925,
+            "unit": "ns/op",
+            "extra": "399931 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 30089,
+            "unit": "ns/op",
+            "extra": "398679 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25402,
+            "unit": "ns/op",
+            "extra": "471036 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1435276589,
             "unit": "ns/op",
             "extra": "7 times\n4 procs"
           }
