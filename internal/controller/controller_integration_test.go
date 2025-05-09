@@ -96,7 +96,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 				applyResourcesFromYAMLInDir(ctx, templateFolder, nil)
 
 				By("verifying that the output.yaml file has been created")
-				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
+				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder))
 			}
 		})
 
@@ -113,7 +113,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 				applyResourcesFromYAMLInDir(ctx, templateFolder, nil)
 
 				By("verifying that the output.yaml file has been created")
-				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
+				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder))
 			}
 		})
 
@@ -130,7 +130,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 				applyResourcesFromYAMLInDir(ctx, templateFolder, nil)
 
 				By("verifying that the output.yaml file has been created")
-				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
+				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder))
 			}
 
 			By("restarting the controller")
@@ -143,7 +143,7 @@ var _ = Describe("Template Controller Integration Test", func() {
 			By("verifying that the output.yaml file has been created")
 			for _, exampleFolder := range exampleFolders {
 				exampleFolderPath := path.Join("..", "..", "examples", exampleFolder)
-				verifyExampleOutput(exampleFolderPath, "out.yaml")
+				verifyExampleOutput(exampleFolderPath)
 			}
 		})
 	})
@@ -321,7 +321,8 @@ func deleteResourcesFromYAMLInDir(ctx context.Context, dir string) {
 	Expect(err).NotTo(HaveOccurred())
 }
 
-func verifyExampleOutput(exampleFolder string, exampleFile string) {
+func verifyExampleOutput(exampleFolder string) {
+	exampleFile := "out.yaml"
 	expectedFilePath := path.Join(exampleFolder, "expected", exampleFile)
 	filePath, err := filepath.Abs(expectedFilePath)
 	Expect(err).NotTo(HaveOccurred())
