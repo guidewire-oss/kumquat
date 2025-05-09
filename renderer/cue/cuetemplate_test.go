@@ -18,8 +18,8 @@ func TestNewCUERenderer(t *testing.T) {
 
 func TestRenderCUEWithEmptyResources(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
-	out: [
-        for result in data {
+	[
+        for result in DATA {
 			foo: "bar"
 		}
 	]`, t.Name())
@@ -36,9 +36,7 @@ func TestRenderCUEImportStrings(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
 	import "strings"
 
-	out: {
-		foo: strings.Join(["a", "b"], "-")
-	}`, t.Name())
+	foo: strings.Join(["a", "b"], "-")`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
@@ -66,8 +64,7 @@ func getTestResource(t *testing.T, name string) repository.Resource {
 
 func TestRenderCUEWithBatchModeProcessingOffWithSingleResourceOutput(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
-	out: 
-		foo: data.a.metadata.name
+	foo: DATA.a.metadata.name
 	`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
@@ -95,12 +92,12 @@ func TestRenderCUEWithBatchModeProcessingOffWithSingleResourceOutput(t *testing.
 
 func TestRenderCUEWithBatchModeProcessingOffWithMultipleResourcesOutput(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
-	out: [
+	[
 		{
-			foo: data.a.metadata.name
+			foo: DATA.a.metadata.name
 		},
 		{
-			bar: data.a.metadata.name
+			bar: DATA.a.metadata.name
 		}
 	]
 	`, t.Name())
@@ -130,9 +127,9 @@ func TestRenderCUEWithBatchModeProcessingOffWithMultipleResourcesOutput(t *testi
 
 func TestRenderCUEWithBatchModeProcessingOnWithMultipleResourcesOutput(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
-	out: [
-		for result in data {
-		foo: result.a.metadata.name
+	[
+		for result in DATA {
+			foo: result.a.metadata.name
 		}
 	]`, t.Name())
 	require.NoError(t, err)
@@ -157,13 +154,11 @@ func TestRenderCUEWithBatchModeProcessingOnWithMultipleResourcesOutput(t *testin
 
 func TestRenderCUEWithBatchModeProcessingOnWithSingleResourceOutput(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
-	out: {
-		foos: [
-			for result in data {
-				foo: result.a.metadata.name
-			}
-		]
-	}`, t.Name())
+	foos: [
+		for result in DATA {
+			foo: result.a.metadata.name
+		}
+	]`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
@@ -186,7 +181,7 @@ func TestRenderCUEWithBatchModeProcessingOnWithSingleResourceOutput(t *testing.T
 
 func TestErrorUnknownVariableReference(t *testing.T) {
 	tpl, err := cue.NewCUERenderer(`
-	out: {
+	{
 		foo: errrrrr
 	}`, t.Name())
 	require.NoError(t, err)
@@ -198,13 +193,13 @@ func TestErrorUnknownVariableReference(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "error evaluating CUE template")
 		assert.ErrorContains(t, err, "[line 3, column 8]")
-		assert.ErrorContains(t, err, "out.foo: reference \"errrrrr\" not found")
+		assert.ErrorContains(t, err, "foo: reference \"errrrrr\" not found")
 
 		var rerr *renderer.Error
 		require.ErrorAs(t, err, &rerr)
 		assert.EqualValues(t, 3, rerr.Line())
 		assert.EqualValues(t, 8, rerr.Column())
-		assert.ErrorContains(t, rerr, "out.foo: reference \"errrrrr\" not found")
+		assert.ErrorContains(t, rerr, "foo: reference \"errrrrr\" not found")
 	})
 
 	t.Run("BatchModeOff", func(t *testing.T) {
@@ -217,18 +212,18 @@ func TestErrorUnknownVariableReference(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "error evaluating CUE template")
 		assert.ErrorContains(t, err, "[line 3, column 8]")
-		assert.ErrorContains(t, err, "out.foo: reference \"errrrrr\" not found")
+		assert.ErrorContains(t, err, "foo: reference \"errrrrr\" not found")
 
 		var rerr *renderer.Error
 		require.ErrorAs(t, err, &rerr)
 		assert.EqualValues(t, 3, rerr.Line())
 		assert.EqualValues(t, 8, rerr.Column())
-		assert.ErrorContains(t, rerr, "out.foo: reference \"errrrrr\" not found")
+		assert.ErrorContains(t, rerr, "foo: reference \"errrrrr\" not found")
 	})
 }
 
 func TestErrorBadlyFormed(t *testing.T) {
-	tpl, err := cue.NewCUERenderer(`out: {`, t.Name())
+	tpl, err := cue.NewCUERenderer(`{`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
@@ -238,15 +233,13 @@ func TestErrorBadlyFormed(t *testing.T) {
 
 	var rerr *renderer.Error
 	require.ErrorAs(t, err, &rerr)
-	assert.EqualValues(t, 3, rerr.Line())
-	assert.EqualValues(t, 10, rerr.Column())
+	assert.EqualValues(t, 1, rerr.Line())
+	assert.EqualValues(t, 2, rerr.Column())
 	assert.ErrorContains(t, err, "expected '}'")
 }
 
 func TestErrorNoOutput(t *testing.T) {
-	tpl, err := cue.NewCUERenderer(`x: {
-	foo: "bar"
-}`, t.Name())
+	tpl, err := cue.NewCUERenderer(`"s" | 42`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
@@ -259,18 +252,18 @@ func TestErrorNoOutput(t *testing.T) {
 	t.Run("BatchModeOn", func(t *testing.T) {
 		_, err = renderer.Render(tpl, results, true)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "'out' is not set to anything concrete")
+		assert.ErrorContains(t, err, "output is nothing concrete")
 	})
 
 	t.Run("BatchModeOff", func(t *testing.T) {
 		_, err = renderer.Render(tpl, results, false)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "'out' is not set to anything concrete")
+		assert.ErrorContains(t, err, "output is nothing concrete")
 	})
 }
 
 func TestErrorUnsupportedOutputType(t *testing.T) {
-	tpl, err := cue.NewCUERenderer(`out: 42`, t.Name())
+	tpl, err := cue.NewCUERenderer(`42`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, tpl)
 
@@ -283,18 +276,18 @@ func TestErrorUnsupportedOutputType(t *testing.T) {
 	t.Run("BatchModeOn", func(t *testing.T) {
 		_, err = renderer.Render(tpl, results, true)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "'out' has unsupported output type 'int'")
+		assert.ErrorContains(t, err, "output is unsupported type 'int'")
 	})
 
 	t.Run("BatchModeOff", func(t *testing.T) {
 		_, err = renderer.Render(tpl, results, false)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "'out' has unsupported output type 'int'")
+		assert.ErrorContains(t, err, "output is unsupported type 'int'")
 	})
 }
 
 func TestErrorMismatchedOutputType(t *testing.T) {
-	renderToList, err := cue.NewCUERenderer(`out: [42]`, t.Name())
+	renderToList, err := cue.NewCUERenderer(`[42]`, t.Name())
 	require.NoError(t, err)
 	require.NotNil(t, renderToList)
 
@@ -307,12 +300,12 @@ func TestErrorMismatchedOutputType(t *testing.T) {
 	t.Run("BatchModeOn", func(t *testing.T) {
 		_, err := renderer.Render(renderToList, results, true)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "error decoding 'out'")
+		assert.ErrorContains(t, err, "error decoding output")
 	})
 
 	t.Run("BatchModeOff", func(t *testing.T) {
 		_, err := renderer.Render(renderToList, results, false)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "error decoding 'out'")
+		assert.ErrorContains(t, err, "error decoding output")
 	})
 }

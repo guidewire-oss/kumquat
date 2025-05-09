@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -42,19 +43,6 @@ import (
 )
 
 const templateFinalizer = "kumquat.guidewire.com/finalizer"
-
-var SqliteRepository *repository.SQLiteRepository // Initially nil
-
-func GetSqliteRepository() (*repository.SQLiteRepository, error) {
-	if SqliteRepository == nil {
-		rep, err := repository.NewSQLiteRepository()
-		if err != nil {
-			return nil, err
-		}
-		SqliteRepository = rep
-	}
-	return SqliteRepository, nil
-}
 
 // containsString checks if a string is in a slice
 func containsString(slice []string, s string) bool {
@@ -99,8 +87,9 @@ func (r *TemplateReconciler) RemoveFinalizer(template *kumquatv1beta1.Template) 
 type TemplateReconciler struct {
 	client.Client
 	Scheme       *runtime.Scheme
-	WatchManager *WatchManager
+	WatchManager WatchManager
 	K8sClient    K8sClient
+	Repository   repository.Repository
 }
 
 func (r *TemplateReconciler) handleDeletion(
@@ -111,13 +100,7 @@ func (r *TemplateReconciler) handleDeletion(
 	log.Info("template deleted", "name", template.Name)
 	r.WatchManager.RemoveWatch(template.Name)
 
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Error(err, "unable to get repository")
-		return ctrl.Result{}, err
-	}
-
-	err = deleteAssociatedResources(template, re, log, r.K8sClient)
+	err := deleteAssociatedResources(template, r.Repository, log, r.K8sClient)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -133,7 +116,7 @@ func (r *TemplateReconciler) handleDeletion(
 }
 func deleteAssociatedResources(
 	template *kumquatv1beta1.Template,
-	re *repository.SQLiteRepository,
+	re repository.Repository,
 	log logr.Logger,
 	k8sClient K8sClient,
 ) error {
@@ -243,24 +226,18 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	re, err := GetSqliteRepository()
-	if err != nil {
-		log.Error(err, "unable to get repository")
-		return ctrl.Result{}, err
-	}
-
-	gvkList, err := extractGVKsFromQuery(template.Spec.Query, re, log, r.K8sClient)
+	gvkList, err := extractGVKsFromQuery(template.Spec.Query, r.Repository, log, r.K8sClient)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	for _, gvk := range gvkList {
-		err := addDataToDatabase(gvk.Group, gvk.Kind, log, r.K8sClient)
+		err := addDataToDatabase(gvk.Group, gvk.Kind, log, r.K8sClient, r.Repository)
 		if err != nil {
 			log.Error(err, "unable to add data to database", "gvk", gvk)
 		}
 	}
-	data, err := re.Query(template.Spec.Query)
+	data, err := r.Repository.Query(template.Spec.Query)
 	fmt.Println(template, "this is template")
 	if err != nil {
 		log.Error(err, "unable to query database", "query", template.Spec.Query)
@@ -268,7 +245,7 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	fmt.Println(len(data.Results), "found in the database")
 
-	err = applyTemplateResources(template, re, log, r.K8sClient)
+	err = applyTemplateResources(template, r.Repository, log, r.K8sClient, r.WatchManager)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -283,7 +260,7 @@ func (r *TemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 func extractGVKsFromQuery(
 	query string,
-	re *repository.SQLiteRepository,
+	re repository.Repository,
 	log logr.Logger,
 	k8sClient K8sClient,
 ) ([]schema.GroupVersionKind, error) {
@@ -303,7 +280,11 @@ func extractGVKsFromQuery(
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	c, err := controller.New("template-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("template-controller", mgr,
+		controller.Options{
+			Reconciler:         r,
+			SkipNameValidation: ptr.To(true),
+		})
 	if err != nil {
 		return err
 	}
@@ -316,7 +297,7 @@ func (r *TemplateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	r.WatchManager = NewWatchManager(mgr, r.K8sClient)
+	r.WatchManager = NewWatchManager(mgr, r.K8sClient, r.Repository)
 
 	return nil
 }
@@ -341,7 +322,7 @@ func BuildTableGVK(tableName string, log logr.Logger, k8sClient K8sClient) (sche
 	return gvk, nil
 }
 
-func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8sClient) error {
+func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8sClient, repo repository.Repository) error {
 	fmt.Println("Adding data to database for", group, kind)
 
 	context := context.TODO()
@@ -353,24 +334,12 @@ func addDataToDatabase(group string, kind string, log logr.Logger, k8sClient K8s
 	log.Info("found in the cluster", "count", len(data.Items))
 
 	for _, item := range data.Items {
-		err := upsertResource(item.Object)
+		err := UpsertResourceToDatabase(repo, &item, context)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func upsertResource(obj map[string]interface{}) error {
-	resource, err := repository.MakeResource(obj)
-	if err != nil {
-		return err
-	}
-	re, err := GetSqliteRepository()
-	if err != nil {
-		return err
-	}
-	return re.Upsert(resource)
 }
 
 func GetTemplateResourceFromCluster(kind string, group string, name string, log logr.Logger,
@@ -385,17 +354,20 @@ func GetTemplateResourceFromCluster(kind string, group string, name string, log 
 
 }
 
+var ProcessTemplateResources = processTemplateResources
+
 // applyTemplateResources applies the resources generated from the template.
 func applyTemplateResources(
-	template *kumquatv1beta1.Template, re *repository.SQLiteRepository, log logr.Logger, k8sClient K8sClient) error {
-	return processTemplateResources(template, re, log, k8sClient)
+	template *kumquatv1beta1.Template, re repository.Repository, log logr.Logger, k8sClient K8sClient, wm WatchManager) error {
+	return ProcessTemplateResources(template, re, log, k8sClient, wm)
 }
 
 func processTemplateResources(
 	template *kumquatv1beta1.Template,
-	re *repository.SQLiteRepository,
+	re repository.Repository,
 	log logr.Logger,
 	k8sClient K8sClient,
+	wm WatchManager,
 ) error {
 	objMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(template)
 	if err != nil {
@@ -457,7 +429,7 @@ func processTemplateResources(
 	}
 
 	// Retrieve existing resources generated by this template
-	existingResourceIdentifiers := wm.generatedResources[template.Name]
+	existingResourceIdentifiers := wm.GetGeneratedResources(template.Name)
 	if existingResourceIdentifiers == nil {
 		existingResourceIdentifiers = mapset.NewSet[ResourceIdentifier]()
 	}

@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"flag"
 	_ "kumquat/renderer/cue"
+	"kumquat/repository"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -150,11 +151,17 @@ func main() {
 		setupLog.Error(err, "unable to create dynamic k8s client")
 		os.Exit(1)
 	}
+	rep, err := repository.NewSQLiteRepository()
+	if err != nil {
+		setupLog.Error(err, "unable to create repository")
+		os.Exit(1)
+	}
 
 	if err = (&controller.TemplateReconciler{
-		Client:    mgr.GetClient(),
-		Scheme:    mgr.GetScheme(),
-		K8sClient: k8sClient,
+		Client:     mgr.GetClient(),
+		Scheme:     mgr.GetScheme(),
+		K8sClient:  k8sClient,
+		Repository: rep,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Template")
 		os.Exit(1)

@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"bufio"
@@ -7,11 +7,13 @@ import (
 	"os"
 	"path/filepath" // Alias the standard library runtime package
 	"strings"
+	"testing"
 
 	goruntime "runtime"
 
 	// Alias the standard library runtime package
-	"testing"
+
+	controller "kumquat/internal/controller"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -29,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	kumquatv1beta1 "kumquat/api/v1beta1"
+	"kumquat/repository"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -85,7 +88,8 @@ var _ = BeforeSuite(func() {
 		}
 		Expect(scanner.Err()).NotTo(HaveOccurred(), "Failed to read Makefile")
 
-		binaryDir = filepath.Join("..", "..", "bin", "k8s", fmt.Sprintf("%s-linux-%s", envtestK8sVersion, goruntime.GOARCH))
+		binaryDir = filepath.Join("..", "..", "bin", "k8s",
+			fmt.Sprintf("%s-%s-%s", envtestK8sVersion, goruntime.GOOS, goruntime.GOARCH))
 	}
 
 	testEnv = &envtest.Environment{
@@ -112,17 +116,31 @@ var _ = BeforeSuite(func() {
 	discoveryClient, err = discovery.NewDiscoveryClientForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred(), "Failed to create discovery client")
 
+	startController()
+})
+
+var _ = AfterSuite(func() {
+	By("tearing down the test environment")
+	stopMgr()
+	err := testEnv.Stop()
+	Expect(err).NotTo(HaveOccurred())
+})
+
+func startController() {
 	// Start the manager and controller
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{Scheme: scheme})
 	Expect(err).NotTo(HaveOccurred())
 
-	dynamicK8sClient, err := NewDynamicK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
+	dynamicK8sClient, err := controller.NewDynamicK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
+	Expect(err).NotTo(HaveOccurred())
+	repository, err := repository.NewSQLiteRepository()
 	Expect(err).NotTo(HaveOccurred())
 
-	err = (&TemplateReconciler{
-		Client:    k8sManager.GetClient(),
-		Scheme:    scheme,
-		K8sClient: dynamicK8sClient,
+	err = (&controller.TemplateReconciler{
+		Client:     k8sManager.GetClient(),
+		Scheme:     scheme,
+		K8sClient:  dynamicK8sClient,
+		Repository: repository,
 	}).SetupWithManager(k8sManager)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -137,4 +155,4 @@ var _ = BeforeSuite(func() {
 
 	// Wait for the cache to sync
 	Expect(k8sManager.GetCache().WaitForCacheSync(context.Background())).To(BeTrue())
-})
+}

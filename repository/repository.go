@@ -147,6 +147,8 @@ type Repository interface {
 	Close() error
 	Upsert(resource Resource) error
 	Delete(namespace, name, table string) error
+	ExtractTableNamesFromQuery(query string) []string
+	DropTable(table string) error
 }
 
 type ResultSet struct {

@@ -54,8 +54,8 @@ input `ConfigMap` instances, so each piece of Terraform code can own its own
 resource. Kumquat is the only thing that owns `aws-auth`.
 
 The following template does just that. It also check for the presence of the
-`aggregate` annotation on the inputs, and ensures the value is `aws-auth`.
-This ensure that the template only merges `ConfigMap` instances that belong
+`aggregate.auth.annotation` annotation on the inputs, and ensures the value is `aws-auth`.
+This ensures that the template only merges `ConfigMap` instances that belong
 in `aws-auth`. The choice of aggregation name and value was arbitrary.
 
 ```yaml
@@ -69,7 +69,7 @@ spec:
     SELECT cm.data AS cm
     FROM "ConfigMap.core" AS cm
     WHERE cm.namespace = 'kube-system' AND
-    json_extract(cm.data, '$.metadata.annotations.aggregate') = 'aws-auth'
+    json_extract(cm.data, '$.metadata.annotations."aggregate.auth.annotation"') = 'aws-auth'
   template:
     language: cue
     batchModeProcessing: true
@@ -78,8 +78,8 @@ spec:
     data: | #cue
       import "strings"
 
-      mapRoles: strings.Join([for result in data {result.cm.data.mapRoles}], "")
-      out: {
+      _mapRoles: strings.Join([for result in DATA {result.cm.data.mapRoles}], "")
+      {
         apiVersion: "v1"
         kind: "ConfigMap"
         metadata: {
@@ -87,7 +87,7 @@ spec:
           namespace: "kube-system"
         }
         data: {
-          "mapRoles": mapRoles
+          "mapRoles": _mapRoles
         }
       }
 ```

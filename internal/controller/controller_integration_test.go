@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"context"
@@ -116,6 +116,36 @@ var _ = Describe("Template Controller Integration Test", func() {
 				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
 			}
 		})
+
+		It("repeat apply and verify examples to check some race conditions, also restart the controller", func() {
+			exampleFolderPath := path.Join("../", "../", "examples")
+			exampleFolders, err := utils.GetSubDirs(exampleFolderPath)
+			Expect(err).NotTo(HaveOccurred())
+
+			for _, exampleFolder := range exampleFolders {
+				By(fmt.Sprintf("Running example %s", exampleFolder))
+
+				By("applying example templates")
+				templateFolder := path.Join(exampleFolderPath, exampleFolder, "input", "templates")
+				applyResourcesFromYAMLInDir(ctx, templateFolder, nil)
+
+				By("verifying that the output.yaml file has been created")
+				verifyExampleOutput(path.Join(exampleFolderPath, exampleFolder), "out.yaml")
+			}
+
+			By("restarting the controller")
+			stopMgr()
+			// HACK: Wait for the controller to stop
+			time.Sleep(1 * time.Second)
+			startController()
+
+			// Verify again
+			By("verifying that the output.yaml file has been created")
+			for _, exampleFolder := range exampleFolders {
+				exampleFolderPath := path.Join("..", "..", "examples", exampleFolder)
+				verifyExampleOutput(exampleFolderPath, "out.yaml")
+			}
+		})
 	})
 
 	Context("When Template is deleted", func() {
@@ -153,7 +183,6 @@ var _ = Describe("Template Controller Integration Test", func() {
 		applyResourcesFromYAMLInDir(ctx, path.Join("test_resources", "delete_scenario"), nil)
 		configmaps := []string{"test-aws-auth-tenant-acme", "test-aws-auth-base", "test-aws-auth-tenant-umbrella"}
 		Eventually(func() error {
-
 			for _, configmapName := range configmaps {
 				configmap := &corev1.ConfigMap{}
 				err := k8sClient.Get(ctx, client.ObjectKey{Namespace: "kube-system", Name: configmapName}, configmap)
