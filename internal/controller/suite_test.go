@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"bufio"
@@ -7,11 +7,13 @@ import (
 	"os"
 	"path/filepath" // Alias the standard library runtime package
 	"strings"
+	"testing"
 
 	goruntime "runtime"
 
 	// Alias the standard library runtime package
-	"testing"
+
+	controller "kumquat/internal/controller"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -29,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	kumquatv1beta1 "kumquat/api/v1beta1"
+	"kumquat/repository"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -128,13 +131,16 @@ func startController() {
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{Scheme: scheme})
 	Expect(err).NotTo(HaveOccurred())
 
-	dynamicK8sClient, err := NewDynamicK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
+	dynamicK8sClient, err := controller.NewDynamicK8sClient(k8sManager.GetClient(), k8sManager.GetRESTMapper())
+	Expect(err).NotTo(HaveOccurred())
+	repository, err := repository.NewSQLiteRepository()
 	Expect(err).NotTo(HaveOccurred())
 
-	err = (&TemplateReconciler{
-		Client:    k8sManager.GetClient(),
-		Scheme:    scheme,
-		K8sClient: dynamicK8sClient,
+	err = (&controller.TemplateReconciler{
+		Client:     k8sManager.GetClient(),
+		Scheme:     scheme,
+		K8sClient:  dynamicK8sClient,
+		Repository: repository,
 	}).SetupWithManager(k8sManager)
 	Expect(err).NotTo(HaveOccurred())
 
