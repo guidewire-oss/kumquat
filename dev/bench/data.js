@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746753097610,
+  "lastUpdate": 1746757612910,
   "repoUrl": "https://github.com/guidewire-oss/kumquat",
   "entries": {
     "Benchmark": [
@@ -2298,6 +2298,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
             "value": 1460934012,
+            "unit": "ns/op",
+            "extra": "7 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "56237953+katronquillo@users.noreply.github.com",
+            "name": "Katrina Ronquillo",
+            "username": "katronquillo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "02bf9a14a1ca2a2c5feb7366ea47baed716fd60d",
+          "message": "✅ Add integration test for Template Controller to check deletion (#35)",
+          "timestamp": "2025-05-08T22:25:34-04:00",
+          "tree_id": "af2e184ba4bbb0bf0ed6b767b755172d70fadf42",
+          "url": "https://github.com/guidewire-oss/kumquat/commit/02bf9a14a1ca2a2c5feb7366ea47baed716fd60d"
+        },
+        "date": 1746757612276,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkQueryPerformance/QueryFirst",
+            "value": 29792,
+            "unit": "ns/op",
+            "extra": "399601 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryLast",
+            "value": 29552,
+            "unit": "ns/op",
+            "extra": "402495 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryMissing",
+            "value": 25322,
+            "unit": "ns/op",
+            "extra": "475897 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkQueryPerformance/QueryCartesianProduct",
+            "value": 1431229170,
             "unit": "ns/op",
             "extra": "7 times\n4 procs"
           }
