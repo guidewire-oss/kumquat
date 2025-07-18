@@ -59,7 +59,7 @@ var _ = AfterSuite(func() {
 var _ = ReportAfterSuite("", func(report Report) {
 	projectID := os.Getenv("E2E_FERN_PROJECT_ID")
 
-	fernReporterBaseURL := "https://fern-reporter.int.ccs.guidewire.net/"
+	fernReporterBaseURL := "https://fern-platform-fern-platform.dev.ccs.guidewire.net/"
 	if os.Getenv("FERN_REPORTER_BASE_URL") != "" {
 		fernReporterBaseURL = os.Getenv("FERN_REPORTER_BASE_URL")
 	}

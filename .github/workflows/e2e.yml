@@ -24,6 +24,6 @@ jobs:
       - name: Run the E2E tests 🧪
         run: make test-e2e
         env:
-          REPORT_TO_FERN: true
-          FERN_REPORTER_BASE_URL: ${{ vars.FERN_REPORTER_BASE_URL }}
-          FERN_PROJECT_ID: ${{ vars.E2E_FERN_PROJECT_ID }}
+          REPORT_TO_FERN: ${{ secrets.REPORT_TO_FERN }}
+          FERN_REPORTER_BASE_URL: ${{ secrets.FERN_REPORTER_BASE_URL }}
+          FERN_PROJECT_ID: ${{ secrets.E2E_FERN_PROJECT_ID }}

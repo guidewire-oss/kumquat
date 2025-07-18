@@ -16,8 +16,10 @@ import (
 	controller "kumquat/internal/controller"
 
 	. "github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 
+	fern "github.com/guidewire-oss/fern-ginkgo-client/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
@@ -38,6 +40,7 @@ import (
 var (
 	cfg             *rest.Config
 	k8sClient       client.Client
+	fernClient      *fern.FernApiClient
 	testEnv         *envtest.Environment
 	scheme          = runtime.NewScheme()
 	dynamicClient   dynamic.Interface
@@ -124,6 +127,23 @@ var _ = AfterSuite(func() {
 	stopMgr()
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
+})
+
+var _ = ReportAfterSuite("", func(report Report) {
+	projectID := os.Getenv("INTEGRATION_FERN_PROJECT_ID")
+
+	fernReporterBaseURL := "https://fern-platform-fern-platform.dev.ccs.guidewire.net/"
+	if os.Getenv("FERN_REPORTER_BASE_URL") != "" {
+		fernReporterBaseURL = os.Getenv("FERN_REPORTER_BASE_URL")
+	}
+
+	if os.Getenv("REPORT_TO_FERN") == "true" {
+		fernClient = fern.New(projectID, fern.WithBaseURL(fernReporterBaseURL))
+		err := fernClient.Report(report)
+		gomega.Expect(err).ToNot(gomega.HaveOccurred(), "Unable to push report to Fern %v", err)
+	} else {
+		fmt.Println("Skipping report to Fern as REPORT_TO_FERN is set to false")
+	}
 })
 
 func startController() {
