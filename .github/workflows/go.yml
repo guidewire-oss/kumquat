@@ -41,6 +41,10 @@ jobs:
       - name: Test 🧪
         run: |
           go test -skip '^(TestE2E)$' -v ./...
+        env:
+          REPORT_TO_FERN: ${{ secrets.REPORT_TO_FERN }}
+          FERN_REPORTER_BASE_URL: ${{ secrets.FERN_REPORTER_BASE_URL }}
+          INTEGRATION_FERN_PROJECT_ID: ${{ secrets.INTEGRATION_FERN_PROJECT_ID }}
 
       - name: Upload binary as artifact 📦
         uses: actions/upload-artifact@v4
